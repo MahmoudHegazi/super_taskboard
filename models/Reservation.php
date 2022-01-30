@@ -4,33 +4,23 @@ class Reservation {
   public $id;
   public $name;
   public $notes;
-  public $day_id;
   public $slot_id;
-  public $cal_id;
+  public $user_id;
 
 
-  function init($id, $name, $notes, $day_id, $slot_id, $cal_id){
-    $this->id = $id;
+  function init($name, $notes, $slot_id, $user_id){
     $this->notes = $notes;
     $this->name = $name;
-    $this->day_id = $day_id;
     $this->slot_id = $slot_id;
-    $this->cal_id = $cal_id;
-
+    $this->user_id = $user_id;
   }
+
   // Setter and geter
   function set_id($id) {
     $this->id = $id;
   }
   function get_id() {
     return $this->id;
-  }
-
-  function set_day_id($day_id) {
-    $this->day_id = $day_id;
-  }
-  function get_day_id() {
-    return $this->day_id;
   }
 
   function set_name($name) {
@@ -48,7 +38,6 @@ class Reservation {
   }
 
 
-
   function set_slot_id($slot_id) {
     $this->slot_id = $slot_id;
   }
@@ -56,11 +45,10 @@ class Reservation {
     return $this->slot_id;
   }
 
-  function set_cal_id($cal_id) {
-    $this->cal_id = $cal_id;
+  function set_user_id($user_id) {
+    $this->user_id = $user_id;
   }
-  function get_cal_id() {
-    return $this->cal_id;
+  function get_user_id() {
+    return $this->user_id;
   }
-
 }

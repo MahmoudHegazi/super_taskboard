@@ -4,13 +4,10 @@ class Month {
   public $id;
   public $month;
   public $year_id;
-  public $cal_id;
 
-  function init($id, $month, $year_id, $cal_id){
-    $this->id = $id;
+  function init($month, $year_id){
     $this->month = $month;
     $this->year_id = $year_id;
-    $this->cal_id = $cal_id;
   }
   // Setter and geter
   function set_id($id) {
@@ -34,10 +31,4 @@ class Month {
     return $this->year_id;
   }
 
-  function set_cal_id($cal_id) {
-    $this->cal_id = $cal_id;
-  }
-  function get_cal_id() {
-    return $this->cal_id;
-  }
 }

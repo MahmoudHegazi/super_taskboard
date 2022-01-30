@@ -5,18 +5,14 @@ class Slot {
   public $start_from;
   public $end_at;
   public $period_id;
-  public $day_id;
-  public $cal_id;
+  public $empty;
 
-  function init($id, $start_from, $end_at, $period_id, $day_id, $cal_id){
-    $this->id = $id;
+
+  function init($start_from, $end_at, $period_id, $empty){
     $this->start_from = $start_from;
     $this->end_at = $end_at;
-    $this->peropd_id = $period_id;
-    $this->day_id = $day_id;
-    $this->cal_id = $cal_id;
-
-
+    $this->period_id = $period_id;
+    $this->empty = $empty;
   }
   // Setter and geter
   function set_id($id) {
@@ -43,21 +39,14 @@ class Slot {
   function set_period_id($period_id) {
     $this->period_id = $period_id;
   }
-  function get_peropd_id() {
+  function get_period_id() {
     return $this->period_id;
   }
 
-  function set_day_id($day_id) {
-    $this->day_id = $day_id;
+  function set_empty($empty) {
+    $this->empty = $empty;
   }
-  function get_day_id() {
-    return $this->day_id;
-  }
-
-  function set_cal_id($cal_id) {
-    $this->cal_id = $cal_id;
-  }
-  function get_cal_id() {
-    return $this->cal_id;
+  function get_empty() {
+    return $this->empty;
   }
 }

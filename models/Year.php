@@ -1,12 +1,11 @@
 <?php
-class User {
+class Year {
   // Propertiess
   public $id;
   public $year;
   public $cal_id;
 
-  function init($id, $year, $cal_id){
-    $this->id = $id;
+  function init($year, $cal_id){
     $this->year = $year;
     $this->cal_id = $cal_id;
   }
@@ -29,6 +28,6 @@ class User {
     $this->cal_id = $cal_id;
   }
   function get_cal_id() {
-    return $this->start_year;
+    return $this->cal_id;
   }
 }

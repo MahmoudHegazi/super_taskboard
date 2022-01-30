@@ -1,38 +1,82 @@
 <?php
 class SlotMapper {
-    /* Main CRUD */
+  /* Main CRUD */
+  /**
+    * @var PDO
+  */
 
-    function read_one(){
+  // get_id get_day get_day_name get_day_date get_month_id get_cal_id
+  protected $pdo;
 
-    }
-    function add($slotModal){
+  public function __construct(PDO $pdo)
+  {
+    $this->pdo = $pdo;
+  }
 
-    }
+  public function getPDO(){
+    return $this->pdo;
+  }
 
-    function update($slotModal){
+  public function insert($slot) {
+      $pdo = $this->getPDO();
+      $statement = $pdo->prepare('INSERT INTO slot(start_from, end_at, period_id, empty) VALUES(:start_from, :end_at, :period_id, :empty)');
+      $statement->execute(array(
+        'start_from' => $slot->get_start_from(),
+        'end_at' => $slot->get_end_at(),
+        'period_id' => $slot->get_period_id(),
+        'empty' => $slot->get_empty()
+      ));
+      return $pdo->lastInsertId();
+  }
 
-    }
 
-    function delete($id){
+  function read_one($slot_id){
+    $pdo = $this->getPDO();
+    $stmt = $pdo->prepare("SELECT * FROM slot WHERE id=:id");
+    $stmt->bindParam(':id', $slot_id, PDO::PARAM_INT);
+    $stmt->execute();
+    $data = $stmt->fetch();
+    return $data;
+  }
 
-    }
 
-    /* actions methods */
-    function read_all(){
 
-    }
 
-    function read_list($list_of_ids){
+  function update($slot){
+    $statement = $pdo->prepare('UPDATE slot (start_from, end_at, period_id, empty) VALUES(:start_from, :end_at, :period_id, :empty)');
+    $statement->execute(array(
+      'start_from' => $slot->get_start_from(),
+      'end_at' => $slot->get_end_at(),
+      'period_id' => $slot->get_period_id(),
+      'empty' => $slot->get_empty()
+    ));
+  }
 
-    }
-    function add_list($list_of_slot){
+  function delete($slot_id){
+    // construct the delete statement
+    $pdo = $this->getPDO();
+    $sql = 'DELETE FROM slot
+            WHERE id = :id';
+    // prepare the statement for execution
+    $statement = $pdo->prepare($sql);
+    $statement->bindParam(':id', $slot_id, PDO::PARAM_INT);
+    // execute the statement
+    //echo $statement->rowCount();
+    return $statement->execute();
+  }
 
-    }
-    function delete_all(){
+  function read_all(){
+    //$stmt = $pdo->prepare("SELECT * FROM users LIMIT :limit, :offset");
+    $pdo = $this->getPDO();
+    $stmt = $pdo->prepare("SELECT * FROM slot");
+    $stmt->execute();
+    $data = $stmt->fetchAll();
+    return $data;
+  }
 
-    }
-    function delete_list($list_of_ids){
-
-    }
-
+  function delete_all(){
+    $pdo = $this->getPDO();
+    $statement = $pdo->prepare('DELETE FROM slot WHERE id > 0');
+    return $statement->execute();
+  }
 }

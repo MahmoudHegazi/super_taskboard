@@ -2,14 +2,14 @@
 $servername = "localhost";
 $username = "root";
 $password = "root";
-$dbname = "super_calendar";
 
-
-// Create connection
-$conn = new mysqli($servername, $username, $password, $dbname);
-// Check connection
-if ($conn->connect_error) {
-  die("Connection failed: " . $conn->connect_error);
+try {
+  $pdo = new PDO("mysql:host=$servername;dbname=super_calendar", $username, $password);
+  // set the PDO error mode to exception
+  $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+  //echo "Connected successfully";
+} catch(PDOException $e) {
+  echo "DB Connection failed: " . $e->getMessage();
 }
 
 if (!isset($_SESION)){

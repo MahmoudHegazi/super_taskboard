@@ -1,38 +1,82 @@
 <?php
 class PeriodMapper {
-    /* Main CRUD */
+  /* Main CRUD */
+  /**
+    * @var PDO
+  */
 
-    function read_one(){
+  // get_id get_day get_day_name get_day_date get_month_id get_cal_id
+  protected $pdo;
 
-    }
-    function add($periodModal){
+  public function __construct(PDO $pdo)
+  {
+    $this->pdo = $pdo;
+  }
 
-    }
+  public function getPDO(){
+    return $this->pdo;
+  }
 
-    function update($periodModal){
+  public function insert($period) {
+      $pdo = $this->getPDO();
 
-    }
 
-    function delete($id){
+      $statement = $pdo->prepare('INSERT INTO period(day_id, period_date, description) VALUES(:day_id, :period_date, :description)');
+      $statement->execute(array(
+          'day_id' => $period->get_day_id(),
+          'period_date' => $period->get_period_date(),
+          'description' => $period->get_description()
+      ));
+      return $pdo->lastInsertId();
+  }
 
-    }
 
-    /* actions methods */
-    function read_all(){
+  function read_one($period_id){
+    $pdo = $this->getPDO();
+    $stmt = $pdo->prepare("SELECT * FROM period WHERE id=:id");
+    $stmt->bindParam(':id', $period_id, PDO::PARAM_INT);
+    $stmt->execute();
+    $data = $stmt->fetch();
+    return $data;
+  }
 
-    }
 
-    function read_list($list_of_ids){
 
-    }
-    function add_list($list_of_period){
+  function update($period){
+    $statement = $pdo->prepare('UPDATE period (day_id, period_date, description) VALUES(:day_id, :period_date, :description)');
+    $statement->execute(array(
+      'day_id' => $period->get_day_id(),
+      'period_date' => $period->get_period_date(),
+      'description' => $period->get_description()
+    ));
+  }
 
-    }
-    function delete_all(){
+  function delete($period_id){
+    // construct the delete statement
+    $pdo = $this->getPDO();
+    $sql = 'DELETE FROM period
+            WHERE id = :id';
+    // prepare the statement for execution
+    $statement = $pdo->prepare($sql);
+    $statement->bindParam(':id', $period_id, PDO::PARAM_INT);
+    // execute the statement
+    //echo $statement->rowCount();
+    return $statement->execute();
+  }
 
-    }
-    function delete_list($list_of_ids){
+  function read_all(){
+    //$stmt = $pdo->prepare("SELECT * FROM users LIMIT :limit, :offset");
+    $pdo = $this->getPDO();
+    $stmt = $pdo->prepare("SELECT * FROM period");
+    $stmt->execute();
+    $data = $stmt->fetchAll();
+    return $data;
+  }
 
-    }
+  function delete_all(){
+    $pdo = $this->getPDO();
+    $statement = $pdo->prepare('DELETE FROM period WHERE id > 0');
+    return $statement->execute();
+  }
 
 }

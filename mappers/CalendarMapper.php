@@ -12,80 +12,83 @@ class CalendarMapper {
       $this->pdo = $pdo;
     }
 
+    public function getPDO(){
+      return $this->pdo;
+    }
+
+
     public function insert($calendar) {
-            $statement = $pdo->prepare('INSERT INTO signup(name) VALUES(:name)');
-
-            $statement->execute(array(
-                'name' => $name,
-            ));
+        global $pdo;
+        $statement = $pdo->prepare('INSERT INTO calendar(title, start_year, added_years, periods_per_day, slots_per_period) VALUES(:title, :start_year, :added_years, :periods_per_day, :slots_per_period)');
+        $statement->execute(array(
+            'title' => $calendar->get_title(),
+            'start_year' => $calendar->get_start_year(),
+            'added_years' => $calendar->get_added_years(),
+            'periods_per_day' => $calendar->get_periods_per_day(),
+            'slots_per_period' => $calendar->get_slots_per_period()
+        ));
+        return $pdo->lastInsertId();
     }
 
-    function read_one(){
 
+    function read_one($calendar_id){
+      $pdo = $this->getPDO();
+      $stmt = $pdo->prepare("SELECT * FROM calendar WHERE id=:id");
+      $stmt->bindParam(':id', $calendar_id, PDO::PARAM_INT);
+      $stmt->execute();
+      $data = $stmt->fetch();
+      return $data;
     }
 
-    function update($calendarModal){
-
+    function update($calendar){
+      $statement = $pdo->prepare('UPDATE calendar (title, start_year, added_years, periods_per_day, slots_per_period) VALUES(:title, :start_year, :added_years, :periods_per_day, :slots_per_period)');
+      $statement->execute(array(
+        'title' => $calendar->get_title(),
+        'start_year' => $calendar->get_start_year(),
+        'added_years' => $calendar->get_added_years(),
+        'periods_per_day' => $calendar->get_periods_per_day(),
+        'slots_per_period' => $calendar->get_slots_per_period()
+      ));
     }
 
     function delete($calendar_id){
       // construct the delete statement
+      $pdo = $this->getPDO();
       $sql = 'DELETE FROM calendar
               WHERE id = :id';
-
       // prepare the statement for execution
       $statement = $pdo->prepare($sql);
       $statement->bindParam(':id', $calendar_id, PDO::PARAM_INT);
-
       // execute the statement
-      if ($statement->execute()) {
-      	return True;
+      if ($statement->execute()){
+        return True;
       } else {
         return False;
       }
     }
 
-    /* actions methods */
     function read_all(){
-
+      //$stmt = $pdo->prepare("SELECT * FROM users LIMIT :limit, :offset");
+      $pdo = $this->getPDO();
+      $stmt = $pdo->prepare("SELECT * FROM calendar");
+      $stmt->execute();
+      $data = $stmt->fetchAll();
+      return $data;
     }
 
-    function read_list($list_of_ids){
-
-    }
-
-    function add_list($list_of_calendars){
-      $added = 0;
-      for ($i=0; i<count($list_of_calendars); $i++){
-        $this->insert($list_of_calendars[$i]);
-        $added += 1;
-      }
-      return $added;
-    }
-
-    function delete_all($list_of_ids){
-
-    }
-
-    function delete_list(){
-      $deleted = 0;
-      for ($i=0; i<count($list_of_ids); $i++){
-
-        if ($this->delete($list_of_ids[$i])){
-          $deleted += 1;
-        }
-      }
-
-      return array(
-        'success'=>$deleted > 0,
-        'total_deleted'=>$deleted,
-        'total_requested'=>count($list_of_ids)
-      );
+    function delete_all(){
+      $pdo = $this->getPDO();
+      $statement = $pdo->prepare('DELETE FROM calendar WHERE id > 0');
+      return $statement->execute();
     }
 
 }
 
-
+/*
+global $pdo;
+$calendarMapper = new CalendarMapper($pdo);
+var_dump($calendarMapper);
+*/
 // actual program flow
 /*
 $pdo = new PDO($dsn, $username, $password);

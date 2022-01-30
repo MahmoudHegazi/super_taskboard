@@ -6,15 +6,12 @@ class Day {
   public $day_name;
   public $day_date;
   public $month_id;
-  public $cal_id;
 
-  function init($id, $day, $day_name, $day_date, $month_id, $cal_id){
-    $this->id = $id;
+  function init($day, $day_name, $day_date, $month_id){
     $this->day = $day;
     $this->day_name = $day_name;
     $this->day_date = $day_date;
     $this->month_id = $month_id;
-    $this->cal_id = $cal_id;
   }
   // Setter and geter
   function set_id($id) {
@@ -52,10 +49,5 @@ class Day {
     return $this->month_id;
   }
 
-  function set_day($cal_id) {
-    $this->cal_id = $cal_id;
-  }
-  function get_cal_id() {
-    return $this->cal_id;
-  }
+
 }

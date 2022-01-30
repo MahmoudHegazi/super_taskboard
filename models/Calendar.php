@@ -4,13 +4,16 @@ class Calendar {
   public $id;
   public $title;
   public $start_year;
-  public $end_year;
+  public $added_years;
+  public $periods_per_day;
+  public $slots_per_period;
 
-  function init($id, $title, $start_year, $end_year){
-    $this->id = $id;
+  function init($title, $start_year, $added_years, $periods_per_day, $slots_per_period){
     $this->title = $title;
     $this->start_year = $start_year;
-    $this->end_year = $end_year;
+    $this->added_years = $added_years;
+    $this->periods_per_day = $periods_per_day;
+    $this->slots_per_period = $slots_per_period;
   }
   // Setter and geter
   function set_id($id) {
@@ -34,11 +37,25 @@ class Calendar {
     return $this->start_year;
   }
 
-  function set_end_year($end_year) {
-    $this->end_year = $end_year;
+  function set_added_years($added_years) {
+    $this->added_years = $added_years;
   }
-  function get_end_year() {
-    return $this->end_year;
+  function get_added_years() {
+    return $this->added_years;
+  }
+
+  function set_periods_per_day($periods_per_day) {
+    $this->periods_per_day = $periods_per_day;
+  }
+  function get_periods_per_day() {
+    return $this->periods_per_day;
+  }
+
+  function set_slots_per_period($slots_per_period) {
+    $this->slots_per_period = $slots_per_period;
+  }
+  function get_slots_per_period() {
+    return $this->slots_per_period;
   }
 }
 

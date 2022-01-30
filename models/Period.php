@@ -5,14 +5,11 @@ class Period {
   public $day_id;
   public $period_date;
   public $description;
-  public $cal_id;
 
-  function init($id, $day_id, $period_date, $description, $cal_id){
-    $this->id = $id;
+  function init($day_id, $period_date, $description){
     $this->day_id = $day_id;
     $this->period_date = $period_date;
     $this->description = $description;
-    $this->cal_id = $cal_id;
   }
   // Setter and geter
   function set_id($id) {
@@ -43,10 +40,4 @@ class Period {
     return $this->description;
   }
 
-  function set_cal_id($cal_id) {
-    $this->cal_id = $cal_id;
-  }
-  function get_cal_id() {
-    return $this->cal_id;
-  }
 }

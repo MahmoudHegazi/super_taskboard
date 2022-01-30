@@ -4,14 +4,13 @@ class User {
   public $id;
   public $name;
   public $username;
-  public $password;
+  public $hashed_password;
   public $email;
 
-  function init($id, $name, $username, $password, $email){
-    $this->id = $id;
+  function init($name, $username, $hashed_password, $email){
     $this->name = $name;
     $this->username = $username;
-    $this->password = $password;
+    $this->hashed_password = $hashed_password;
     $this->email = $email;
   }
   // Setter and geter
@@ -26,7 +25,7 @@ class User {
     $this->title = $name;
   }
   function get_name() {
-    return $this->namename;
+    return $this->name;
   }
 
   function set_username($username) {
@@ -36,12 +35,13 @@ class User {
     return $this->username;
   }
 
-  function set_password($password) {
-    $this->password = $password;
+  function set_hashed_password($hashed_password) {
+    $this->hashed_password = $hashed_password;
   }
-  function get_password() {
-    return $this->end_year;
+  function get_hashed_password() {
+    return $this->hashed_password;
   }
+
   function set_email($email) {
     $this->email = $email;
   }
