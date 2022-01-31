@@ -7,13 +7,16 @@ class Calendar {
   public $added_years;
   public $periods_per_day;
   public $slots_per_period;
+  public $description;
+  public $used;
 
-  function init($title, $start_year, $added_years, $periods_per_day, $slots_per_period){
+  function init($title, $start_year, $added_years, $periods_per_day, $slots_per_period, $description){
     $this->title = $title;
     $this->start_year = $start_year;
     $this->added_years = $added_years;
     $this->periods_per_day = $periods_per_day;
     $this->slots_per_period = $slots_per_period;
+    $this->description = $description;
   }
   // Setter and geter
   function set_id($id) {
@@ -57,6 +60,21 @@ class Calendar {
   function get_slots_per_period() {
     return $this->slots_per_period;
   }
+
+  function set_description($description) {
+    $this->description = $description;
+  }
+  function get_description() {
+    return $this->description;
+  }
+
+  function set_used($used) {
+    $this->used = $used;
+  }
+  function get_used() {
+    return $this->used;
+  }
+
 }
 
 //$calendar = new Calendar();

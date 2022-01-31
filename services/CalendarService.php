@@ -15,10 +15,10 @@ class CalendarService {
     $this->calendar_mapper = new CalendarMapper($pdo);
   }
   // Add New Calendar
-  function add($title, $start_year, $added_years, $periods_per_day, $slots_per_period){
+  function add($title, $start_year, $added_years, $periods_per_day, $slots_per_period, $description){
 
     $calendar = new Calendar();
-    $calendar->init($title, $start_year, $added_years, $periods_per_day, $slots_per_period);
+    $calendar->init($title, $start_year, $added_years, $periods_per_day, $slots_per_period, $description);
     return $this->calendar_mapper->insert($calendar);
   }
 
@@ -32,8 +32,9 @@ class CalendarService {
     $calendar_row = $this->calendar_mapper->read_one($calendar_id);
     if (!isset($calendar_row['id']) || empty($calendar_row['id'])){return array();}
     $calendar = new Calendar();
-    $calendar->init($calendar_row['title'], $calendar_row['start_year'], $calendar_row['added_years'], $calendar_row['periods_per_day'], $calendar_row['slots_per_period']);
+    $calendar->init($calendar_row['title'], $calendar_row['start_year'], $calendar_row['added_years'], $calendar_row['periods_per_day'], $calendar_row['slots_per_period'], $calendar_row['description']);
     $calendar->set_id($calendar_row['id']);
+    $calendar->set_used($calendar_row['used']);
     return $calendar;
   }
 
@@ -50,7 +51,9 @@ class CalendarService {
         $calendar_rows[$i]['start_year'],
         $calendar_rows[$i]['added_years'],
         $calendar_rows[$i]['periods_per_day'],
-        $calendar_rows[$i]['slots_per_period']
+        $calendar_rows[$i]['slots_per_period'],
+        $calendar_rows[$i]['description'],
+        $calendar_rows[$i]['used']
       );
       $calendar->set_id($calendar_rows[$i]['id']);
       array_push($calendars_list, $calendar);
@@ -94,7 +97,8 @@ class CalendarService {
            $cal_data_list[$i][1],
            $cal_data_list[$i][2],
            $cal_data_list[$i][3],
-           $cal_data_list[$i][4]
+           $cal_data_list[$i][4],
+           $cal_data_list[$i][5]
          );
          $cal_id = $this->calendar_mapper->insert($calendar);
          array_push($calendars_ids, $cal_id);

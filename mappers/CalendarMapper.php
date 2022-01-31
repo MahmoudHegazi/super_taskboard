@@ -19,13 +19,14 @@ class CalendarMapper {
 
     public function insert($calendar) {
         global $pdo;
-        $statement = $pdo->prepare('INSERT INTO calendar(title, start_year, added_years, periods_per_day, slots_per_period) VALUES(:title, :start_year, :added_years, :periods_per_day, :slots_per_period)');
+        $statement = $pdo->prepare('INSERT INTO calendar(title, start_year, added_years, periods_per_day, slots_per_period, description) VALUES(:title, :start_year, :added_years, :periods_per_day, :slots_per_period, :description)');
         $statement->execute(array(
             'title' => $calendar->get_title(),
             'start_year' => $calendar->get_start_year(),
             'added_years' => $calendar->get_added_years(),
             'periods_per_day' => $calendar->get_periods_per_day(),
-            'slots_per_period' => $calendar->get_slots_per_period()
+            'slots_per_period' => $calendar->get_slots_per_period(),
+            'description' => $calendar->get_description()
         ));
         return $pdo->lastInsertId();
     }
@@ -41,13 +42,14 @@ class CalendarMapper {
     }
 
     function update($calendar){
-      $statement = $pdo->prepare('UPDATE calendar (title, start_year, added_years, periods_per_day, slots_per_period) VALUES(:title, :start_year, :added_years, :periods_per_day, :slots_per_period)');
+      $statement = $pdo->prepare('UPDATE calendar (title, start_year, added_years, periods_per_day, slots_per_period, description) VALUES(:title, :start_year, :added_years, :periods_per_day, :slots_per_period, :description)');
       $statement->execute(array(
         'title' => $calendar->get_title(),
         'start_year' => $calendar->get_start_year(),
         'added_years' => $calendar->get_added_years(),
         'periods_per_day' => $calendar->get_periods_per_day(),
-        'slots_per_period' => $calendar->get_slots_per_period()
+        'slots_per_period' => $calendar->get_slots_per_period(),
+        'description' => $calendar->get_description()
       ));
     }
 

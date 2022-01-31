@@ -1,378 +1,160 @@
-<style>
-/**
- * ALL the UI design credit goes to:
- * https://www.sketchappsources.com/free-source/2676-calendar-template-sketch-freebie-resource.html
- */
+<!DOCTYPE html>
+<html lang="en">
+<head>
 
 
-/* WRAPPER */
+  <title>My Calendar</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</head>
+<body>
 
-.wrapper {
-  display: grid;
-  grid-template-rows: 70px 1fr 70px;
-  grid-template-columns: 1fr;
-  grid-template-areas: "sidebar"
-                       "content";
-  width: 100vw; /* unnecessary, but let's keep things consistent */
-  height: 100vh;
-}
-
-@media screen and (min-width: 850px) {
-  .wrapper {
-    grid-template-columns: 200px 5fr;
-    grid-template-rows: 1fr;
-    grid-template-areas: "sidebar content";
-  }
-}
+<div class="container-fluid p-5 bg-primary text-white text-center">
+  <h1>Calendar Title</h1>
+  <p>Calendar Description...</p>
+</div>
 
 
-
-/* SIDEBAR */
-
-main {
-  grid-area: content;
-  padding: 48px;
-}
-
-sidebar {
-  grid-area: sidebar;
-  display: grid;
-  grid-template-columns: 1fr 3fr 1fr;
-  grid-template-rows: 3fr 1fr;
-  grid-template-areas: "logo menu avatar"
-                       "copyright menu avatar";
-}
-.logo {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.copyright {
-  text-align: center;
-}
-.avatar {
-  grid-area: avatar;
-  display: flex;
-  align-items: center;
-  flex-direction: row-reverse;
-}
-.avatar__name {
-  flex: 1;
-  text-align: right;
-  margin-right: 1em;
-}
-.avatar__img > img {
-  display: block;
-}
-
-.copyright {
-  grid-area: copyright;
-}
-.menu {
-  grid-area: menu;
-  display: flex;
-  align-items: center;
-  justify-content: space-evenly;
-}
-.logo {
-  grid-area: logo;
-}
-.menu__text {
-  display: none;
-}
-
-@media screen and (min-width: 850px) {
-  sidebar {
-    grid-template-areas: "logo"
-                         "avatar"
-                         "menu"
-                         "copyright";
-    grid-template-columns: 1fr;
-    grid-template-rows: 50px auto 1fr 50px;
-  }
-
-  .menu {
-    flex-direction: column;
-    align-items: normal;
-    justify-content: flex-start;
-  }
-  .menu__text {
-    display: inline-block;
-  }
-  .avatar {
-    flex-direction: column;
-  }
-  .avatar__name {
-    margin: 1em 0;
-  }
-  .avatar__img > img {
-    border-radius: 50%;
-  }
-}
-
-
-
-
-/* MAIN */
-
-.toolbar{
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-}
-.calendar{}
-
-.calendar__week,
-.calendar__header {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-}
-.calendar__week {
-  grid-auto-rows: 100px;
-  text-align: right;
-}
-
-.calendar__header {
-  grid-auto-rows: 50px;
-  align-items: center;
-  text-align: center;
-}
-
-.calendar__day {
-  padding: 16px;
-}
-
-
-
-
-/* COSMETIC STYLING */
-
-:root {
-  --red: #ED5454;
-}
-
-body {
-  font-family: Montserrat;
-  font-weight: 100;
-  color: #A8B2B9;
-}
-
-sidebar {
-  background-color: white;
-  box-shadow: 5px 0px 20px rgba(0, 0, 0, 0.2);
-}
-
-main {
-  background-color: #FCFBFC;
-}
-
-.avatar__name {
-  font-size: 0.8rem;
-}
-
-.menu__item {
-  text-transform: uppercase;
-  font-size: 0.7rem;
-  font-weight: 500;
-  padding: 16px 16px 16px 14px;
-  border-left: 4px solid transparent;
-  color: inherit;
-  text-decoration: none;
-  transition: color ease 0.3s;
-}
-
-.menu__item--active .menu__icon {
-  color: var(--red);
-}
-.menu__item--active .menu__text {
-  color: black;
-}
-
-.menu__item:hover {
-  color: black;
-}
-
-
-.menu__icon {
-  font-size: 1.3rem;
-}
-
-@media screen and (min-width: 850px) {
-  .menu__icon {
-    font-size: 0.9rem;
-    padding-right: 16px;
-  }
-  .menu__item--active {
-    border-left: 4px solid var(--red);
-    box-shadow: inset 10px 0px 17px -13px var(--red);
-  }
-}
-
-.copyright {
-  font-size: 0.7rem;
-  font-weight: 400;
-}
-
-.calendar {
-  background-color: white;
-  border: 1px solid #e1e1e1;
-}
-
-.calendar__header > div {
-  text-transform: uppercase;
-  font-size: 0.8em;
-  font-weight: bold;
-}
-
-.calendar__day {
-  border-right: 1px solid #e1e1e1;
-  border-top: 1px solid #e1e1e1;
-}
-
-.calendar__day:last-child {
-  border-right: 0;
-}
-
-.toggle{
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-
-  text-align: center;
-  font-size: 0.9em;
-}
-.toggle__option{
-  padding: 16px;
-  border: 1px solid #e1e1e1;
-  border-radius: 8px;
-  text-transform: capitalize;
-  cursor: pointer;
-}
-.toggle__option:first-child {
-    border-top-right-radius: 0;
-    border-bottom-right-radius: 0;
-}
-.toggle__option:last-child {
-    border-left: 0;
-    border-top-left-radius: 0;
-    border-bottom-left-radius: 0;
-}
-.toggle__option--selected{
-  border-color: white;
-  background-color: white;
-  color: var(--red);
-  font-weight: 500;
-  box-shadow: 1px 2px 30px -5px var(--red);
-}
-</style>
 <div class="wrapper">
   <main>
     <div class="toolbar">
+      <!--
       <div class="toggle">
         <div class="toggle__option">week</div>
         <div class="toggle__option toggle__option--selected">month</div>
       </div>
       <div class="current-month">June 2016</div>
       <div class="search-input">
-        <input type="text" value="What are you looking for?">
-        <i class="fa fa-search"></i>
+        <input class="form-control" type="text" value="What are you looking for?">
+        <i class="fa fa-search btn btn-primary"></i>
       </div>
+      -->
+      <div class="container">
+        <h3 class="text-center">Calendars</h3>
+        <button class="btn btn-primary">Add New Calendar</button>
+      </div>
+
     </div>
-    <div class="calendar">
-      <div class="calendar__header">
-        <div>mon</div>
-        <div>tue</div>
-        <div>wed</div>
-        <div>thu</div>
-        <div>fri</div>
-        <div>sat</div>
-        <div>sun</div>
-      </div>
-      <div class="calendar__week">
-        <div class="calendar__day day">1</div>
-        <div class="calendar__day day">2</div>
-        <div class="calendar__day day">3</div>
-        <div class="calendar__day day">4</div>
-        <div class="calendar__day day">5</div>
-        <div class="calendar__day day">6</div>
-        <div class="calendar__day day">7</div>
-      </div>
-      <div class="calendar__week">
-        <div class="calendar__day day">8</div>
-        <div class="calendar__day day">9</div>
-        <div class="calendar__day day">10</div>
-        <div class="calendar__day day">11</div>
-        <div class="calendar__day day">12</div>
-        <div class="calendar__day day">13</div>
-        <div class="calendar__day day">14</div>
-      </div>
-      <div class="calendar__week">
-        <div class="calendar__day day">15</div>
-        <div class="calendar__day day">16</div>
-        <div class="calendar__day day">17</div>
-        <div class="calendar__day day">18</div>
-        <div class="calendar__day day">19</div>
-        <div class="calendar__day day">20</div>
-        <div class="calendar__day day">21</div>
-      </div>
-      <div class="calendar__week">
-        <div class="calendar__day day">22</div>
-        <div class="calendar__day day">23</div>
-        <div class="calendar__day day">24</div>
-        <div class="calendar__day day">25</div>
-        <div class="calendar__day day">26</div>
-        <div class="calendar__day day">27</div>
-        <div class="calendar__day day">28</div>
-      </div>
-      <div class="calendar__week">
-        <div class="calendar__day day">29</div>
-        <div class="calendar__day day">30</div>
-        <div class="calendar__day day">31</div>
-        <div class="calendar__day day">1</div>
-        <div class="calendar__day day">2</div>
-        <div class="calendar__day day">3</div>
-        <div class="calendar__day day">4</div>
-      </div>
-    </div>
+    <div class="p-2" style="">
+    <div class="setup">
+      <!-- Calendar Cards -->
+
+        <!-- calendar card -->
+          <div class="container p-2 cal-card" style="width:45%;height:200px;border: 2px solid black; height:fit-content;">
+          <div class="mt-2 p-2 bg-primary text-white rounded">
+              <h3 class="text-center">Calendar Titlte</h3>
+              <img class="border border-light"
+                  src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSrlwdqUEbVMAXpTTe8yqVtITJMsFQegR1WiA&usqp=CAU" width="100%;" height="150px">
+          </div>
+            <button class="btn btn-warning mt-2 btn-block edit_calendar" data-calendar="1">Edit</button>
+            <button class="btn btn-danger mt-2 btn-block remove_calendar" data-calendar="1" >Remove</button>
+            <button style="float:right;" class="btn btn-success mt-2 btn-block default_calendar" data-calendar="1">Use</button>
+          </div>
+
+        <!-- calendar card end -->
+
+        <!-- calendar card -->
+          <div class="container p-2 cal-card" style="width:45%;height:200px;border: 2px solid black; height:fit-content;">
+          <div class="mt-2 p-2 bg-primary text-white rounded">
+              <h3 class="text-center">Calendar Titlte</h3>
+              <img class="border border-light"
+                  src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQoPlJAfYVhKHizib8ocpS9N774AhuoYYzmlg&usqp=CAU" width="100%;" height="150px">
+          </div>
+            <button class="btn btn-warning mt-2 btn-block edit_calendar">Edit</button>
+            <button class="btn btn-danger mt-2 btn-block remove_calendar">Remove</button>
+            <button style="float:right;" class="btn btn-success mt-2 btn-block default_calendar">Use</button>
+          </div>
+
+        <!-- calendar card end -->
+
+
+
+      <!-- Calendar Cards End -->
+  </div>
+      <hr >
+  <div  class="users_container">
+   <!-- users -->
+
+   <div class="container mt-3">
+  <h3 class="text-center mb-3">User Manger</h3>
+  <table class="table table-dark table-striped table-hover">
+    <thead>
+      <tr>
+        <th>Firstname</th>
+        <th>username</th>
+        <th>Email</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>John</td>
+        <td>Doe</td>
+        <td>john@example.com</td>
+        <td>
+          <button data-user-id="1" class="btn btn-warning edit_user">Edit</button>
+          <button class="btn btn-danger delete_user">Delete</button>
+        </td>
+      </tr>
+      <tr>
+        <td>Mary</td>
+        <td>Moe</td>
+        <td>mary@example.com</td>
+        <td>
+          <button data-user-id="2" class="btn btn-warning edit_user">Edit</button>
+          <button class="btn btn-danger delete_user">Delete</button>
+        </td>
+      </tr>
+      <tr>
+        <td>July</td>
+        <td>Dooley</td>
+        <td>july@example.com</td>
+        <td>
+          <button data-user-id="3" class="btn btn-warning edit_user">Edit</button>
+          <button class="btn btn-danger delete_user">Delete</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+   <!-- users end -->
+  </div>
   </main>
   <sidebar>
-    <div class="logo">logo</div>
+    <div class="logo">calendar title</div>
     <div class="avatar">
       <div class="avatar__img">
         <img src="https://picsum.photos/70" alt="avatar">
       </div>
-      <div class="avatar__name">John Smith</div>
+      <div class="avatar__name">Menu</div>
     </div>
     <nav class="menu">
-      <a class="menu__item" href="#">
+      <a class="menu__item p-3" href="#">
         <i class="menu__icon fa fa-home"></i>
-        <span class="menu__text">overview</span>
+        <span class="menu__text">Home</span>
       </a>
-      <a class="menu__item" href="#">
-        <i class="menu__icon fa fa-envelope"></i>
-        <span class="menu__text">messages</span>
-      </a>
-      <a class="menu__item" href="#">
-        <i class="menu__icon fa fa-list"></i>
-        <span class="menu__text">workout</span>
-      </a>
-      <a class="menu__item menu__item--active" href="#">
+      <a class="menu__item menu__item--active p-3" href="#">
         <i class="menu__icon fa fa-calendar"></i>
-        <span class="menu__text">calendar</span>
+        <span class="menu__text">Setup</span>
       </a>
       <a class="menu__item" href="#">
         <i class="menu__icon fa fa-bar-chart"></i>
-        <span class="menu__text">goals</span>
+        <span class="menu__text">Reports</span>
       </a>
       <a class="menu__item" href="#">
-        <i class="menu__icon fa fa-trophy"></i>
-        <span class="menu__text">achivements</span>
-      </a>
-      <a class="menu__item" href="#">
-        <i class="menu__icon fa fa-sliders"></i>
-        <span class="menu__text">measurements</span>
+        <i class="menu__icon fa fa-sign-out"></i>
+        <span class="menu__text">Logout</span>
       </a>
     </nav>
-    <div class="copyright">Developed By PythonKing <br /></ br> <span>calendar desgin: Adrià &copy; 2018</span></div>
   </sidebar>
 </div>
+
+
+</body>
+</html>
