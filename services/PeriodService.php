@@ -119,14 +119,11 @@ class PeriodService {
   function update_one_column($column, $value, $id){
     return $this->period_mapper->update_column($column, $value, $id);
   }
-
+  
   function get_total_periods(){
     return $this->period_mapper->get_total_periods();
   }
-
 }
-
-
 /* ##################### Test #################### */
 /* #####################
 

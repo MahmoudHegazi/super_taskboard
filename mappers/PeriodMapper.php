@@ -91,4 +91,5 @@ class PeriodMapper {
     return $pdo->query('select count(id) from period')->fetchColumn();
   }
 
+
 }

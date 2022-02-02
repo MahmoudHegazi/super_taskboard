@@ -11,6 +11,8 @@ require_once(dirname(__FILE__, 2) . '\services\UserService.php');
 require_once(dirname(__FILE__, 2) . '\models\Calendar.php');
 
 
+$_SESSION['error_displayed'] = False;
+
 
 $redirect_url = $_SERVER['HTTP_REFERER'];
 /*
@@ -446,5 +448,164 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST'){
 /* set calendar as used  */
 
 
+
+/* set calendar as used */
+
+if ($_SERVER['REQUEST_METHOD'] == 'POST'){
+  if (isset($_POST['calendar_userid_edit']) && !empty($_POST['calendar_userid_edit'])){
+    $cal_edit_id = test_input($_POST['calendar_userid_edit']);
+    $success = True;
+    $reason = '';
+    $update_string = '';
+
+    global $pdo;
+    $calendar_service = new CalendarService($pdo);
+
+    $get_calendar = $calendar_service->get_calendar_by_id($cal_edit_id);
+
+    if (!$cal_edit_id){
+      setup_redirect($redirect_url, 'false', 'Calendar With ID:'.$cal_edit_id. ' Is Not Found');
+    }
+
+    if (isset($_POST['calendar_title_edit']) && !empty($_POST['calendar_title_edit'])){
+
+      $title = test_input($_POST['calendar_title_edit']);
+      if ($get_calendar->get_title() != $title){
+        $update_cal = $calendar_service->update_one_column('title', $title, $cal_edit_id);
+        if (!$update_cal){
+          $success = False;
+          $reason = 'Could not update the title';
+        } else {
+          $update_string .= 'title,';
+        }
+      }
+
+    }
+    if (isset($_POST['calendar_description_edit']) && !empty($_POST['calendar_description_edit'])){
+
+      $description = test_input($_POST['calendar_description_edit']);
+      if ($get_calendar->get_description() != $description){
+        $update_cal = $calendar_service->update_one_column('description', $description, $cal_edit_id);
+        if (!$update_cal){
+          $success = False;
+          $reason = 'Could not update the description';
+        } else {
+          $update_string .= 'description,';
+        }
+      }
+    }
+    if (
+      isset($_FILES) && !empty($_FILES) &&
+      isset($_FILES['background_image_edit']) &&
+      !empty($_FILES['background_image_edit'])
+    ){
+      $image_edit = $_FILES['background_image_edit']['size'] > 0 ? True : False;
+      if ($image_edit){
+        $target_dir = "../uploads/images/";
+        $replaceImage = upload_image(
+          $_FILES,
+          $target_dir,
+          'background_image_edit',
+          array("jpg", "png", "jpeg", "gif"),
+          500000,
+          'image',
+          $cal_edit_id
+        );
+
+        if (!$replaceImage){
+          $success = False;
+          $reason = 'Could not update the background';
+        } else {
+          $update_cal = $calendar_service->update_one_column('background_image', $replaceImage['image'], $cal_edit_id);
+          if (!$update_cal){
+            $success = False;
+            $reason = 'Could not save new background URL';
+          } else {
+            $update_string .= 'background_image,';
+          }
+        }
+      }
+    }
+
+    if ($success == True) {
+      $update_string = '[' . substr($update_string, 0, -1) . ']';
+      setup_redirect($redirect_url, 'true', 'Update Calendar With ID:'. $cal_edit_id .'Changed: '.$update_string);
+    } else {
+      setup_redirect($redirect_url, 'false', $reason);
+    }
+
+
+  }
+}
+/* Edit calendar end */
+
+
+/* add new years to calendar */
+
+if ($_SERVER['REQUEST_METHOD'] == 'POST'){
+
+  if (
+    isset($_POST['add_new_year_edit']) && !empty($_POST['add_new_year_edit']) &&
+    isset($_POST['years_added_calid']) && !empty($_POST['years_added_calid'])
+    ){
+    global $pdo;
+    $calendar_service = new CalendarService($pdo);
+
+    $added_years = intval(test_input($_POST['add_new_year_edit']));
+    $calid = intval(test_input($_POST['years_added_calid']));
+
+    $cal_data = $calendar_service->get_calendar_by_id($calid);
+    print_r($cal_data);
+    if (!$cal_data || empty($cal_data)){
+      setup_redirect($redirect_url, 'false', 'Calendar Not Found Please Refresh the Page.');
+    }
+
+    $periods_sql = "SELECT DISTINCT period.description, period.period_date FROM calendar
+    JOIN year ON calendar.id = year.cal_id JOIN month ON month.year_id =
+    year.id JOIN day ON day.month_id = month.id JOIN period ON day.id =
+    period.day_id JOIN slot ON period.id = slot.period_id WHERE
+    calendar.id=".$cal_data->get_id();
+    $periods_data_rows = $calendar_service->free_group_query($periods_sql);
+    $periods_data=array();
+    for ($p=0; $p<count($periods_data_rows); $p++){
+      array_push($periods_data,
+         array(
+           'description'=> $periods_data_rows[$p]['description'],
+           'period_date'=> $periods_data_rows[$p]['period_date']
+        )
+      );
+    }
+
+
+    $slots_sql = "SELECT DISTINCT slot.start_from, slot.end_at FROM calendar
+    JOIN year ON calendar.id = year.cal_id JOIN month ON month.year_id =
+    year.id JOIN day ON day.month_id = month.id JOIN period ON day.id =
+    period.day_id JOIN slot ON period.id = slot.period_id WHERE
+    calendar.id=".$cal_data->get_id();
+
+    $slots_data_rows = $calendar_service->free_group_query($slots_sql);
+    $slots_data = array();
+    print_r($slots_data_rows);
+    for ($s=0; $s<count($slots_data_rows); $s++){
+      array_push($slots_data,array(
+        'start_from'=> $slots_data_rows[$s]['start_from'],
+        'end_at'=> $slots_data_rows[$s]['end_at']
+        )
+      );
+    }
+    create_calendar($cal_data->get_id(), $cal_data->get_title(), intval($cal_data->get_start_year())+1, $added_years, $cal_data->get_periods_per_day(), $cal_data->get_slots_per_period(), $cal_data->get_description(), $periods_data, $slots_data);
+
+    //echo $calendar_service->get_arrayperiodss_where($column, $value);
+    echo $added_years . ':' . $cal_data->get_id();
+    echo '<pre>';
+    print_r($periods_data);
+    echo '</pre><br /><pre>';
+    print_r($slots_data);
+    echo '</pre>';
+  }
+}
+/* end add new years */
+
+//SELECT day.id AS day_id, calendar.id, year.id, month.id FROM calendar JOIN year ON calendar.id = year.cal_id JOIN month ON month.year_id = year.id JOIN day ON day.month_id = month.id WHERE calendar.id=40
 
 ?>

@@ -69,6 +69,14 @@ div.aside_container .nav_item:hover {
  font-size: 14px !important;
 }
 
+.card_data_container{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  flex-wrap: wrap-reverse;
+}
+
+
 .bg-cornflowerblue{
   background: cornflowerblue;
 }

@@ -91,4 +91,13 @@ class SlotMapper {
     $pdo = $this->getPDO();
     return $pdo->query('select count(id) from slot')->fetchColumn();
   }
+
+  function get_slots_where($column, $value){
+    $pdo = $this->getPDO();
+    $sql = "select * FROM slot WHERE".$column."=?";
+    $stmt = $pdo->prepare($sql);
+    $stmt = $stmt->execute([$value]);
+    return $stmt->fetchAll();
+  }
+
 }

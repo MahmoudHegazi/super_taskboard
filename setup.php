@@ -80,8 +80,15 @@ global $pdo;
      </div>
    </div>
    <!-- Calendar Alert Messages Dynamic-->
-   <?php display_html_erro($_GET);  ?>
+   <?php
+       if (!isset($_SESSION['error_displayed']) || $_SESSION['error_displayed'] == False){
+         display_html_erro($_GET);
+         $_SESSION['error_displayed'] = True;
+       }
+       //echo $_SESION['error_displayed'];;;
+    ?>
   <!-- Calendar Alert Messages end -->
+
 
    <!-- Control the column width, and how they should appear on different devices -->
    <div class="row">
@@ -128,7 +135,7 @@ global $pdo;
            <img class="border border-light rounded cal_image mb-2 mt-2" src="<?php echo $cal_background; ?>" width="100%;" style="max-height:150px;">
          </div>
          <div class="container cal_data">
-           <p class="text-black" style="display:flex;justify-content:space-between;align-items:center;">
+           <p class="text-black card_data_container">
              <span class="badge bg-success">Periods: <strong><?php echo $cal_periods_total; ?></strong></span>
              <span class="badge bg-secondary">years: <strong><?php echo $cal_added_years; ?></strong></span>
              <span class="badge bg-primary">Slots: <strong><?php echo $cal_slots_total; ?></strong></span>
@@ -137,7 +144,9 @@ global $pdo;
          <div class="container">
            <button type="button" data-bs-toggle="modal" data-bs-target="#editCalendar"
            class="btn btn-warning mt-2 btn-block edit_calendar"
-           data-calendar="<?php echo $cal_id; ?>">Edit</button>
+           data-calendar="<?php echo $cal_id; ?>"
+           data-title="<?php echo $cal_title; ?>"
+           data-description="<?php echo $cal_description; ?>">Edit</button>
 
            <button type="button" data-bs-toggle="modal" data-bs-target="#removeCalendar"
            class="btn btn-danger mt-2 btn-block remove_calendar"
@@ -326,51 +335,63 @@ global $pdo;
 <!-- Edit Calendar Model -->
 <div class="modal" id="editCalendar">
   <div class="modal-dialog">
-  <form>
+
     <div class="modal-content">
 
       <!-- Modal Header -->
       <div class="modal-header">
-        <h4 class="modal-title">Edit Calendar</h4>
+        <h4 class="modal-title">Mange Calendar</h4>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
 
       <!-- Modal body -->
       <div class="modal-body">
-        <div class="form-group">
-          <label for="calendar_title_edit">Calendar Title: </label>
-          <input maxlength="30" size="30" type="text" name="calendar_title_edit" id="calendar_title_edit" class="form-control" placeholder="Enter Calendar Title" required>
+        <div class="container border p-4 m-2 border-secondary">
+          <h4 class="text-center">Main Info</h4>
+          <form action="controllers/setup_controller.php" method="POST"  enctype="multipart/form-data">
+            <div class="form-group">
+              <label for="calendar_title_edit mb-1">Calendar Title: (Optional)</label>
+              <input maxlength="30" size="30" type="text" name="calendar_title_edit" id="calendar_title_edit" class="form-control" placeholder="Enter Calendar Title" required>
+            </div>
+
+            <div class="form-group mt-2">
+             <label for="calendar_description_edit mb-1">Calendar Description: (Optional)</label>
+             <textarea maxlength="100" placeholder="Enter Calendar Description" class="form-control" name="calendar_description_edit" id="calendar_description_edit"></textarea>
+            </div>
+
+            <div class="form-group mt-2">
+              <label for="background_image_edit mb-1">Calendar Background (Optional)</label>
+              <input type="file" name="background_image_edit" id="background_image_edit" min="0" value="0" class="form-control">
+            </div>
+            <div class="form-group text-center">
+              <input type="hidden" value="" name="calendar_userid_edit" id="calendar_userid_edit" style="display:none;" />
+
+              <button type="submit" class="btn btn-success btn-block mt-2" data-bs-dismiss="modal">Edit Calendar Data</button>
+            </div>
+          </form>
         </div>
 
-        <div class="form-group mt-2">
-         <label for="calendar_description_edit">Calendar Description: </label>
-         <textarea maxlength="100" placeholder="Enter Calendar Description" class="form-control" name="calendar_description_edit" id="calendar_description_edit"></textarea>
+        <div class="container border p-4 m-2 border-secondary">
+          <h4 class="text-center mt-2">Add More Years</h4>
+          <form action="controllers/setup_controller.php" method="POST">
+            <div class="form-group">
+              <label for="add_new_year_edit">Years Added: </label>
+              <input type="number" name="add_new_year_edit" id="add_new_year_edit" min="1" value="1" class="form-control" title="if you leave this input will not effect the original years added" required>
+            </div>
+            <div class="form-group text-center">
+              <input type="hidden" value="" name="years_added_calid" id="years_added_calid" style="display:none;" />
+              <input type="submit" class="btn btn-primary text-white mt-2" value="Add Years"/>
+            </div>
+          </form>
         </div>
-
-        <div class="form-group mt-2">
-          <label for="background_image_edit">Calendar Background</label>
-          <input type="file" name="background_image" id="background_image_edit" min="0" value="0" class="form-control">
-        </div>
-
-        <div class="container mt-2">
-          <h3 class="text-center mt-2">Add More Years</h3>
-        </div>
-        <div class="form-group">
-          <label for="add_new_year_edit">Years Added: </label>
-          <input type="number" name="add_new_year_edit" id="add_new_year_edit" min="0" value="0" class="form-control" title="if you leave this input will not effect the original years added">
-        </div>
-
-
       </div>
 
       <!-- Modal footer -->
       <div class="modal-footer">
-          <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
-          <button type="submit" class="btn btn-primary" data-bs-dismiss="modal">Submit</button>
+        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
       </div>
 
     </div>
-  </form>
   </div>
 </div>
 <!-- Edit Calendar Model End -->
@@ -699,6 +720,24 @@ editUserBtns.forEach( (editBtn)=>{
     passwordInputEdit.value = "";
   });
 });
+
+/* edit calendar */
+const editCalendarBtns = document.querySelectorAll(".edit_calendar");
+const calendarTitleEdit = document.querySelector("#calendar_title_edit");
+const calendarDescriptionEdit = document.querySelector("#calendar_description_edit");
+const calendarUseridEdit = document.querySelector("#calendar_userid_edit");
+const addedYearCalId = document.querySelector("#years_added_calid");
+
+editCalendarBtns.forEach( (editBtn)=>{
+  editBtn.addEventListener("click", (event)=>{
+    calendarTitleEdit.value = event.target.getAttribute("data-title");
+    calendarDescriptionEdit.value = event.target.getAttribute("data-description");
+    calendarUseridEdit.value = event.target.getAttribute("data-calendar");
+    addedYearCalId.value = event.target.getAttribute("data-calendar");
+  });
+});
+/* edit calendar end */
+
 
 const toggleEditPass = document.querySelector("#toggle_edit_pass");
 

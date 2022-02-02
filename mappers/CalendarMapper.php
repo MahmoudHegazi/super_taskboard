@@ -118,11 +118,27 @@ class CalendarMapper {
       return $pdo->query('select count(id) from calendar')->fetchColumn();
     }
 
+    function get_calendars_where($column, $value){
+      $pdo = $this->getPDO();
+      $sql = "select * FROM calendar WHERE".$column."=?";
+      $stmt = $pdo->prepare($sql);
+      $stmt = $stmt->execute([$value]);
+      return $stmt->fetchAll();
+    }
+
     function upadate_where($column, $value, $new_value){
       $pdo = $this->getPDO();
       $sql = "UPDATE calendar SET ".$column."=? WHERE ".$column."=?";
       $stmt= $pdo->prepare($sql);
       return $stmt->execute([$new_value, $value]);
+    }
+
+    function free_group_query($sql){
+      $pdo = $this->getPDO();
+      $query_sql = test_input($sql);
+      $stmt = $pdo->prepare($query_sql);
+      $stmt->execute();
+      return  $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }
 

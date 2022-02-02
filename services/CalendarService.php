@@ -134,7 +134,9 @@ class CalendarService {
     return $this->calendar_mapper->upadate_where($column, $value, $new_value);
   }
 
-
+  function free_group_query($sql){
+    return $this->calendar_mapper->free_group_query($sql);
+  }
 
 }
 /* ##################### Test #################### */

@@ -112,13 +112,16 @@ function upload_image($FILES, $target_dir, $input_name, $allowed_extensions, $ma
 
   // Check if file already exists
   if (file_exists($system_file)) {
-    echo "Sorry, file already exists.";
-    $uploadOk = 0;
-    return array(
-      'success'=>False,
-      'reason'=> "Sorry, file already exists: ". basename($FILES[$input_name]["name"]),
-      'image'=>''
-    );
+    //echo "Sorry, file already exists.";
+    // if file exist and this system name replace the file so remove it
+    if (!unlink($system_file)) {
+      $uploadOk = 0;
+      return array(
+        'success'=>False,
+        'reason'=> "Sorry, file already exists: ". basename($FILES[$input_name]["name"]),
+        'image'=>''
+      );
+    }
   }
 
   // Check file size 500000
