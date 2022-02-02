@@ -1,7 +1,7 @@
 <?php
-require_once('../config.php');
-require_once('../mappers/YearMapper.php');
-require_once('../models/Year.php');
+require_once(dirname(__FILE__, 2) . '\config.php');
+require_once(dirname(__FILE__, 2) . '\mappers\YearMapper.php');
+require_once(dirname(__FILE__, 2) . '\models\Year.php');
 
 class YearService {
   protected $pdo;
@@ -44,7 +44,7 @@ class YearService {
   // get All year
   function get_all_years(){
 
-    $year_list = [];
+    $year_list = array();
     $year_rows = $this->year_mapper->read_all();
     if (count($year_rows) == 0){return array();}
 
@@ -110,6 +110,14 @@ class YearService {
     return $deleted;
   }
 
+  // update signle column  year
+  function update_one_column($column, $value, $id){
+    return $this->year_mapper->update_column($column, $value, $id);
+  }
+
+  function get_total_years(){
+    return $this->year_mapper->get_total_years();
+  }
 
 }
 

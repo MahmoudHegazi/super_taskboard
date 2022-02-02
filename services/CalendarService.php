@@ -1,7 +1,7 @@
 <?php
-require_once('../config.php');
-require_once('../mappers/CalendarMapper.php');
-require_once('../models/Calendar.php');
+require_once(dirname(__FILE__, 2) . '\config.php');
+require_once(dirname(__FILE__, 2) . '\mappers\CalendarMapper.php');
+require_once(dirname(__FILE__, 2) . '\models\Calendar.php');
 
 class CalendarService {
   protected $pdo;
@@ -15,10 +15,10 @@ class CalendarService {
     $this->calendar_mapper = new CalendarMapper($pdo);
   }
   // Add New Calendar
-  function add($title, $start_year, $added_years, $periods_per_day, $slots_per_period, $description){
-
+  function add($title, $start_year, $added_years, $periods_per_day, $slots_per_period, $description, $used=0){
     $calendar = new Calendar();
     $calendar->init($title, $start_year, $added_years, $periods_per_day, $slots_per_period, $description);
+    $calendar->set_used($used);
     return $this->calendar_mapper->insert($calendar);
   }
 
@@ -39,10 +39,10 @@ class CalendarService {
   }
 
   // get All calendars
-  function get_all_calendars(){
+  function get_all_calendars($limit=0, $offset=0){
 
-    $calendars_list = [];
-    $calendar_rows = $this->calendar_mapper->read_all();
+    $calendars_list = array();
+    $calendar_rows = $this->calendar_mapper->read_all($limit, $offset);
 
     for ($i=0; $i<count($calendar_rows); $i++){
       $calendar = new Calendar();
@@ -52,11 +52,13 @@ class CalendarService {
         $calendar_rows[$i]['added_years'],
         $calendar_rows[$i]['periods_per_day'],
         $calendar_rows[$i]['slots_per_period'],
-        $calendar_rows[$i]['description'],
-        $calendar_rows[$i]['used']
+        $calendar_rows[$i]['description']
       );
       $calendar->set_id($calendar_rows[$i]['id']);
+      $calendar->set_background_image($calendar_rows[$i]['background_image']);
+      $calendar->set_used($calendar_rows[$i]['used']);
       array_push($calendars_list, $calendar);
+
     }
     return $calendars_list;
   }
@@ -117,6 +119,21 @@ class CalendarService {
     }
     return $deleted;
   }
+
+  // update signle column  Calendar
+  function update_one_column($column, $value, $id){
+    return $this->calendar_mapper->update_column($column, $value, $id);
+  }
+
+
+  function get_total_calendars(){
+    return $this->calendar_mapper->get_total_calendars();
+  }
+
+  function update_columns_where($column, $value, $new_value){
+    return $this->calendar_mapper->upadate_where($column, $value, $new_value);
+  }
+
 
 
 }

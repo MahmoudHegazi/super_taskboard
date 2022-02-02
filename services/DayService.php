@@ -1,7 +1,8 @@
 <?php
-require_once('../config.php');
-require_once('../mappers/DayMapper.php');
-require_once('../models/Day.php');
+require_once(dirname(__FILE__, 2) . '\config.php');
+require_once(dirname(__FILE__, 2) . '\mappers\DayMapper.php');
+require_once(dirname(__FILE__, 2) . '\models\Day.php');
+
 
 class DayService {
   protected $pdo;
@@ -46,7 +47,7 @@ class DayService {
   // get All days
   function get_all_days(){
 
-    $days_list = [];
+    $days_list = array();
     $day_rows = $this->day_mapper->read_all();
     if (count($day_rows) == 0){return array();}
 
@@ -119,7 +120,14 @@ class DayService {
     return $deleted;
   }
 
+  // update signle column  day
+  function update_one_column($column, $value, $id){
+    return $this->day_mapper->update_column($column, $value, $id);
+  }
 
+  function get_total_days(){
+    return $this->day_mapper->get_total_days();
+  }
 }
 
 /* ##################### Test #################### */

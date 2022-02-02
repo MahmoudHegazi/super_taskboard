@@ -1,7 +1,8 @@
 <?php
-require_once('../config.php');
-require_once('../mappers/MonthMapper.php');
-require_once('../models/Month.php');
+require_once(dirname(__FILE__, 2) . '\config.php');
+require_once(dirname(__FILE__, 2) . '\mappers\MonthMapper.php');
+require_once(dirname(__FILE__, 2) . '\models\Month.php');
+
 
 class MonthService {
   protected $pdo;
@@ -44,7 +45,7 @@ class MonthService {
   // get All months
   function get_all_months(){
 
-    $months_list = [];
+    $months_list = array();
     $months_rows = $this->month_mapper->read_all();
     if (count($months_rows) == 0){return array();}
 
@@ -108,6 +109,15 @@ class MonthService {
       }
     }
     return $deleted;
+  }
+
+  // update signle column  month
+  function update_one_column($column, $value, $id){
+    return $this->month_mapper->update_column($column, $value, $id);
+  }
+
+  function get_total_months(){
+    return $this->month_mapper->get_total_months();
   }
 
 

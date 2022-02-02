@@ -1,7 +1,8 @@
 <?php
-require_once('../config.php');
-require_once('../mappers/PeriodMapper.php');
-require_once('../models/Period.php');
+require_once(dirname(__FILE__, 2) . '\config.php');
+require_once(dirname(__FILE__, 2) . '\mappers\PeriodMapper.php');
+require_once(dirname(__FILE__, 2) . '\models\Period.php');
+
 
 class PeriodService {
   protected $pdo;
@@ -45,7 +46,7 @@ class PeriodService {
   // get All period
   function get_all_periods(){
 
-    $period_list = [];
+    $period_list = array();
     $period_rows = $this->period_mapper->read_all();
     if (count($period_rows) == 0){return array();}
 
@@ -114,6 +115,14 @@ class PeriodService {
     return $deleted;
   }
 
+  // update signle column  period
+  function update_one_column($column, $value, $id){
+    return $this->period_mapper->update_column($column, $value, $id);
+  }
+
+  function get_total_periods(){
+    return $this->period_mapper->get_total_periods();
+  }
 
 }
 

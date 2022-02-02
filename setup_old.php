@@ -1,9 +1,7 @@
 <?php
-require_once('config.php');
-require_once('functions.php');
-require_once('services/UserService.php');
-require_once('services/CalendarService.php');
-global $pdo;
+$target_dir = "uploads/images";
+
+
 
 ?>
 <!DOCTYPE html>
@@ -17,190 +15,74 @@ global $pdo;
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-
 </head>
 <body>
 
 
 
- <div class="container-fluid layout_container_grid" style="height:100%;">
-  <!-- Control the column width, and how they should appear on different devices -->
-<div class="row header_row text-white" style="height:150px;">
-<div class="bg-primary text-center p-4 text-white rounded">
-  <h1>Jumbotron Example</h1>
-  <p>Lorem ipsum...</p>
+<div class="container-fluid p-5 bg-primary text-white text-center">
+  <h1>Calendar Title</h1>
+  <p>Calendar Description...</p>
 </div>
-</div>
-  <div class="row" style="height:100%;">
-    <div class="col-sm-2 bg-light text-black text-center aside_container">
-
-     <div class="nav_cont">
-       <div class="nav_item border border-light p-2 text-black" >
-         <a class="menu__item" href="#" >
-           <i class="menu__icon fa fa-home"></i>
-           <span class="menu__text">Home</span>
-         </a>
-       </div>
-
-       <div class="nav_item border border-light p-2 text-black">
-         <a class="menu__item" href="#">
-           <i class="menu__icon fa fa-calendar"></i>
-           <span class="menu__text">Setup</span>
-         </a>
-       </div>
-       <div class="nav_item border border-light p-2 text-black">
-         <a class="menu__item" href="#">
-           <i class="menu__icon fa fa-bar-chart"></i>
-           <span class="menu__text">Reports</span>
-         </a>
-       </div>
 
 
-       <div class="nav_item border border-light p-2 text-black">
-         <a class="menu__item" href="#">
-           <i class="menu__icon fa fa-sign-out"></i>
-           <span class="menu__text">Logout</span>
-         </a>
-       </div>
+<div class="container-fluid wrapper">
+  <main>
 
-
-     </div>
-
-
-    </div>
-    <div class="col-sm-9 m-1 bg-light text-white text-center main_container" style="height:100%;">
-
-
-    <!-- calendars -->
-<div class="container p-3 mt-2 mb-3 border border-light rounded cals_container" id="calendars">
-   <div class="mt-2 p-3 bg-cornflowerblue shadow1 text-white border border-light rounded">
-     <h3>Calendars</h3>
-     <div class="container cal_tools">
-     <button class="btn btn-block btn-light border border-primary rounded hover_btn" data-bs-toggle="modal" data-bs-target="#addCalendar" style="width:100%;">Add New Calendar</button>
-     </div>
-   </div>
-   <!-- Calendar Alert Messages Dynamic-->
-   <?php display_html_erro($_GET);  ?>
-  <!-- Calendar Alert Messages end -->
-
-   <!-- Control the column width, and how they should appear on different devices -->
-   <div class="row">
-   <?php
-     $calendar_service = new CalendarService($pdo);
-     // custoimzed get all calendar make pagenation easy
-
-     $total_calendars = $calendar_service->get_total_calendars();
-     $pag_limit = 3;
-     $rows_count = intval($total_calendars / $pag_limit);
-     $buttons_count = ($total_calendars / $pag_limit) > $rows_count ? $rows_count + 1 : $rows_count;
-
-     $current_row = isset($_GET['offset']) && !empty($_GET['offset']) ? intval(test_input($_GET['offset'])) : 0;
-     $offset = $current_row;
-     $all_calendars = $calendar_service->get_all_calendars($pag_limit,$current_row);
-
-
-
-     for($c=0; $c<count($all_calendars); $c++){
-       $cal_id = $all_calendars[$c]->get_id();
-       $cal_title = $all_calendars[$c]->get_title();
-       $cal_start_year = $all_calendars[$c]->get_start_year();
-       $cal_added_years = $all_calendars[$c]->get_added_years();
-       $cal_periods_total = $all_calendars[$c]->get_periods_per_day();
-       $cal_slots_total = $all_calendars[$c]->get_slots_per_period();
-       $cal_description = $all_calendars[$c]->get_description();
-       $cal_used = $all_calendars[$c]->get_used();
-       $used_style = $cal_used == True ? "position:relative;" : "";
-       $cal_background = 'uploads/images/'. $all_calendars[$c]->get_background_image();
-
-   ?>
-
-   <!-- calendar card start -->
-     <div class="col-sm-4 text-white text-center">
-       <div class="container  p-3 mt-4 mb-4 m-2 border border-secondary rounded cal-card">
-
-         <div class="container" style="<?php echo $used_style; ?>">
-           <?php if ($cal_used == 1){ ?>
-             <div class="ribbon">
-               <span class="badge">Used</span>
-             </div>
-           <?php } ?>
-           <h3 class="text-center cal_title badge bg-primary text-white"><?php echo $cal_title; ?></h3>
-           <img class="border border-light rounded cal_image mb-2 mt-2" src="<?php echo $cal_background; ?>" width="100%;" style="max-height:150px;">
-         </div>
-         <div class="container cal_data">
-           <p class="text-black" style="display:flex;justify-content:space-between;align-items:center;">
-             <span class="badge bg-success">Periods: <strong><?php echo $cal_periods_total; ?></strong></span>
-             <span class="badge bg-secondary">years: <strong><?php echo $cal_added_years; ?></strong></span>
-             <span class="badge bg-primary">Slots: <strong><?php echo $cal_slots_total; ?></strong></span>
-           </p>
-         </div>
-         <div class="container">
-           <button type="button" data-bs-toggle="modal" data-bs-target="#editCalendar"
-           class="btn btn-warning mt-2 btn-block edit_calendar"
-           data-calendar="<?php echo $cal_id; ?>">Edit</button>
-
-           <button type="button" data-bs-toggle="modal" data-bs-target="#removeCalendar"
-           class="btn btn-danger mt-2 btn-block remove_calendar"
-           data-calendar="<?php echo $cal_id; ?>">Remove</button>
-
-           <form style="display:inline;" action="controllers/setup_controller.php" method="POST">
-             <input type="hidden" value="<?php echo $cal_id; ?>" name="calendar_used_id" required />
-             <button type="submit" class="btn btn-success mt-2 btn-block default_calendar"
-             data-calendar="<?php echo $cal_id; ?>">Use</button>
-           </form>
-         </div>
+    <div class="toolbar">
+      <!--
+      <div class="toggle">
+        <div class="toggle__option">week</div>
+        <div class="toggle__option toggle__option--selected">month</div>
       </div>
+      <div class="current-month">June 2016</div>
+      <div class="search-input">
+        <input class="form-control" type="text" value="What are you looking for?">
+        <i class="fa fa-search btn btn-primary"></i>
+      </div>
+      -->
+      <div class="container">
+        <div class="container">
+          <div class="alert alert-success alert-dismissible">
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            <strong>Success!</strong> This alert box could indicate a successful or positive action.
+          </div>
+        </div>
+        <h3 class="text-center">Calendars</h3>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCalendar">Add New Calendar</button>
+      </div>
+
     </div>
-  <!-- calendar card end -->
+    <div class="p-2">
+    <div class="setup p-3">
+      <!-- Calendar Cards -->
 
-<?php }?>
+        <!-- calendar card -->
+          <div class="cal container p-2 cal-card border border-secondary rounded-start" style="width:45%;height:200px;height:fit-content;">
+          <div class="mt-2 p-2 bg-primary text-white rounded cal_content">
+              <h3 class="text-center cal_title">Calendar Titlte</h3>
+              <img class="border border-light"
+                  src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSrlwdqUEbVMAXpTTe8yqVtITJMsFQegR1WiA&usqp=CAU" width="100%;" height="150px">
+          </div>
+            <button data-bs-toggle="modal" data-bs-target="#editCalendar" class="btn btn-warning mt-2 btn-block edit_calendar" data-calendar="1">Edit</button>
+            <button data-bs-toggle="modal" data-bs-target="#removeCalendar" class="btn btn-danger mt-2 btn-block remove_calendar" data-calendar="1" >Remove</button>
+            <button style="float:right;" class="btn btn-success mt-2 btn-block default_calendar" data-calendar="1">Use</button>
+          </div>
 
+        <!-- calendar card end -->
 
-   </div>
-    <!-- php pagenation this new pagenation pure php -->
-    <?php
+      <!-- Calendar Cards End -->
+  </div>
+      <hr >
+  <div  class="users_container">
+   <!-- users -->
 
-    if ($total_calendars > 3){
-      $btns_limit = 3;
-      $current_page = $offset / $pag_limit;
-
-      for ($pag=0; $pag<$buttons_count; $pag++){
-        if ($pag==0){
-          $current_offset =0;
-        } else {
-          $current_offset = $pag_limit * $pag;
-        }
-        $actual_link = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
-
-        $link_url = addOrReplaceQueryParm($actual_link, 'offset', $current_offset);
-      ?>
-        <a href="<?php echo $link_url; ?>" class="btn btn-primary"><?php echo $pag+1; ?></a>
-      <?php
-       }
-      }
-    ?>
-   <div>
-
-
-   </div>
-</div>
-<!-- calendars end -->
- <!-- Users -->
-
-
-<div class="container p-3 mt-2 mb-3 border border-light rounded users_container" id="calendars">
-   <div class="mt-2 p-3 bg-cornflowerblue shadow1 text-white border border-light rounded">
-     <h3>User Manger</h3>
-     <div class="container cal_tools">
-  <button class="btn btn-light border border-primary rounded hover_btn mb-2" style="width:100%;" data-bs-toggle="modal" data-bs-target="#addUser">Add New User</button>
-     </div>
-   </div>
-
-   <!-- users table -->
+   <div class="container mt-3">
+  <h3 class="text-center mb-3">User Manger</h3>
+  <button class="btn btn-block btn-primary mb-2" style="width:100%;" data-bs-toggle="modal" data-bs-target="#addUser">Add New User</button>
   <table class="table table-dark table-striped table-hover">
     <thead>
       <tr>
-        <th>ID</th>
         <th>Firstname</th>
         <th>username</th>
         <th>Email</th>
@@ -208,42 +90,56 @@ global $pdo;
       </tr>
     </thead>
     <tbody>
-      <?php
-        $user_service = new UserService($pdo);
-        $all_users = $user_service->get_all_users();
-        for($u=0; $u<count($all_users); $u++){
-       ?>
       <tr>
-        <td><?php echo $all_users[$u]->get_id(); ?></td>
-        <td><?php echo $all_users[$u]->get_name(); ?></td>
-        <td><?php echo $all_users[$u]->get_username(); ?></td>
-        <td><?php echo $all_users[$u]->get_email(); ?></td>
+        <td>John</td>
+        <td>Doe</td>
+        <td>john@example.com</td>
         <td>
-          <button
-          data-user="<?php echo $all_users[$u]->get_id(); ?>"
-          data-name="<?php echo $all_users[$u]->get_name(); ?>"
-          data-username="<?php echo $all_users[$u]->get_username(); ?>"
-          data-email="<?php echo $all_users[$u]->get_email(); ?>"
-
-          data-bs-toggle="modal"
-          data-bs-target="#editUser"
-          class="btn btn-warning edit_user"
-          >Edit</button>
-          <button data-user="<?php echo $all_users[$u]->get_id(); ?>" data-bs-toggle="modal" data-bs-target="#removeUser" class="btn btn-danger delete_user">Delete</button>
+          <button data-user="1" data-bs-toggle="modal" data-bs-target="#editUser"  class="btn btn-warning edit_user">Edit</button>
+          <button data-user="1" data-bs-toggle="modal" data-bs-target="#removeUser" class="btn btn-danger delete_user">Delete</button>
         </td>
       </tr>
-    <?php } ?>
     </tbody>
   </table>
-   <!-- users table end -->
- </div>
-<!-- users end -->
-
-
-
-    </div>
-  </div>
 </div>
+
+   <!-- users end -->
+  </div>
+  </div>
+  </main>
+
+    <sidebar>
+    <div class="logo">calendar title</div>
+    <div class="avatar">
+      <div class="avatar__img">
+        <img src="https://picsum.photos/70" alt="avatar">
+      </div>
+      <div class="avatar__name">Menu</div>
+    </div>
+    <nav class="menu">
+      <a class="menu__item p-3" href="#">
+        <i class="menu__icon fa fa-home"></i>
+        <span class="menu__text">Home</span>
+      </a>
+      <a class="menu__item menu__item--active p-3" href="#">
+        <i class="menu__icon fa fa-calendar"></i>
+        <span class="menu__text">Setup</span>
+      </a>
+      <a class="menu__item" href="#">
+        <i class="menu__icon fa fa-bar-chart"></i>
+        <span class="menu__text">Reports</span>
+      </a>
+      <a class="menu__item" href="#">
+        <i class="menu__icon fa fa-sign-out"></i>
+        <span class="menu__text">Logout</span>
+      </a>
+    </nav>
+  </sidebar>
+
+
+</div>
+
+
 <!-- Models -->
 
 <!-- Add Calendar Model -->
@@ -287,7 +183,7 @@ global $pdo;
 
          <div class="form-group mt-2">
           <label for="period_per_day">Periods Per Day: </label>
-          <input type="number" name="period_per_day" id="period_per_day" min="0" value="3" class="form-control" required>
+          <input type="number" name="period_per_day" id="period_per_day" min="1" value="3" class="form-control" required>
         </div>
 
          <div class="form-group mt-2" style="display:none;" id="periods_container">
@@ -297,7 +193,7 @@ global $pdo;
 
         <div class="form-group mt-2">
           <label for="slots_per_period">Slots Per Period: </label>
-          <input type="number" name="slots_per_period" id="slots_per_period" min="0" value="3" class="form-control" required>
+          <input type="number" name="slots_per_period" id="slots_per_period" min="1" value="3" class="form-control" required>
         </div>
 
          <div class="form-group mt-2" style="display:none;" id="slots_container">
@@ -314,7 +210,7 @@ global $pdo;
       <!-- Modal footer -->
       <div class="modal-footer">
           <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
-          <button type="submit" class="btn btn-primary" data-bs-dismiss="modal">Submit</button>
+          <button type="submit" class="btn btn-primary">Submit</button>
       </div>
 
     </div>
@@ -366,7 +262,7 @@ global $pdo;
       <!-- Modal footer -->
       <div class="modal-footer">
           <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
-          <button type="submit" class="btn btn-primary" data-bs-dismiss="modal">Submit</button>
+          <button type="submit" class="btn btn-primary">Submit</button>
       </div>
 
     </div>
@@ -397,9 +293,8 @@ global $pdo;
       <!-- Modal footer -->
       <div class="modal-footer">
         <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
-        <form action="controllers/setup_controller.php" method="POST">
-          <input type="hidden" id="remove_calendar_id" name="remove_calendar_id" style="display:none" required>
-          <button type="submit" class="btn btn-info" data-bs-dismiss="modal">Remove Calendar</button>
+        <form>
+          <button type="submit" class="btn btn-info">Remove Calendar</button>
         </form>
       </div>
 
@@ -412,7 +307,7 @@ global $pdo;
 <!-- Add User Model -->
 <div class="modal" id="addUser">
   <div class="modal-dialog">
-    <form action="controllers/setup_controller.php" method="POST">
+    <form>
       <div class="modal-content">
         <!-- Modal Header -->
         <div class="modal-header">
@@ -447,7 +342,7 @@ global $pdo;
         <!-- Modal footer -->
         <div class="modal-footer">
           <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
-          <button type="submit" class="btn btn-primary" data-bs-dismiss="modal">Submit</button>
+          <button type="submit" class="btn btn-primary">Submit</button>
         </div>
 
       </div>
@@ -459,7 +354,7 @@ global $pdo;
 <!-- Edit User Model -->
 <div class="modal" id="editUser">
   <div class="modal-dialog">
-    <form action="controllers/setup_controller.php" method="POST" autocomplete="off">
+    <form>
       <div class="modal-content">
         <!-- Modal Header -->
         <div class="modal-header">
@@ -486,11 +381,10 @@ global $pdo;
         </div>
 
         <div class="form-group">
-          <label for="password_edit">Change Password: </label> <input type="checkbox" id="toggle_edit_pass">
-          <input type="password" name="password_edit" value="" id="password_edit"  class="form-control" placeholder="Enter User Password" disabled>
+          <label for="password_edit">Password: </label>
+          <input type="password" name="password_edit" id="password_edit" auto-complete="current-password"  class="form-control" placeholder="Enter User Password">
         </div>
 
-        <input type="hidden" name="userid_edit" id="userid_edit" class="form-control" style="display:none;" required>
 
 
 
@@ -534,9 +428,8 @@ global $pdo;
       <!-- Modal footer -->
       <div class="modal-footer">
         <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
-        <form action="controllers/setup_controller.php" method="POST">
-          <input type="hidden" value="" name="remove_user_id" id="remove_user_id" style="display:none;" />
-          <button type="submit" class="btn btn-info" data-bs-dismiss="modal">Remove User</button>
+        <form>
+          <button type="button" class="btn btn-info" data-bs-dismiss="modal">Remove User</button>
         </form>
       </div>
 
@@ -662,66 +555,6 @@ if (slots_inputs){
 
 
 /* Mange Slots In form end */
-
-/* remove calendar */
-const removeCalendarBtns = document.querySelectorAll(".remove_calendar");
-const calendarIdDelete = document.querySelector("#remove_calendar_id");
-removeCalendarBtns.forEach( (removeBtn)=>{
-  removeBtn.addEventListener("click", (event)=>{
-    calendarIdDelete.value = event.target.getAttribute("data-calendar");
-  });
-});
-
-/* remove user */
-const removeUserBtns = document.querySelectorAll(".delete_user");
-const removeUserId = document.querySelector("#remove_user_id");
-removeUserBtns.forEach( (removeBtn)=>{
-  removeBtn.addEventListener("click", (event)=>{
-    removeUserId.value = event.target.getAttribute("data-user");
-  });
-});
-
-
-
-/* edit user */
-const editUserBtns = document.querySelectorAll(".edit_user");
-const fullnameEdit = document.querySelector("#fullname_edit");
-const usernameEdit = document.querySelector("#username_edit");
-const emailEdit = document.querySelector("#email_edit");
-const useridEdit = document.querySelector("#userid_edit");
-const passwordInputEdit = document.querySelector("#password_edit");
-editUserBtns.forEach( (editBtn)=>{
-  editBtn.addEventListener("click", (event)=>{
-    fullnameEdit.value = event.target.getAttribute("data-name");
-    usernameEdit.value = event.target.getAttribute("data-username");
-    emailEdit.value = event.target.getAttribute("data-email");
-    useridEdit.value = event.target.getAttribute("data-user");
-    passwordInputEdit.value = "";
-  });
-});
-
-const toggleEditPass = document.querySelector("#toggle_edit_pass");
-
-toggleEditPass.addEventListener("change", (event)=>{
-  console.log(event.target);
-  if (event.target.checked == true){
-    if (passwordInputEdit.hasAttribute("disabled")){
-      passwordInputEdit.removeAttribute("disabled");
-    }
-    if (!passwordInputEdit.hasAttribute("required")){
-      passwordInputEdit.setAttribute("required", true);
-    }
-  } else {
-    if (!passwordInputEdit.hasAttribute("disabled")){
-      passwordInputEdit.setAttribute("disabled", true);
-    }
-    if (passwordInputEdit.hasAttribute("required")){
-      passwordInputEdit.removeAttribute("required");
-    }
-  }
-});
-
-
 </script>
 
 

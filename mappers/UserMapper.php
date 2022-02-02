@@ -56,7 +56,7 @@ class UserMapper {
   function delete($user_id){
     // construct the delete statement
     $pdo = $this->getPDO();
-    $sql = 'DELETE FROM slot
+    $sql = 'DELETE FROM user
             WHERE id = :id';
     // prepare the statement for execution
     $statement = $pdo->prepare($sql);
@@ -79,5 +79,18 @@ class UserMapper {
     $pdo = $this->getPDO();
     $statement = $pdo->prepare('DELETE FROM user WHERE id > 0');
     return $statement->execute();
+  }
+
+
+  function update_column($column, $value, $id){
+    $pdo = $this->getPDO();
+    $sql = "UPDATE user SET ".$column."=? WHERE id=?";
+    $stmt= $pdo->prepare($sql);
+    return $stmt->execute([$value, $id]);
+  }
+
+  function get_total_users(){
+    $pdo = $this->getPDO();
+    return $pdo->query('select count(id) from user')->fetchColumn();
   }
 }

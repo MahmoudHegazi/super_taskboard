@@ -79,4 +79,15 @@ class DayMapper {
       return $statement->execute();
     }
 
+    function update_column($column, $value, $id){
+      $pdo = $this->getPDO();
+      $sql = "UPDATE day ".$column."=? WHERE id=?";
+      $stmt= $pdo->prepare($sql);
+      return $stmt->execute([$value, $id]);
+    }
+    
+    function get_total_days(){
+      $pdo = $this->getPDO();
+      return $pdo->query('select count(id) from day')->fetchColumn();
+    }
 }

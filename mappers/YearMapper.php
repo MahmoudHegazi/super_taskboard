@@ -76,4 +76,16 @@ class YearMapper {
     $statement = $pdo->prepare('DELETE FROM year WHERE id > 0');
     return $statement->execute();
   }
+
+  function update_column($column, $value, $id){
+    $pdo = $this->getPDO();
+    $sql = "UPDATE year ".$column."=? WHERE id=?";
+    $stmt= $pdo->prepare($sql);
+    return $stmt->execute([$value, $id]);
+  }
+
+  function get_total_years(){
+    $pdo = $this->getPDO();
+    return $pdo->query('select count(id) from year')->fetchColumn();
+  }
 }

@@ -1,7 +1,8 @@
 <?php
-require_once('../config.php');
-require_once('../mappers/ReservationMapper.php');
-require_once('../models/Reservation.php');
+require_once(dirname(__FILE__, 2) . '\config.php');
+require_once(dirname(__FILE__, 2) . '\mappers\ReservationMapper.php');
+require_once(dirname(__FILE__, 2) . '\models\Reservation.php');
+
 
 class ReservationService {
   protected $pdo;
@@ -46,7 +47,7 @@ class ReservationService {
   // get All reservation
   function get_all_reservations(){
 
-    $reservation_list = [];
+    $reservation_list = array();
     $reservation_rows = $this->reservation_mapper->read_all();
     if (count($reservation_rows) == 0){return array();}
 
@@ -89,7 +90,7 @@ class ReservationService {
     }
 
     $reservation = new Reservation();
-    
+
     for ($i=0; $i<count($reservation_data_list); $i++){
 
       if (is_array($reservation_data_list[$i]) && count($reservation_data_list[$i]) == 4){
@@ -117,6 +118,14 @@ class ReservationService {
     return $deleted;
   }
 
+  // update signle column  reservation
+  function update_one_column($column, $value, $id){
+    return $this->reservation_mapper->reservation_mapper($column, $value, $id);
+  }
+
+  function get_total_reservations(){
+    return $this->reservation_mapper->get_total_reservations();
+  }
 
 }
 

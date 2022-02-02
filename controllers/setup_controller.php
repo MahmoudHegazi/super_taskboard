@@ -1,17 +1,23 @@
 <?php
-require_once('../config.php');
-require_once('../functions.php');
-require_once('../services/CalendarService.php');
-require_once('../services/YearService.php');
-require_once('../services/MonthService.php');
-require_once('../services/DayService.php');
-require_once('../services/PeriodService.php');
-require_once('../services/SlotService.php');
-require_once('../models/Calendar.php');
+require_once(dirname(__FILE__, 2) . '\config.php');
+require_once(dirname(__FILE__, 2) . '\functions.php');
+require_once(dirname(__FILE__, 2) . '\services\CalendarService.php');
+require_once(dirname(__FILE__, 2) . '\services\YearService.php');
+require_once(dirname(__FILE__, 2) . '\services\MonthService.php');
+require_once(dirname(__FILE__, 2) . '\services\DayService.php');
+require_once(dirname(__FILE__, 2) . '\services\PeriodService.php');
+require_once(dirname(__FILE__, 2) . '\services\SlotService.php');
+require_once(dirname(__FILE__, 2) . '\services\UserService.php');
+require_once(dirname(__FILE__, 2) . '\models\Calendar.php');
+
 
 
 $redirect_url = $_SERVER['HTTP_REFERER'];
-
+/*
+if (!isset($redirect_url)){
+  header("Location: ../index.php");
+}
+*/
 
 function create_calendar($cal_id,$calendar_name, $start_year, $added_years, $periods_per_day, $slots_per_period, $description, $periods_data, $slots_data){
   global $pdo;
@@ -109,34 +115,55 @@ function create_calendar($cal_id,$calendar_name, $start_year, $added_years, $per
 
 function add_new_calendar($calendar_name, $start_year, $added_years, $periods_per_day, $slots_per_period, $description, $periods_data, $slots_data){
   global $pdo;
+  $can_upload = True;
+  $reason = '';
   $calendar_service = new CalendarService($pdo);
+  $used = empty($calendar_service->get_all_calendars(1)) ? 1 : 0;
 
+  $calendar_id = $calendar_service->add($calendar_name, $start_year, $added_years, $periods_per_day, $slots_per_period, $description, $used);
+  // rules
+  if (!$calendar_id){
+    $can_upload = False;
+    $reason = 'Missing calendar id';
+  }
 
-  $calendar_id = $calendar_service->add($calendar_name, $start_year, $added_years, $periods_per_day, $slots_per_period, $description);
-  create_calendar($calendar_id, $calendar_name, $start_year, $added_years, $periods_per_day, $slots_per_period, $description, $periods_data, $slots_data);
-  echo 'cal created' . $calendar_id;
-  return $calendar_id;
+  if (intval($start_year) < 1900 || intval($start_year) > 5000){
+    $can_upload = False;
+    $reason = 'Start Year can not be less than 1900 or highr than 5000 selected year is: '. $start_year;
+  }
+
+  if (intval($added_years) < 1){
+    $can_upload = False;
+    $reason = 'No Added Years Deatected Added Year must be positve number';
+  }
+
+  if (empty($calendar_name)){
+    $can_upload = False;
+    $reason = 'Please Prove Calendar Title is required';
+  }
+
+  if ($can_upload == True){
+    create_calendar($calendar_id, $calendar_name, $start_year, $added_years, $periods_per_day, $slots_per_period, $description, $periods_data, $slots_data);
+  }
+
+  return array('success'=> $can_upload, 'reason'=>$reason, 'calendar_id'=>$calendar_id);
+
 }
 
-$run = False;
-if ($run == False){
-  //add_new_calendar('Super Calendar', '2022', 1, 3, 3);
-  $run = True;
-}
 
 /*
 $redirect_url = add_query_parameters($redirect_url,array('message'), array('Missing Period values please fill all Period input.'));
 header("Location: " . $redirect_url);
 */
 
-
+if ($_SERVER['REQUEST_METHOD'] == 'POST'){
 
 if (
   isset($_POST['calendar_title']) && !empty($_POST['calendar_title']) &&
   isset($_POST['start_year']) && !empty($_POST['start_year']) &&
   isset($_POST['add_new_year']) && !empty($_POST['add_new_year']) &&
-  isset($_POST['period_per_day']) && !empty($_POST['period_per_day']) &&
-  isset($_POST['slots_per_period']) && !empty($_POST['slots_per_period'])
+  isset($_POST['period_per_day']) &&
+  isset($_POST['slots_per_period'])
 ){
   //add_new_calendar('Super Calendar', '2022', 1, 3, 3);
   $calendar_title = test_input($_POST['calendar_title']);
@@ -166,9 +193,6 @@ if (
 
       array_push($periods_data, array("period_date"=> $dateInput,"description"=> $descInput) );
     }
-    echo "<br /><pre>";
-    print_r($periods_data);
-    echo "</pre>";
   }
 
   /* ##----------- slots -----------## */
@@ -185,15 +209,242 @@ if (
       array_push($slots_data, array("start_from"=> $startFromInput,"end_at"=> $endAtInput) );
     }
   }
-  echo '<br /><h2>Slots</h2><pre>';
-  print_r($slots_data);
-  echo '</pre>';
-
 
 
   if ($ready == True){
 
-    add_new_calendar($calendar_title, $start_year, $add_new_year, $period_per_day, $slots_per_period, $calendar_description, $periods_data, $slots_data);
+
+
+    $new_cal = add_new_calendar($calendar_title, $start_year, $add_new_year, $period_per_day, $slots_per_period, $calendar_description, $periods_data, $slots_data);
+    if ($new_cal['success'] == True){
+      //echo $new_cal['calendar_id'];
+      $calendar_id = $new_cal['calendar_id'];
+      if(
+            isset($_FILES) && !empty($_FILES) &&
+            isset($_FILES['background_image']) &&
+            !empty($_FILES['background_image'])
+
+        ) {
+        $target_dir = "../uploads/images/";
+
+        $uploadOk = upload_image(
+          $_FILES,
+          $target_dir,
+          'background_image',
+          array("jpg", "png", "jpeg", "gif"),
+          500000,
+          'image',
+          $calendar_id
+        );
+        if ($uploadOk['success'] == True){
+          // update default image if image uploaded
+          global $pdo;
+          $calender_service = new CalendarService($pdo);
+          $updated_image = $calender_service->update_one_column('background_image', $uploadOk['image'], $calendar_id);
+          $message =  $updated_image == 0 ? 'Your image not Uploaded But calendar Created With default image' : 'Calendar With id: '.$calendar_id.' Created successfully';
+          $success =  $uploadOk['success'] == True ? 'true' : 'false';
+
+          $redirect_url = addOrReplaceQueryParm($redirect_url,'success',$success);
+          $redirect_url = addOrReplaceQueryParm($redirect_url,'message',$message);
+          header("Location: " . $redirect_url);
+          return False;
+          die();
+        } else {
+          $redirect_url = replace_query_paremeters($redirect_url,array('success','message'), array('false', $uploadOk['reason']));
+          header("Location: " . $redirect_url);
+          return False;
+          die();
+        }
+      }
+    } else {
+      $redirect_url = replace_query_paremeters($redirect_url,array('success','message'), array('false', $new_cal['reason']));
+      header("Location: " . $redirect_url);
+      return False;
+      die();
+    }
+  } else{
+    $redirect_url = replace_query_paremeters($redirect_url,array('success','message'), array('false', 'Unkown Error Calendar Can not setup please edit Configurations and try again'));
+    header("Location: " . $redirect_url);
+    return False;
+    die();
+  }
+
+}
+
+}
+
+function setup_redirect($url, $success, $message){
+  $url = addOrReplaceQueryParm($url,'success',$success);
+  $url = addOrReplaceQueryParm($url,'message',$message);
+  header("Location: " . $url);
+  return False;
+  die();
+}
+
+/* Remove Calendar */
+if ($_SERVER['REQUEST_METHOD'] == 'POST'){
+  if (isset($_POST['remove_calendar_id']) && !empty($_POST['remove_calendar_id'])) {
+    global $pdo;
+    $cal_id = intval(test_input($_POST['remove_calendar_id']));
+    $calendar_service = new CalendarService($pdo);
+    $cal = $calendar_service->get_calendar_by_id($cal_id);
+    if ($cal){
+      if ($calendar_service->remove($cal_id)){
+
+        $is_used_calendar = $cal->get_used();
+        $first_remain_cal = $calendar_service->get_all_calendars($limit=1,$offset=0);
+        if (count($first_remain_cal) > 0){
+          $calendar_service->update_one_column('used', 1, $first_remain_cal[0]->get_id());
+        }
+        setup_redirect($redirect_url, 'true', 'Calendar: '.$cal->get_title().' Removed successful.');
+      } else {
+        setup_redirect($redirect_url, 'false', 'Could not remove Calendar With ID: '.$cal_id.'.');
+      }
+    } else {
+      setup_redirect($redirect_url, 'false', 'Calendar Not Found Please Refresh The Page');
+
+    }
   }
 }
+/* Remove Calendar end */
+
+
+
+
+/* Remove User */
+if ($_SERVER['REQUEST_METHOD'] == 'POST'){
+  if (isset($_POST['remove_user_id']) && !empty($_POST['remove_user_id'])) {
+    global $pdo;
+    $user_id = intval(test_input($_POST['remove_user_id']));
+    $user_service = new UserService($pdo);
+
+    if ($user_service->get_user_by_id($user_id)){
+      if ($user_service->remove($user_id)){
+        setup_redirect($redirect_url, 'true', "Successfully removed user with ID:".$user_id);
+      } else {
+        setup_redirect($redirect_url, 'false', 'Could not remove the user');
+      }
+    } else {
+      setup_redirect($redirect_url, 'false', 'User Not Found Please Refresh The Page');
+    }
+  }
+}
+/* Remove User end */
+
+
+
+/* Add User */
+if ($_SERVER['REQUEST_METHOD'] == 'POST'){
+  if (
+       isset($_POST['fullname']) && !empty($_POST['fullname']) &&
+       isset($_POST['email']) && !empty($_POST['email']) &&
+       isset($_POST['username']) && !empty($_POST['username']) &&
+       isset($_POST['password']) && !empty($_POST['password'])
+     ) {
+    global $pdo;
+
+    $fullname = test_input($_POST['fullname']);
+    $email = test_input($_POST['email']);
+    $username = test_input($_POST['username']);
+    $password = test_input($_POST['password']);
+    $password_hash = password_hash($password, PASSWORD_DEFAULT, array('cost' => 9));
+
+    //password_verify('anna', $expensiveHash); //Also returns true
+
+
+    $user_service = new UserService($pdo);
+    $new_user = $user_service->add($fullname, $username, $password_hash, $email);
+    if ($new_user){
+        setup_redirect($redirect_url, 'true', "Successfully Add user with ID:".$new_user . " and Name:".$fullname);
+    } else {
+      setup_redirect($redirect_url, 'false', 'User '.$fullname.' can not added');
+    }
+  }
+}
+/* add User end */
+
+/* update user */
+if ($_SERVER['REQUEST_METHOD'] == 'POST'){
+  if (
+       isset($_POST['fullname_edit']) && !empty($_POST['fullname_edit']) &&
+       isset($_POST['email_edit']) && !empty($_POST['email_edit']) &&
+       isset($_POST['username_edit']) && !empty($_POST['username_edit']) &&
+       isset($_POST['userid_edit']) && !empty($_POST['userid_edit'])
+     ) {
+
+       global $pdo;
+       $user_service = new UserService($pdo);
+       $req_uid = test_input($_POST['userid_edit']);
+       $selected_user = $user_service->get_user_by_id($req_uid);
+       echo $selected_user->get_id();
+       if ($selected_user){
+
+         $req_email = test_input($_POST['email_edit']);
+         $req_username = test_input($_POST['username_edit']);
+         $req_name = test_input($_POST['fullname_edit']);
+         $update_string = '';
+
+         if ($selected_user->get_name() != $req_name){
+           $user_service->update_one_column('name', $req_name, $selected_user->get_id());
+           $update_string .= 'name,';
+         }
+         if ($selected_user->get_username() != $req_username){
+           $user_service->update_one_column('username', $req_username, $selected_user->get_id());
+           $update_string .= 'username,';
+         }
+         if ($selected_user->get_email() != $req_email){
+           $user_service->update_one_column('email', $req_email, $selected_user->get_id());
+           $update_string .= 'email,';
+         }
+
+         if (isset($_POST['password_edit']) && !empty($_POST['password_edit'])){
+           $update_string .= 'password,';
+           // password not enabled by default so when he come it need change pass
+           $req_password = test_input($_POST['password_edit']);
+           $password_hash = password_hash($req_password, PASSWORD_DEFAULT, array('cost' => 9));
+           $user_service->update_one_column('hashed_password', $password_hash, $selected_user->get_id());
+         }
+         $update_string = '[' . substr($update_string, 0, -1) . ']';
+         setup_redirect($redirect_url, 'true', 'User ID:'.$selected_user->get_id().' Updated Successfully Data Updated: ' . $update_string);
+       } else {
+         setup_redirect($redirect_url, 'false', 'User Not Found');
+       }
+     }
+}
+/* update user end */
+
+
+/* set calendar as used */
+
+if ($_SERVER['REQUEST_METHOD'] == 'POST'){
+  if (isset($_POST['calendar_used_id']) && !empty($_POST['calendar_used_id'])){
+    global $pdo;
+    $calendar_service = new CalendarService($pdo);
+    $success = True;
+
+    $cal_used_id = test_input($_POST['calendar_used_id']);
+    // remove all used calendars
+    $remove_all_used = $calendar_service->update_columns_where('used', 1, 0);
+    if (!$remove_all_used){
+      $success = False;
+    }
+    if ($success == True){
+      $update_cal = $calendar_service->update_one_column('used', 1, $cal_used_id);
+      if (!$update_cal){
+        $success = False;
+      }
+    }
+    if ($success){
+      setup_redirect($redirect_url, 'true', 'Calendar With ID:'.$cal_used_id.' Marked As Used');
+    } else {
+      setup_redirect($redirect_url, 'false', 'Calendar Could not updated try refresh the page');
+    }
+
+  }
+}
+
+/* set calendar as used  */
+
+
+
 ?>

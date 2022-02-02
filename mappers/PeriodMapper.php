@@ -79,4 +79,16 @@ class PeriodMapper {
     return $statement->execute();
   }
 
+  function update_column($column, $value, $id){
+    $pdo = $this->getPDO();
+    $sql = "UPDATE period ".$column."=? WHERE id=?";
+    $stmt= $pdo->prepare($sql);
+    return $stmt->execute([$value, $id]);
+  }
+
+  function get_total_periods(){
+    $pdo = $this->getPDO();
+    return $pdo->query('select count(id) from period')->fetchColumn();
+  }
+
 }

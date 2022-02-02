@@ -9,6 +9,7 @@ class Calendar {
   public $slots_per_period;
   public $description;
   public $used;
+  public $background_image;
 
   function init($title, $start_year, $added_years, $periods_per_day, $slots_per_period, $description){
     $this->title = $title;
@@ -73,6 +74,13 @@ class Calendar {
   }
   function get_used() {
     return $this->used;
+  }
+
+  function set_background_image($background_image) {
+    $this->background_image = $background_image;
+  }
+  function get_background_image() {
+    return $this->background_image;
   }
 
 }

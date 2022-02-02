@@ -1,7 +1,8 @@
 <?php
-require_once('../config.php');
-require_once('../mappers/SlotMapper.php');
-require_once('../models/Slot.php');
+require_once(dirname(__FILE__, 2) . '\config.php');
+require_once(dirname(__FILE__, 2) . '\mappers\SlotMapper.php');
+require_once(dirname(__FILE__, 2) . '\models\Slot.php');
+
 
 class SlotService {
   protected $pdo;
@@ -46,7 +47,7 @@ class SlotService {
   // get All slot
   function get_all_slots(){
 
-    $slot_list = [];
+    $slot_list = array();
     $slot_rows = $this->slot_mapper->read_all();
     if (count($slot_rows) == 0){return array();}
 
@@ -116,6 +117,14 @@ class SlotService {
     return $deleted;
   }
 
+  // update signle column  slot
+  function update_one_column($column, $value, $id){
+    return $this->slot_mapper->update_column($column, $value, $id);
+  }
+
+  function get_total_slots(){
+    return $this->slot_mapper->get_total_slots();
+  }
 
 }
 

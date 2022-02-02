@@ -1,7 +1,7 @@
 <?php
-require_once('../config.php');
-require_once('../mappers/UserMapper.php');
-require_once('../models/User.php');
+require_once(dirname(__FILE__, 2) . '\config.php');
+require_once(dirname(__FILE__, 2) . '\mappers\UserMapper.php');
+require_once(dirname(__FILE__, 2) . '\models\User.php');
 
 class UserService {
   protected $pdo;
@@ -46,7 +46,7 @@ class UserService {
   // get All user
   function get_all_users(){
 
-    $user_list = [];
+    $user_list = array();
     $user_rows = $this->user_mapper->read_all();
     if (count($user_rows) == 0){return array();}
 
@@ -117,6 +117,14 @@ class UserService {
     return $deleted;
   }
 
+  // update signle column  user
+  function update_one_column($column, $value, $id){
+    return $this->user_mapper->update_column($column, $value, $id);
+  }
+
+  function get_total_users(){
+    return $this->user_mapper->get_total_users();
+  }
 
 }
 
