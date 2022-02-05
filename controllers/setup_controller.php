@@ -1,4 +1,5 @@
 <?php
+ob_start();
 require_once(dirname(__FILE__, 2) . '\config.php');
 require_once(dirname(__FILE__, 2) . '\functions.php');
 require_once(dirname(__FILE__, 2) . '\services\CalendarService.php');
@@ -75,19 +76,12 @@ function create_calendar($cal_id,$calendar_name, $start_year, $added_years, $per
             $description = isset($current_period['description']) && !empty($current_period['description']) ? $current_period['description'] : NULL;
             $perioddate = isset($current_period['period_date']) && !empty($current_period['period_date']) ? $current_period['period_date'] : NULL;
 
-            echo  '<br /><pre>';
-            print_r($current_period);
-            echo  '<br /></pre>';
 
-            $period_id = $period_service->add($day_id, $perioddate, $description);
+            $period_id = $period_service->add($day_id, $perioddate, $description, $period);
             if ($slots_per_period > 0 && count($slots_data) == $slots_per_period){
 
               for ($slot=1; $slot<=$slots_per_period; $slot++){
                 $current_slot = $slots_data[$slot-1];
-
-                echo  '<br /><pre>';
-                print_r($current_slot);
-                echo  '<br /></pre>';
 
                 $description = $current_slot['start_from'];
                 $perioddate = $current_slot['end_at'];
@@ -95,7 +89,7 @@ function create_calendar($cal_id,$calendar_name, $start_year, $added_years, $per
                 $start_from = isset($current_slot['start_from']) && !empty($current_slot['start_from']) ? $current_slot['start_from'] : NULL;
                 $end_at = isset($current_slot['end_at']) && !empty($current_slot['end_at']) ? $current_slot['end_at'] : NULL;
 
-                $slot_id = $slot_service->add($start_from, $end_at, $period_id, True);
+                $slot_id = $slot_service->add($start_from, $end_at, $period_id, True, $slot);
               }
             }
 
@@ -219,7 +213,6 @@ if (
 
     $new_cal = add_new_calendar($calendar_title, $start_year, $add_new_year, $period_per_day, $slots_per_period, $calendar_description, $periods_data, $slots_data);
     if ($new_cal['success'] == True){
-      //echo $new_cal['calendar_id'];
       $calendar_id = $new_cal['calendar_id'];
       if(
             isset($_FILES) && !empty($_FILES) &&
@@ -378,7 +371,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST'){
        $user_service = new UserService($pdo);
        $req_uid = test_input($_POST['userid_edit']);
        $selected_user = $user_service->get_user_by_id($req_uid);
-       echo $selected_user->get_id();
        if ($selected_user){
 
          $req_email = test_input($_POST['email_edit']);
@@ -552,10 +544,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST'){
     $calendar_service = new CalendarService($pdo);
 
     $added_years = intval(test_input($_POST['add_new_year_edit']));
+    $year_string = $added_years == 1 ? ' year ' : ' years ';
     $calid = intval(test_input($_POST['years_added_calid']));
 
     $cal_data = $calendar_service->get_calendar_by_id($calid);
-    print_r($cal_data);
+
     if (!$cal_data || empty($cal_data)){
       setup_redirect($redirect_url, 'false', 'Calendar Not Found Please Refresh the Page.');
     }
@@ -585,7 +578,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST'){
 
     $slots_data_rows = $calendar_service->free_group_query($slots_sql);
     $slots_data = array();
-    print_r($slots_data_rows);
+
     for ($s=0; $s<count($slots_data_rows); $s++){
       array_push($slots_data,array(
         'start_from'=> $slots_data_rows[$s]['start_from'],
@@ -594,18 +587,546 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST'){
       );
     }
     create_calendar($cal_data->get_id(), $cal_data->get_title(), intval($cal_data->get_start_year())+1, $added_years, $cal_data->get_periods_per_day(), $cal_data->get_slots_per_period(), $cal_data->get_description(), $periods_data, $slots_data);
+    $new_added_years = intval($cal_data->get_added_years()) + $added_years;
+    $calendar_service->update_one_column('added_years', $new_added_years, $calid);
+    setup_redirect($redirect_url, 'true', 'Successfully Add : '. $added_years  . $year_string . ' To calendar With ID: '.$cal_data->get_id());
 
-    //echo $calendar_service->get_arrayperiodss_where($column, $value);
-    echo $added_years . ':' . $cal_data->get_id();
-    echo '<pre>';
-    print_r($periods_data);
-    echo '</pre><br /><pre>';
-    print_r($slots_data);
-    echo '</pre>';
   }
 }
+
+
+/* Load periods and slots ajax !every period and slot stand alone class */
+if ($_SERVER['REQUEST_METHOD'] == 'POST'){
+  if (
+    isset($_POST['ajax_calid_editcal']) && !empty($_POST['ajax_calid_editcal'])
+    ){
+      global $pdo;
+      $calendar_service = new CalendarService($pdo);
+      $period_service = new PeriodService($pdo);
+      $slot_service = new SlotService($pdo);
+      $cal_id = intval(test_input($_POST['ajax_calid_editcal']));
+      $json_data = array();
+      $slots_data = array();
+      $periods_data = array();
+
+      /* get periods by calendar id */
+
+      $distinct_periods_rows = $period_service->get_distinct_periods($cal_id);
+      //$row_data = $period_service->get_periods_where('period_index', intval($distinct_periods_rows[1]), 1);
+
+      if (!empty($distinct_periods_rows)){
+        $periods_data = $period_service->get_distinct_periods_data($distinct_periods_rows);
+      }
+      /* end get periods  */
+
+
+
+      /* Get Slots data using calendar id */
+      $distinct_slots_rows = $slot_service->get_distinct_slots($cal_id);
+
+      if (!empty($distinct_slots_rows)){
+        $slots_data = $slot_service->get_distinct_slots_data($distinct_slots_rows);
+
+      }
+      /* end slot step */
+
+      $json_data = array(
+        'code'=>200,
+        'cal_id'=>$cal_id,
+        'period_data'=>$periods_data,
+        'slot_data'=>$slots_data,
+        'total_periods'=>count($periods_data),
+        'total_slots'=>count($slots_data)
+      );
+      print_r(json_encode($json_data));
+      die();
+    }
+}
+
+
+
 /* end add new years */
 
-//SELECT day.id AS day_id, calendar.id, year.id, month.id FROM calendar JOIN year ON calendar.id = year.cal_id JOIN month ON month.year_id = year.id JOIN day ON day.month_id = month.id WHERE calendar.id=40
+//period_date_edit  period_description_edit
 
+
+if ($_SERVER['REQUEST_METHOD'] == 'POST'){
+  if (
+
+    isset($_POST['period_calid_edit']) && !empty($_POST['period_calid_edit']) &&
+    isset($_POST['period_index_edit']) && !empty($_POST['period_index_edit']) &&
+    isset($_POST['period_date_edit']) && !empty($_POST['period_date_edit']) &&
+    isset($_POST['period_description_edit']) && !empty($_POST['period_description_edit'])
+    ){
+      global $pdo;
+      $period_service = new PeriodService($pdo);
+      $calendar_service = new CalendarService($pdo);
+
+
+
+      $cal_id = test_input($_POST['period_calid_edit']);
+      $req_period_index = test_input($_POST['period_index_edit']);
+      $req_period_description = test_input($_POST['period_description_edit']);
+      $req_period_period_date = date('Y-m-d H:i:s', strtotime(test_input($_POST['period_date_edit'])));
+
+      $orginal_description = $req_period_description;
+      $orginal_date = $req_period_period_date;
+
+      $server_response = '';
+
+      // request data valdation
+      $calendar = $calendar_service->get_calendar_by_id($cal_id);
+      if (!$calendar || empty($calendar)){
+        setup_redirect($redirect_url, 'false', 'calendar not found or deleted can not update');
+      } else {
+        $cal_start_year = $calendar->get_start_year();
+        $cal_added_years = $calendar->get_added_years();
+        if (!is_numeric($cal_start_year) || !is_numeric($cal_added_years)){
+          setup_redirect($redirect_url, 'false', 'calendar data is invalid please delete it and create new one');
+        }
+        $valid_until = intval($cal_start_year) + (intval($cal_added_years)-1);
+        $request_year = intval(date('Y',strtotime($req_period_period_date)));
+        $valid_period_year = $request_year >= intval($cal_start_year) && $request_year <= intval($valid_until);
+        if (!$valid_period_year){
+          setup_redirect($redirect_url, 'false', 'Can not update the period outside the range of selected calendar date, edit calendar range or create new calendar');
+        }
+
+      }
+
+
+      // this way make benfit of best perofrmance as it not make alot of actions for no changes and
+      // everything is standalone object
+
+      $unique_periods_rows = $period_service->get_distinct_periods($cal_id);
+      $periods_data = array();
+      if (!empty($unique_periods_rows)){
+        $periods_data = $period_service->get_distinct_periods_data($unique_periods_rows);
+      }
+
+      for ($s=0; $s<count($periods_data); $s++){
+        if ($periods_data[$s]['period_index'] == $req_period_index){
+          $orginal_date = $periods_data[$s]['period_date'];
+          $orginal_description = $periods_data[$s]['description'];
+        }
+      }
+      $description_changed = $orginal_description != $req_period_description;
+      $period_date_changed = $orginal_date != $req_period_period_date;
+
+      $periods_sql = "SELECT period.id FROM period JOIN day ON period.day_id=day.id JOIN
+      month ON day.month_id = month.id JOIN year ON month.year_id = year.id JOIN calendar ON year.cal_id = calendar.id WHERE
+      calendar.id=".$cal_id." AND period.period_index=".$req_period_index." AND period.description ='".$orginal_description."'";
+
+      $periods_data_rows = $calendar_service->free_group_query($periods_sql);
+
+
+      //update periods description
+      if ($description_changed){
+        $total_changed = 0;
+
+        if (!empty($periods_data_rows)){
+          for ($p=0; $p<count($periods_data_rows); $p++){
+            $update_column = $period_service->update_one_column('description', $req_period_description, $periods_data_rows[$p]['id']);
+            $total_changed += $update_column ? 1 : 0;
+          }
+          $server_response .= " " . $total_changed." period Description";
+        }
+      }
+
+      //update periods date
+      if ($period_date_changed){
+
+        $total_changed = 0;
+        if (!empty($periods_data_rows)){
+          for ($p=0; $p<count($periods_data_rows); $p++){
+            $update_column = $period_service->update_one_column('period_date', $req_period_period_date, $periods_data_rows[$p]['id']);
+            $total_changed += $update_column ? 1 : 0;
+          }
+        }
+      }
+
+      $success = $period_date_changed || $description_changed ? 'true' : 'false';
+      $response = $success == 'true' ? 'Successfully Update: '. $server_response : 'No changes were detected';
+      setup_redirect($redirect_url, $success, $response);
+    }
+}
+
+/* Update Periods and slots main data */
+
+
+/* update slots */
+if ($_SERVER['REQUEST_METHOD'] == 'POST'){
+  if (
+
+    isset($_POST['slot_calid_edit']) && !empty($_POST['slot_calid_edit']) &&
+    isset($_POST['slot_index_edit']) && !empty($_POST['slot_index_edit']) &&
+    isset($_POST['start_from_edit']) && !empty($_POST['start_from_edit']) &&
+    isset($_POST['end_at_edit']) && !empty($_POST['end_at_edit'])
+    ){
+      global $pdo;
+      $slot_service = new SlotService($pdo);
+      $calendar_service = new CalendarService($pdo);
+
+
+
+      $cal_id = test_input($_POST['slot_calid_edit']);
+      $req_slot_index = test_input($_POST['slot_index_edit']);
+      $req_start_from = test_input($_POST['start_from_edit']);
+      $req_end_at = test_input($_POST['end_at_edit']);
+
+      $orginal_start_from = $req_start_from;
+      $orginal_end_at = $req_end_at;
+
+      $server_response = '';
+
+      // request data valdation
+      $calendar = $calendar_service->get_calendar_by_id($cal_id);
+      if (!$calendar || empty($calendar)){
+        setup_redirect($redirect_url, 'false', 'calendar not found or deleted can not update');
+      }
+
+      // get DISTINCT slot rows
+      $unique_slots_rows = $slot_service->get_distinct_slots($cal_id);
+      $slots_data = array();
+      if (!empty($unique_slots_rows)){
+        $slots_data = $slot_service->get_distinct_slots_data($unique_slots_rows);
+      }
+
+      for ($s=0; $s<count($slots_data); $s++){
+        if ($slots_data[$s]['slot_index'] == $req_slot_index){
+          $orginal_start_from = $slots_data[$s]['start_from'];
+          $orginal_end_at = $slots_data[$s]['end_at'];
+          break;
+        }
+      }
+      $start_from_changed = $orginal_start_from != $req_start_from;
+      $end_at_date_changed = $orginal_end_at != $req_end_at;
+
+      $slots_sql = "SELECT slot.id FROM slot JOIN period ON slot.period_id = period.id JOIN day ON period.day_id = day.id JOIN
+      month ON day.month_id = month.id JOIN year ON month.year_Id = year.id JOIN calendar ON year.cal_id = calendar.id WHERE
+      calendar.id=".$cal_id." AND slot.slot_index=".$req_slot_index." AND slot.start_from ='".$orginal_start_from."'";
+      $slots_data_rows = $calendar_service->free_group_query($slots_sql);
+
+
+      // edit what changed only
+      if ($start_from_changed){
+
+        if (!empty($slots_data_rows)){
+          for ($s=0; $s<count($slots_data_rows); $s++){
+            $update_column = $slot_service->update_one_column('start_from', strval($req_start_from), $slots_data_rows[$s]['id']);
+            $total_changed += $update_column ? 1 : 0;
+          }
+          $server_response .= " " . $total_changed." Slot start_from";
+        }
+      }
+
+      if ($end_at_date_changed){
+        if (!empty($slots_data_rows)){
+          for ($s=0; $s<count($slots_data_rows); $s++){
+            $update_column = $slot_service->update_one_column('end_at', $req_end_at, $slots_data_rows[$s]['id']);
+            $total_changed += $update_column ? 1 : 0;
+          }
+          $server_response .= " " . $total_changed." Slot end_at";
+        }
+      }
+      $success = $start_from_changed || $end_at_date_changed ? 'true' : 'false';
+      $response = $success == 'true' ? 'Successfully Update: '. $server_response : 'No changes were detected';
+      setup_redirect($redirect_url, $success, $response);
+    }
+
+  }
+
+/* end update slot */
+
+/* Add New Periods added_periods add_periods_cal_id */
+
+if ($_SERVER['REQUEST_METHOD'] == 'POST'){
+  if (
+
+    isset($_POST['add_periods_cal_id']) && !empty($_POST['add_periods_cal_id']) &&
+    isset($_POST['added_periods']) && !empty($_POST['added_periods'])
+    ){
+      global $pdo;
+      $calendar_service = new CalendarService($pdo);
+      $period_service = new PeriodService($pdo);
+
+      $cal_id = intval(test_input($_POST['add_periods_cal_id']));
+      $added_periods = intval(test_input($_POST['added_periods']));
+      $slots_data = array();
+      $periods_data = array();
+
+      /* get periods by calendar id */
+      $calendar = $calendar_service->get_calendar_by_id($cal_id);
+      $distinct_periods_rows = $period_service->get_distinct_periods($cal_id);
+      //$row_data = $period_service->get_periods_where('period_index', intval($distinct_periods_rows[1]), 1);
+
+      if (!empty($distinct_periods_rows)){
+        $periods_data = $period_service->get_distinct_periods_data($distinct_periods_rows);
+      }
+
+      $current_periods = $calendar->get_periods_per_day();
+      $calendar_days_sql = "SELECT day.id FROM day JOIN month ON day.month_id=month.id JOIN year
+      ON month.year_id=year.id JOIN calendar ON year.cal_id=calendar.id WHERE calendar.id=".$cal_id;
+      $calendar_days = $calendar_service->free_group_query($calendar_days_sql);
+
+
+
+      $total_periods_new = count($periods_data) + $added_periods;
+
+      // validate data
+      $start_index = count($periods_data)+1;
+
+      for ($start_index; $start_index<=$total_periods_new; $start_index++){
+
+        $dateInput = 'period_date_'.($start_index);
+        $descInput = 'period_description_'.($start_index);
+
+        $dateInput = isset($_POST[$dateInput]) && !empty($_POST[$dateInput]) ? test_input($_POST[$dateInput]) : '';
+        $descInput = isset($_POST[$descInput]) && !empty($_POST[$descInput]) ? test_input($_POST[$descInput]) : '';
+
+        if ($dateInput != ''){
+          // check period date if in range
+          $valid_until = intval($calendar->get_start_year()) + (intval($calendar->get_added_years())-1);
+          $request_year = intval(date('Y',strtotime($dateInput)));
+          $valid_period_year = $request_year >= intval($calendar->get_start_year()) && $request_year <= intval($valid_until);
+          if (!$valid_period_year){
+            setup_redirect($redirect_url, 'false', 'invalid period year ['.$request_year.'] current range start at ' .  $calendar->get_start_year() . 'and end at : ' .$valid_until);
+            die();
+          }
+        }
+      }
+
+      // add periods for all days
+      $periods_db_data = array();
+      $total_addedperiods = 0;
+      for ($day=0; $day<count($calendar_days); $day++){
+        $day_id = $calendar_days[$day]['id'];
+        $start_index = count($periods_data)+1;
+        for ($start_index; $start_index<=$total_periods_new; $start_index++){
+
+          $dateInput = 'period_date_'.($start_index);
+          $descInput = 'period_description_'.($start_index);
+
+          $dateInput = isset($_POST[$dateInput]) && !empty($_POST[$dateInput]) ? test_input($_POST[$dateInput]) : '';
+          $descInput = isset($_POST[$descInput]) && !empty($_POST[$descInput]) ? test_input($_POST[$descInput]) : '';
+
+          //array_push($periods_db_data, array("day_id"=> $day_id, "period_date"=> $dateInput,"description"=> $descInput, "period_index"=>$start_index) );
+          $period_service->add(intval($day_id), $dateInput, $descInput, $start_index);
+          $total_addedperiods += 1;
+        }
+      }
+
+
+
+      $calendar_service->update_one_column('periods_per_day', $total_periods_new, $cal_id);
+      setup_redirect($redirect_url, 'true', 'Successfully Add: '.$total_addedperiods.' periods to calendar with ID:'.$cal_id);
+   }
+}
+/* Add new Periods End */
+
+
+
+/* Add New Slot added_periods add_periods_cal_id */
+
+if ($_SERVER['REQUEST_METHOD'] == 'POST'){
+  if (
+
+    isset($_POST['add_slots_cal_id']) && !empty($_POST['add_slots_cal_id']) &&
+    isset($_POST['added_slots']) && !empty($_POST['added_slots'])
+    ){
+      global $pdo;
+      $slot_service = new SlotService($pdo);
+      $calendar_service = new CalendarService($pdo);
+      $cal_id = test_input($_POST['add_slots_cal_id']);
+      $added_slots = test_input($_POST['added_slots']);
+      $slots_data = array();
+
+      if (!is_numeric($added_slots)  || !is_numeric($cal_id)){
+        setup_redirect($redirect_url, 'false', 'Invalid period data, period cannot be added');
+      }
+
+      $calendar = $calendar_service->get_calendar_by_id($cal_id);
+
+
+
+      $selected_calendar = $calendar_service->get_calendar_by_id($cal_id);
+      if (!$selected_calendar){
+        setup_redirect($redirect_url, 'false', 'Slot is not found or delete please refresh the page if problem not solve contact us');
+      }
+
+      $added_slots = intval($added_slots);
+
+
+      $current_total_slots = intval($selected_calendar->get_slots_per_period());
+      $new_total_slots = $current_total_slots + $added_slots;
+
+
+      $distinct_slots_rows = $slot_service->get_distinct_slots($cal_id);
+      //$row_data = $period_service->get_periods_where('period_index', intval($distinct_periods_rows[1]), 1);
+
+      if (!empty($distinct_slots_rows)){
+        $slots_data = $slot_service->get_distinct_slots_data($distinct_slots_rows);
+      }
+
+      $current_slots = $calendar->get_slots_per_period();
+      $calendar_slots_sql = "SELECT period.id FROM period JOIN day ON period.day_id = day.id JOIN month ON day.month_id=month.id JOIN year
+      ON month.year_id=year.id JOIN calendar ON year.cal_id=calendar.id WHERE calendar.id=".$cal_id;
+      $calendar_periods = $calendar_service->free_group_query($calendar_slots_sql);
+
+
+      $total_slots_new = count($slots_data) + $added_slots;
+
+      // add Slots for all days (this mutible to mutible add)
+      $total_addedslots = 0;
+      for ($slot=0; $slot<count($calendar_periods); $slot++){
+        $period_id = $calendar_periods[$slot]['id'];
+
+        $start_index = count($slots_data)+1;
+        for ($start_index; $start_index<=$total_slots_new; $start_index++){
+          $startFromInputString = 'start_at_slot_'.($start_index);
+          $endAtInputString = 'end_at_slot_'.($start_index);
+
+          $startFromInput = isset($_POST[$startFromInputString]) && !empty($_POST[$startFromInputString]) ? test_input($_POST[$startFromInputString]) : NULL;
+          $endAtInput = isset($_POST[$endAtInputString]) && !empty($_POST[$endAtInputString]) ? test_input($_POST[$endAtInputString]) : NULL;
+          $slot_service->add($startFromInput, $endAtInput, $period_id, 1, $start_index);
+          $total_addedslots += 1;
+        }
+      }
+      $calendar_service->update_one_column('slots_per_period', $total_slots_new, $cal_id);
+      setup_redirect($redirect_url, 'true', 'Successfully Add: '.$total_addedslots.' Slots to calendar with ID:'.$cal_id);
+
+
+   }
+}
+/* Add new Slot End */
+
+/* Delete period  */
+
+
+if ($_SERVER['REQUEST_METHOD'] == 'POST'){
+  if (
+
+    isset($_POST['period_delete_calid']) && !empty($_POST['period_delete_calid']) &&
+    isset($_POST['period_delete_index']) && !empty($_POST['period_delete_index'])
+    ){
+      global $pdo;
+      $period_service = new PeriodService($pdo);
+      $calendar_service = new CalendarService($pdo);
+      $cal_id = test_input($_POST['period_delete_calid']);
+      $period_delete_index = test_input($_POST['period_delete_index']);
+
+      $calendar = $calendar_service->get_calendar_by_id($cal_id);
+      if (!$calendar){
+        setup_redirect($redirect_url, 'false', 'calendar is not found or delete please refresh the page if problem not solve contact us');
+      }
+
+      $calendar_total_periods = intval($calendar->get_periods_per_day());
+
+
+      if ($calendar_total_periods < 1){
+        setup_redirect($redirect_url, 'false', 'The selected Calendar With ID: '.$cal_id.' Has no periods');
+      }
+
+
+      $periods_data_sql = "SELECT period.id FROM period JOIN day ON period.day_id = day.id JOIN
+      month ON day.month_id = month.id JOIN year ON month.year_id = year.id JOIN
+      calendar ON year.cal_id = calendar.id WHERE calendar.id=" . $cal_id . " AND period.period_index=".$period_delete_index;
+
+      $periods_to_delete = $calendar_service->free_group_query($periods_data_sql);
+
+      if (count($periods_to_delete) < 1){
+        setup_redirect($redirect_url, 'false', 'No periods Found Please restart the page');
+      }
+
+      // delete periods
+      $total_removed = 0;
+      for ($p=0; $p<count($periods_to_delete); $p++){
+        $period_id = $periods_to_delete[$p]['id'];
+        // /$remove_period = $period_service->remove(intval($period_id));
+        $delete_period = "DELETE FROM `period` WHERE id=".$period_id;
+        $perioddeleted = $calendar_service->excute_on_db($delete_period);
+        $total_removed += $perioddeleted ? 1 : 0;
+      }
+
+      $is_all_deleted = $calendar_service->free_group_query($periods_data_sql);
+      if (count($is_all_deleted) > 0){
+        setup_redirect($redirect_url, 'false', 'Not all periods Deleted unkown error');
+      }
+
+      $new_total_period = $calendar_total_periods <= 0 ? 0 : ($calendar_total_periods-1);
+
+      $calendar_service->update_one_column('periods_per_day', $new_total_period, $cal_id);
+      $success = $total_removed > 0  ? 'true' : 'false';
+      $message = $total_removed > 0 ? 'Removed Period With Index:'.$period_delete_index.' Total removed Periods:'. $total_removed : 'No Periods Deleted';
+      setup_redirect($redirect_url, $success, $message);
+
+    }
+}
+
+
+
+/* Delete Slot  */
+
+
+if ($_SERVER['REQUEST_METHOD'] == 'POST'){
+  if (
+
+    isset($_POST['slot_delete_calid']) && !empty($_POST['slot_delete_calid']) &&
+    isset($_POST['slot_delete_index']) && !empty($_POST['slot_delete_index'])
+    ){
+      global $pdo;
+      $slot_service = new SlotService($pdo);
+      $calendar_service = new CalendarService($pdo);
+      $cal_id = test_input($_POST['slot_delete_calid']);
+      $slot_delete_index = test_input($_POST['slot_delete_index']);
+
+      $calendar = $calendar_service->get_calendar_by_id($cal_id);
+      if (!$calendar){
+        setup_redirect($redirect_url, 'false', 'calendar is not found or delete please refresh the page if problem not solve contact us');
+      }
+
+      $calendar_total_slots = intval($calendar->get_slots_per_period());
+
+
+      if ($calendar_total_slots < 1){
+        setup_redirect($redirect_url, 'false', 'The selected Calendar With ID: '.$cal_id.' Has no slots.');
+      }
+
+
+
+      $slots_data_sql = "SELECT slot.id FROM slot JOIN period ON slot.period_id = period.id JOIN
+      day ON period.day_id = day.id JOIN month ON day.month_id = month.id JOIN
+      year ON month.year_id = year.id JOIN  calendar ON year.cal_id = calendar.id WHERE
+      calendar.id=" . $cal_id . " AND slot.slot_index=".$slot_delete_index;
+
+      $slots_to_delete = $calendar_service->free_group_query($slots_data_sql);
+
+
+      if (count($slots_to_delete) < 1){
+        setup_redirect($redirect_url, 'false', 'No slots Found Please restart the page');
+      }
+
+
+      // delete slots
+      $total_removed = 0;
+      for ($s=0; $s<count($slots_to_delete); $s++){
+        $slot_id = $slots_to_delete[$s]['id'];
+        $delete_slot = "DELETE FROM `slot` WHERE id=".$slot_id;
+        $slotdeleted = $calendar_service->excute_on_db($delete_slot);
+        $total_removed += $slotdeleted ? 1 : 0;
+      }
+
+
+      $is_all_deleted = $calendar_service->free_group_query($slots_data_sql);
+      if (count($is_all_deleted) > 0){
+        setup_redirect($redirect_url, 'false', 'Not all slots Deleted unkown error');
+      }
+
+      $new_total_slots = $calendar_total_slots <= 0 ? 0 : ($calendar_total_slots-1);
+
+      $calendar_service->update_one_column('slots_per_period', $new_total_slots, $cal_id);
+      $success = $total_removed > 0  ? 'true' : 'false';
+      $message = $total_removed > 0 ? 'Removed Slot With Index:'.$slot_delete_index.' Total removed Slots:'. $total_removed : 'No Slots To deleted Please restart the page';
+      setup_redirect($redirect_url, $success, $message);
+    }
+}
 ?>

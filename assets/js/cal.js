@@ -1,3 +1,5 @@
+window.addEventListener('DOMContentLoaded', (event) => {
+
 async function postData (url = '', data = {}) {
 
   const response = await fetch(url, {
@@ -33,7 +35,5 @@ function formatDate(adate){
     return formattedDate;
   }
 }
-
-window.addEventListener('DOMContentLoaded', (event) => {
 
 });

@@ -15,10 +15,12 @@ class PeriodService {
     $this->pdo = $pdo;
     $this->period_mapper = new PeriodMapper($pdo);
   }
+
+
   // Add New Period
-  function add($day_id, $period_date, $description){
+  function add($day_id, $period_date, $description, $period_index){
     $period_obj = new Period();
-    $period_obj->init($day_id, $period_date, $description);
+    $period_obj->init($day_id, $period_date, $description, $period_index);
     return $this->period_mapper->insert($period_obj);
   }
 
@@ -37,7 +39,8 @@ class PeriodService {
     $period->init(
       $period_row['day_id'],
       $period_row['period_date'],
-      $period_row['description']
+      $period_row['description'],
+      $period_row['period_index']
     );
     $period->set_id($period_row['id']);
     return $period;
@@ -55,7 +58,8 @@ class PeriodService {
         $period->init(
           $period_rows[$i]['day_id'],
           $period_rows[$i]['period_date'],
-          $period_rows[$i]['description']
+          $period_rows[$i]['description'],
+          $period_rows[$i]['period_index']
         );
         $period->set_id($period_rows[$i]['id']);
         array_push($period_list, $period);
@@ -91,12 +95,13 @@ class PeriodService {
     $period = new Period();
 
     for ($i=0; $i<count($period_data_list); $i++){
-      if (is_array($period_data_list[$i]) && count($period_data_list[$i]) == 3){
+      if (is_array($period_data_list[$i]) && count($period_data_list[$i]) == 4){
 
          $period->init(
            $period_data_list[$i][0],
            $period_data_list[$i][1],
-           $period_data_list[$i][2]
+           $period_data_list[$i][2],
+           $period_data_list[$i][3]
          );
          $period_id = $this->period_mapper->insert($period);
          array_push($periods_ids, $period_id);
@@ -119,10 +124,40 @@ class PeriodService {
   function update_one_column($column, $value, $id){
     return $this->period_mapper->update_column($column, $value, $id);
   }
-  
+
   function get_total_periods(){
     return $this->period_mapper->get_total_periods();
   }
+
+  function get_periods_where($column, $value, $limit=''){
+    return $this->period_mapper->get_periods_where($column, $value, $limit);
+  }
+
+  function update_periods_where($column, $where, $value){
+    return $this->period_mapper->get_periods_where($column, $where, $value);
+  }
+
+  function get_distinct_periods($cal_id){
+    return $this->period_mapper->get_distinct_periods($cal_id);
+  }
+
+  function get_distinct_periods_data($periods_data_rows){
+    if (!isset($periods_data_rows) || empty($periods_data_rows)){return array();}
+    $periods_data = array();
+    for ($s=0; $s<count($periods_data_rows); $s++){
+      $row_data = $this->get_periods_where('period_index', intval($periods_data_rows[$s]['period_index']), 1);
+      if (count($row_data) > 0){
+        array_push($periods_data,array(
+          'id'=> $row_data[0]['id'],
+          'period_index'=> $row_data[0]['period_index'],
+          'period_date'=> $row_data[0]['period_date'],
+          'description'=> $row_data[0]['description'])
+        );
+      }
+    }
+    return $periods_data;
+  }
+
 }
 /* ##################### Test #################### */
 /* #####################

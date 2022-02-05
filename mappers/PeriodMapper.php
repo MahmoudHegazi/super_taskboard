@@ -19,13 +19,14 @@ class PeriodMapper {
 
   public function insert($period) {
       $pdo = $this->getPDO();
+      $statement = $pdo->prepare('INSERT INTO period(day_id, period_date, description, period_index) VALUES(:day_id, :period_date, :description, :period_index)');
 
-
-      $statement = $pdo->prepare('INSERT INTO period(day_id, period_date, description) VALUES(:day_id, :period_date, :description)');
+      $period_date = date('Y-m-d H:i:s', strtotime(test_input($period->get_period_date())));
       $statement->execute(array(
           'day_id' => $period->get_day_id(),
-          'period_date' => $period->get_period_date(),
-          'description' => $period->get_description()
+          'period_date' => $period_date,
+          'description' => $period->get_description(),
+          'period_index' => $period->get_period_index()
       ));
       return $pdo->lastInsertId();
   }
@@ -81,7 +82,14 @@ class PeriodMapper {
 
   function update_column($column, $value, $id){
     $pdo = $this->getPDO();
-    $sql = "UPDATE period ".$column."=? WHERE id=?";
+    $sql = "UPDATE period SET ".$column."=? WHERE id=?";
+    $stmt= $pdo->prepare($sql);
+    return $stmt->execute([$value, $id]);
+  }
+
+  function update_column_where($column, $where, $value, $id){
+    $pdo = $this->getPDO();
+    $sql = "UPDATE period SET ".$column."=? WHERE ".$where."=?";
     $stmt= $pdo->prepare($sql);
     return $stmt->execute([$value, $id]);
   }
@@ -90,6 +98,34 @@ class PeriodMapper {
     $pdo = $this->getPDO();
     return $pdo->query('select count(id) from period')->fetchColumn();
   }
+
+
+  function get_periods_where($column, $value, $limit=''){
+    $pdo = $this->getPDO();
+    $limit  = $limit != '' ? ' LIMIT ' . $limit : '';
+    $sql = "SELECT * FROM period WHERE period_index=".$value."".$limit;
+    $stmt = $pdo->prepare($sql);
+    $data = $stmt->execute();
+    if ($data){
+      return $stmt->fetchAll();
+    } else {
+      return array();
+    }
+  }
+
+
+  function get_distinct_periods($cal_id){
+    $pdo = $this->getPDO();
+
+    $slots_sql = "SELECT DISTINCT period.period_index FROM period join
+    day ON period.day_id = day.id JOIN month ON month.id=day.month_id
+    JOIN year ON year.id=month.year_id JOIN calendar ON calendar.id=year.cal_id WHERE calendar.id=".$cal_id;
+    $query_sql = test_input($slots_sql);
+    $stmt = $pdo->prepare($query_sql);
+    $stmt->execute();
+    return  $stmt->fetchAll(PDO::FETCH_ASSOC);
+  }
+
 
 
 }

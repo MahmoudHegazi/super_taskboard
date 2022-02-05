@@ -93,7 +93,7 @@ class CalendarService {
     $calendar = new Calendar();
     for ($i=0; $i<count($cal_data_list); $i++){
 
-      if (is_array($cal_data_list[$i]) && count($cal_data_list[$i]) == 3){
+      if (is_array($cal_data_list[$i]) && count($cal_data_list[$i]) == 6){
          $calendar->init(
            $cal_data_list[$i][0],
            $cal_data_list[$i][1],
@@ -136,6 +136,10 @@ class CalendarService {
 
   function free_group_query($sql){
     return $this->calendar_mapper->free_group_query($sql);
+  }
+
+  function excute_on_db($sql){
+    return $this->calendar_mapper->free_db_command($sql);
   }
 
 }

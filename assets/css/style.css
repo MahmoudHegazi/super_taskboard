@@ -77,6 +77,7 @@ div.aside_container .nav_item:hover {
 }
 
 
+
 .bg-cornflowerblue{
   background: cornflowerblue;
 }
@@ -91,6 +92,17 @@ div.aside_container .nav_item:hover {
 #calendars table td, #calendars table th{
   overflow: hidden;
   border: 1px solid white;
+}
+
+.edit_title {
+  background: darkseagreen;
+  color: aliceblue;
+  font-weight: bold;
+
+}
+
+#editCalendar, #addCalendar, #removeCalendar, #addUser, #editUser, #removeUser{
+  font-family: cursive;
 }
 @media only screen and (max-width: 575px) {
 

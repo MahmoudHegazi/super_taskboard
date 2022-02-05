@@ -6,13 +6,14 @@ class Slot {
   public $end_at;
   public $period_id;
   public $empty;
+  public $slot_index;
 
-
-  function init($start_from, $end_at, $period_id, $empty){
+  function init($start_from, $end_at, $period_id, $empty, $slot_index){
     $this->start_from = $start_from;
     $this->end_at = $end_at;
     $this->period_id = $period_id;
     $this->empty = $empty;
+    $this->slot_index = $slot_index;
   }
   // Setter and geter
   function set_id($id) {
@@ -21,6 +22,7 @@ class Slot {
   function get_id() {
     return $this->id;
   }
+
 
   function set_start_from($start_from) {
     $this->start_from = $start_from;
@@ -48,5 +50,12 @@ class Slot {
   }
   function get_empty() {
     return $this->empty;
+  }
+
+  function set_slot_index($slot_index) {
+    $this->id = $slot_index;
+  }
+  function get_slot_index() {
+    return $this->slot_index;
   }
 }

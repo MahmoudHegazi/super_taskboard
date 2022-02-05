@@ -5,11 +5,14 @@ class Period {
   public $day_id;
   public $period_date;
   public $description;
+  public $period_index;
 
-  function init($day_id, $period_date, $description){
+
+  function init($day_id, $period_date, $description, $period_index){
     $this->day_id = $day_id;
     $this->period_date = $period_date;
     $this->description = $description;
+    $this->period_index = $period_index;
   }
   // Setter and geter
   function set_id($id) {
@@ -38,6 +41,13 @@ class Period {
   }
   function get_description() {
     return $this->description;
+  }
+
+  function set_period_index($period_index) {
+    $this->period_index = $period_index;
+  }
+  function get_period_index() {
+    return $this->period_index;
   }
 
 }

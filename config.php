@@ -12,6 +12,6 @@ try {
   echo "DB Connection failed: " . $e->getMessage();
 }
 
-if (!isset($_SESION)){
+if (!isset($_SESSION)){
   session_start();
 }

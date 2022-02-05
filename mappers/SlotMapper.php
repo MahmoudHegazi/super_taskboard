@@ -19,12 +19,13 @@ class SlotMapper {
 
   public function insert($slot) {
       $pdo = $this->getPDO();
-      $statement = $pdo->prepare('INSERT INTO slot(start_from, end_at, period_id, empty) VALUES(:start_from, :end_at, :period_id, :empty)');
+      $statement = $pdo->prepare('INSERT INTO slot(start_from, end_at, period_id, empty, slot_index) VALUES(:start_from, :end_at, :period_id, :empty, :slot_index)');
       $statement->execute(array(
         'start_from' => $slot->get_start_from(),
         'end_at' => $slot->get_end_at(),
         'period_id' => $slot->get_period_id(),
-        'empty' => $slot->get_empty()
+        'empty' => $slot->get_empty(),
+        'slot_index' => $slot->get_slot_index()
       ));
       return $pdo->lastInsertId();
   }
@@ -82,7 +83,7 @@ class SlotMapper {
 
   function update_column($column, $value, $id){
     $pdo = $this->getPDO();
-    $sql = "UPDATE slot ".$column."=? WHERE id=?";
+    $sql = "UPDATE slot SET ".$column."=? WHERE id=?";
     $stmt= $pdo->prepare($sql);
     return $stmt->execute([$value, $id]);
   }
@@ -92,12 +93,30 @@ class SlotMapper {
     return $pdo->query('select count(id) from slot')->fetchColumn();
   }
 
-  function get_slots_where($column, $value){
+  function get_slots_where($column, $value, $limit=''){
     $pdo = $this->getPDO();
-    $sql = "select * FROM slot WHERE".$column."=?";
+    $limit  = $limit != '' ? ' LIMIT ' . $limit : '';
+    $sql = "SELECT * FROM slot WHERE slot_index=".$value."".$limit;
     $stmt = $pdo->prepare($sql);
-    $stmt = $stmt->execute([$value]);
-    return $stmt->fetchAll();
+    $data = $stmt->execute();
+    if ($data){
+      return $stmt->fetchAll();
+    } else {
+      return array();
+    }
   }
+
+  function get_distinct_slots($cal_id){
+    $pdo = $this->getPDO();
+
+    $slots_sql = "SELECT DISTINCT slot.slot_index FROM slot join period ON slot.period_id = period.id JOIN
+    day ON period.day_id = day.id JOIN month ON month.id=day.month_id
+    JOIN year ON year.id=month.year_id JOIN calendar ON calendar.id=year.cal_id WHERE calendar.id=".$cal_id;
+    $query_sql = test_input($slots_sql);
+    $stmt = $pdo->prepare($query_sql);
+    $stmt->execute();
+    return  $stmt->fetchAll(PDO::FETCH_ASSOC);
+  }
+
 
 }

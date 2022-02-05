@@ -1,4 +1,5 @@
 <?php
+ob_start();
 require_once('config.php');
 require_once('functions.php');
 require_once('services/UserService.php');
@@ -11,13 +12,14 @@ global $pdo;
 <head>
   <title>My Calendar</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+
   <link rel="stylesheet" href="assets/css/style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-
+  <script src="assets/js/jquery-3.5.1.min.js" type="text/javascript"></script>
 </head>
 <body>
 
@@ -141,12 +143,17 @@ global $pdo;
              <span class="badge bg-primary">Slots: <strong><?php echo $cal_slots_total; ?></strong></span>
            </p>
          </div>
+
          <div class="container">
            <button type="button" data-bs-toggle="modal" data-bs-target="#editCalendar"
            class="btn btn-warning mt-2 btn-block edit_calendar"
            data-calendar="<?php echo $cal_id; ?>"
            data-title="<?php echo $cal_title; ?>"
-           data-description="<?php echo $cal_description; ?>">Edit</button>
+           data-total-periods="<?php echo $cal_periods_total; ?>"
+           data-total-slots="<?php echo $cal_slots_total; ?>"
+           data-description="<?php echo $cal_description; ?>"
+           data-added-years="<?php echo $cal_added_years; ?>"
+           >Edit</button>
 
            <button type="button" data-bs-toggle="modal" data-bs-target="#removeCalendar"
            class="btn btn-danger mt-2 btn-block remove_calendar"
@@ -263,7 +270,7 @@ global $pdo;
 
       <!-- Modal Header -->
       <div class="modal-header">
-        <h4 class="modal-title">Add New Calendar</h4>
+        <h4 class="modal-title edit_title">Add New Calendar</h4>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
 
@@ -323,7 +330,7 @@ global $pdo;
       <!-- Modal footer -->
       <div class="modal-footer">
           <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
-          <button type="submit" class="btn btn-primary" data-bs-dismiss="modal">Submit</button>
+          <button type="submit" class="btn btn-primary">Submit</button>
       </div>
 
     </div>
@@ -334,65 +341,150 @@ global $pdo;
 
 <!-- Edit Calendar Model -->
 <div class="modal" id="editCalendar">
-  <div class="modal-dialog">
+  <div class="modal-dialog modal-lg">
 
     <div class="modal-content">
 
       <!-- Modal Header -->
       <div class="modal-header">
-        <h4 class="modal-title">Mange Calendar</h4>
+        <h4 class="modal-title text-center">Mange Calendar [<span id="selected_page">1</span>]</h4>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
 
-      <!-- Modal body -->
-      <div class="modal-body">
-        <div class="container border p-4 m-2 border-secondary">
-          <h4 class="text-center">Main Info</h4>
-          <form action="controllers/setup_controller.php" method="POST"  enctype="multipart/form-data">
-            <div class="form-group">
-              <label for="calendar_title_edit mb-1">Calendar Title: (Optional)</label>
-              <input maxlength="30" size="30" type="text" name="calendar_title_edit" id="calendar_title_edit" class="form-control" placeholder="Enter Calendar Title" required>
-            </div>
 
-            <div class="form-group mt-2">
-             <label for="calendar_description_edit mb-1">Calendar Description: (Optional)</label>
-             <textarea maxlength="100" placeholder="Enter Calendar Description" class="form-control" name="calendar_description_edit" id="calendar_description_edit"></textarea>
-            </div>
-
-            <div class="form-group mt-2">
-              <label for="background_image_edit mb-1">Calendar Background (Optional)</label>
-              <input type="file" name="background_image_edit" id="background_image_edit" min="0" value="0" class="form-control">
-            </div>
-            <div class="form-group text-center">
-              <input type="hidden" value="" name="calendar_userid_edit" id="calendar_userid_edit" style="display:none;" />
-
-              <button type="submit" class="btn btn-success btn-block mt-2" data-bs-dismiss="modal">Edit Calendar Data</button>
-            </div>
-          </form>
+     <!-- Modal body -->
+     <div class="modal-body">
+        <!-- loading circle -->
+        <div id="action_loading_container" style="display:none;">
+          <h3>Please wait...</h3>
+          <img src="assets/images/gif-preloader.gif" id="loading_circle" style="width:100%;">
         </div>
 
-        <div class="container border p-4 m-2 border-secondary">
-          <h4 class="text-center mt-2">Add More Years</h4>
-          <form action="controllers/setup_controller.php" method="POST">
-            <div class="form-group">
-              <label for="add_new_year_edit">Years Added: </label>
-              <input type="number" name="add_new_year_edit" id="add_new_year_edit" min="1" value="1" class="form-control" title="if you leave this input will not effect the original years added" required>
-            </div>
-            <div class="form-group text-center">
-              <input type="hidden" value="" name="years_added_calid" id="years_added_calid" style="display:none;" />
-              <input type="submit" class="btn btn-primary text-white mt-2" value="Add Years"/>
-            </div>
-          </form>
-        </div>
-      </div>
+        <!-- edit body -->
+        <div id="edit_cal_body">
+          <div class="container">
+            <button  class="btn btn-outline-primary edit_cal_level" data-level="1">1</button>
+            <button class="btn btn-outline-primary edit_cal_level" data-level="2">2</button>
+          </div>
 
-      <!-- Modal footer -->
-      <div class="modal-footer">
+
+          <!-- main data container Level 1 -->
+          <div class="level_container" data-content-level="1" id="main_data_level1">
+          <div class="container border p-4 m-2 border-secondary">
+            <h4 class="text-center p-2 edit_title">Main Info</h4>
+            <form action="controllers/setup_controller.php" method="POST"  enctype="multipart/form-data">
+              <div class="form-group">
+                <label for="calendar_title_edit mb-1">Calendar Title: (Optional)</label>
+                <input maxlength="30" size="30" type="text" name="calendar_title_edit" id="calendar_title_edit" class="form-control" placeholder="Enter Calendar Title" required>
+              </div>
+
+              <div class="form-group mt-2">
+               <label for="calendar_description_edit mb-1">Calendar Description: (Optional)</label>
+               <textarea maxlength="100" placeholder="Enter Calendar Description" class="form-control" name="calendar_description_edit" id="calendar_description_edit"></textarea>
+              </div>
+
+              <div class="form-group mt-2">
+                <label for="background_image_edit mb-1">Calendar Background (Optional)</label>
+                <input type="file" name="background_image_edit" id="background_image_edit" min="0" value="0" class="form-control">
+              </div>
+              <div class="form-group text-center">
+                <input type="hidden" value="" name="calendar_userid_edit" id="calendar_userid_edit" style="display:none;" />
+
+                <button type="submit" class="btn btn-success btn-block mt-2">Edit Calendar Data</button>
+              </div>
+            </form>
+          </div>
+
+          <div class="container border p-4 m-2 border-secondary">
+            <h4 class="text-center mt-2 p-2 edit_title">Add More Years</h4>
+            <form action="controllers/setup_controller.php" method="POST" id="added_years_form"s>
+              <div class="form-group">
+                <label for="add_new_year_edit">Years Added: </label>
+                <input type="number" name="add_new_year_edit" id="add_new_year_edit" min="1" value="" class="form-control" title="if you leave this input will not effect the original years added" required>
+              </div>
+              <div class="form-group text-center">
+                <input type="hidden" value="" name="years_added_calid" id="years_added_calid" style="display:none;" />
+                <input type="submit"  class="btn btn-primary text-white mt-2" value="Add Years"/>
+              </div>
+            </form>
+          </div>
+
+          <!-- Periods Edit -->
+          <div class="container border p-4 m-2 border-secondary">
+            <div class="container">
+              <h4 class="text-center p-2 edit_title">Mange Periods <span id="periods_edit_title"></span></h4>
+              <div class="text-center mt-2 p-2 " class="form-group" id="modal_periods_container">
+             </div>
+            </div>
+          </div>
+          <!-- Periods Edit -->
+
+          <!-- Periods Edit -->
+          <div class="container border p-4 m-2 border-secondary">
+            <div class="container">
+              <h4 class="text-center p-2 edit_title bg-dark">Mange Slots <span id="slots_edit_title"></span></h4>
+              <div class="text-center mt-2 p-2 " class="form-group" id="modal_slots_container">
+             </div>
+            </div>
+          </div>
+          <!-- Slots Edit -->
+          <!-- main data container Level 1 end -->
+        </div>
+          <!-- Add Periods and slots container Level 2 -->
+          <div class="level_container" data-content-level="2" id="periods_slots_level2" style="display:none;">
+            <!-- add periods -->
+            <div class="container">
+              <h3 class="text-center p-2 m-2">Add New Periods</h3>
+              <div class="container text-center">
+                <h5 class="mt-2 mb-3 badge bg-success">Total Periods: <strong id="total_periods_strong">0</strong></h5>
+              </div>
+              <form action="controllers/setup_controller.php" method="POST">
+                <div class="form-group">
+                  <label for="added_periods">Added periods</label>
+                  <input name="added_periods" id="period_per_day_page2" type="number" min="1" class="form-control" required>
+                  <input id="add_periods_cal_id" name="add_periods_cal_id" type="hidden"  class="form-control" style="display:none;" required>
+                </div>
+                <div id="periods_container_page2" class="container">
+                </div>
+                <div class="form-group text-center mt-2 d-grid">
+                  <input type="submit" class="btn btn-outline-success btn-block" value="Add Periods">
+                </div>
+             </form>
+            </div>
+
+
+            <!-- add slots -->
+            <div class="container">
+              <h3 class="text-center p-2 m-2">Add New Slots</h3>
+              <div class="container text-center">
+                <h5 class="mt-2 mb-3 badge bg-primary text-white">Total Slots: <strong id="total_slots_strong">0</strong></h5>
+              </div>
+              <form action="controllers/setup_controller.php" method="POST">
+                <div class="form-group">
+                  <label for="added_slots">Added Slots</label>
+                  <input id="slots_per_day_page2" name="added_slots" type="number" min="1" class="form-control" required>
+                  <input id="add_slots_cal_id" name="add_slots_cal_id" type="hidden"  class="form-control" style="display:none;" required>
+                </div>
+                <div id="slots_container_page2" class="container">
+                </div>
+                <div class="form-group text-center mt-2 d-grid">
+                  <input type="submit" class="btn btn-outline-primary btn-block" value="Add Slots">
+                </div>
+             </form>
+            </div>
+
+          </div>
+        <!-- Add Periods and slots container Level 2  end-->
+       </div>
+        <!-- edit body end -->
+        <!-- Modal footer -->
+        <div class="modal-footer">
         <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+        </div>
       </div>
-
     </div>
   </div>
+</div>
 </div>
 <!-- Edit Calendar Model End -->
 
@@ -404,7 +496,7 @@ global $pdo;
 
       <!-- Modal Header -->
       <div class="modal-header">
-        <h4 class="modal-title">Delete Calendar</h4>
+        <h4 class="modal-title text-center">Delete Calendar</h4>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
 
@@ -468,15 +560,13 @@ global $pdo;
         <!-- Modal footer -->
         <div class="modal-footer">
           <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
-          <button type="submit" class="btn btn-primary" data-bs-dismiss="modal">Submit</button>
+          <button type="submit" class="btn btn-primary">Submit</button>
         </div>
 
       </div>
     </form>
   </div>
 </div>
-<!-- Delete Calendar Model End -->
-
 <!-- Edit User Model -->
 <div class="modal" id="editUser">
   <div class="modal-dialog">
@@ -484,7 +574,7 @@ global $pdo;
       <div class="modal-content">
         <!-- Modal Header -->
         <div class="modal-header">
-          <h4 class="modal-title">Edit User</h4>
+          <h4 class="modal-title text-center">Edit User</h4>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
 
@@ -539,7 +629,7 @@ global $pdo;
 
       <!-- Modal Header -->
       <div class="modal-header">
-        <h4 class="modal-title">Delete User</h4>
+        <h4 class="modal-title text-center">Delete User</h4>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
 
@@ -564,11 +654,29 @@ global $pdo;
     </div>
   </div>
 </div>
+
+
 <!-- Delete Calendar Model End -->
 
 <!-- end models -->
+<script src="assets/js/setup_ajax.js" type="text/javascript"></script>
 
 <script>
+
+/* Helpers Functions */
+function displayCalendarEditWait(event){
+  event.preventDefault;
+  const calWaitBody = document.querySelector("#edit_cal_body");
+  const calWaitContainer = document.querySelector("#action_loading_container");
+  calWaitBody.style.visibility = "hidden";
+  calWaitContainer.style.display = "block";
+  event.target.submit();
+  return false;
+}
+const addedYearsForm = document.querySelector("#added_years_form");
+addedYearsForm.addEventListener("submit", displayCalendarEditWait);
+
+
 
 /* Mange Periods In form start */
 
@@ -576,11 +684,12 @@ const period_input = document.querySelector("#period_per_day");
 const periodContainer = document.querySelector("#periods_container");
 
 
+
 period_input.addEventListener( "input", mange_period_inputs );
 
-function create_period_inputs(count){
+function create_period_inputs(count, start_index=1){
   if (count < 1){return false;}
-  let index = 1;
+  let index = start_index;
   let html_inputs = '';
   for (let i=0; i<count; i++){
   html_inputs += `
@@ -614,7 +723,6 @@ function mange_period_inputs(event){
     periodContainer.innerHTML = '';
     periodContainer.style.display = "none";
   }
-
 }
 
 let period_inputs = create_period_inputs(period_input.value);
@@ -637,9 +745,9 @@ const slotContainer = document.querySelector("#slots_container");
 
 slot_input.addEventListener( "input", mange_slot_inputs );
 
-function create_slot_inputs(count){
+function create_slot_inputs(count, start_index=1){
   if (count < 1){return false;}
-    let index = 1;
+    let index = start_index;
     let html_inputs = '';
     for (let i=0; i<count; i++){
     html_inputs += `
@@ -648,7 +756,7 @@ function create_slot_inputs(count){
   <div class="row">
         <div class="col-sm-6">
       <label for="start_at_slot">Start At: </label>
-      <input required name="start_at_slot_${index}" data-index="a${index}" type="time" class="form-control slot-start-at slot_input" />
+      <input required name="start_at_slot_${index}" data-index="${index}" type="time" class="form-control slot-start-at slot_input" />
     </div>
     <div class="col-sm-6">
       <label for="end_at_slot">End At: </label>
@@ -727,13 +835,32 @@ const calendarTitleEdit = document.querySelector("#calendar_title_edit");
 const calendarDescriptionEdit = document.querySelector("#calendar_description_edit");
 const calendarUseridEdit = document.querySelector("#calendar_userid_edit");
 const addedYearCalId = document.querySelector("#years_added_calid");
+const addNewYearEdit = document.querySelector("#add_new_year_edit");
+
+/* page 2 vars*/
+const addPeriodsCalId = document.querySelector("#add_periods_cal_id");
+const addSlotsCalId = document.querySelector("#add_slots_cal_id");
+
+const t_periodsInputPage2 = document.querySelector("#period_per_day_page2");
+const t_slotsInputPage2 = document.querySelector("#slots_per_day_page2");
+
 
 editCalendarBtns.forEach( (editBtn)=>{
   editBtn.addEventListener("click", (event)=>{
+    /* page 1 */
     calendarTitleEdit.value = event.target.getAttribute("data-title");
     calendarDescriptionEdit.value = event.target.getAttribute("data-description");
     calendarUseridEdit.value = event.target.getAttribute("data-calendar");
     addedYearCalId.value = event.target.getAttribute("data-calendar");
+    addNewYearEdit.setAttribute("placeholder", event.target.getAttribute("data-added-years"));
+
+    /* page 2*/
+    addPeriodsCalId.value = event.target.getAttribute("data-calendar");
+    addSlotsCalId.value = event.target.getAttribute("data-calendar");
+    t_periodsInputPage2.setAttribute("data-total-periods", event.target.getAttribute("data-total-periods"));
+    t_slotsInputPage2.setAttribute("data-total-slots", event.target.getAttribute("data-total-slots"));
+    t_slotsInputPage2.setAttribute("data-total-periods", event.target.getAttribute("data-total-periods"));
+
   });
 });
 /* edit calendar end */
@@ -758,8 +885,224 @@ toggleEditPass.addEventListener("change", (event)=>{
       passwordInputEdit.removeAttribute("required");
     }
   }
+
+
+
 });
 
+/* change edit calendar content modal */
+function goToLevel(event){
+  const levelSpan = document.querySelector("#selected_page");
+  const selectedLevel = event.target.getAttribute("data-level");
+  if (selectedLevel){
+    const selectedContainer = document.querySelector(`div[data-content-level='${selectedLevel}']`);
+    if (selectedContainer){
+      const allLevelsContainers = document.querySelectorAll(".level_container");
+      allLevelsContainers.forEach( (levelContainer)=>{
+        levelContainer.style.display = "none";
+      });
+      selectedContainer.style.display = "block";
+      levelSpan.innerText = selectedLevel;
+    }
+  }
+}
+
+const editCalLevelBtns = document.querySelectorAll(".edit_cal_level");
+editCalLevelBtns.forEach( (levelBtn)=>{
+  levelBtn.addEventListener("click", goToLevel);
+});
+
+
+/* display periods in add periods */
+const periodInputPage2 = document.querySelector("#period_per_day_page2");
+const periodContainerPage2 = document.querySelector("#periods_container_page2");
+periodInputPage2.addEventListener( "input", display_periods_page2 );
+
+
+function display_periods_page2(event){
+  let start_index = Number(event.target.getAttribute("data-total-periods")) + 1;
+  let period_inputs = create_period_inputs(event.target.value, start_index);
+  if (period_inputs){
+    periodContainerPage2.innerHTML = period_inputs;
+    periodContainerPage2.style.display = "block";
+  } else {
+    periodContainerPage2.innerHTML = '';
+    periodContainerPage2.style.display = "none";
+  }
+}
+
+
+/* add slots page 2*/
+
+const slotsInputPage2 = document.querySelector("#slots_per_day_page2");
+const slotsContainerPage2 = document.querySelector("#slots_container_page2");
+slotsInputPage2.addEventListener( "input", display_slots_page2 );
+
+function display_slots_page2(event){
+  let totalPeriods = Number(event.target.getAttribute("data-total-periods"));
+  slotsContainerPage2.innerHTML = "<div class='alert alert-info mt-2'>Please Add Periods First</div>";
+  if (totalPeriods == 0){return false;}
+
+  let start_index = Number(event.target.getAttribute("data-total-slots"))+1;
+
+  // add the slots start from new index
+  let slots_inputs = create_slot_inputs(event.target.value, start_index);
+  if (slots_inputs){
+    slotsContainerPage2.innerHTML = slots_inputs;
+    slotsContainerPage2.style.display = "block";
+  } else {
+    slotsContainerPage2.innerHTML = '';
+    slotsContainerPage2.style.display = "none";
+  }
+
+}
+
+/* */
+
+// set inital input for add periods and slots to not let user add empty input by wrong
+const allEditCalbtns = document.querySelectorAll(".edit_calendar");
+allEditCalbtns.forEach( (calbtn)=>{
+  periodInputPage2.value = 1;
+  slotsInputPage2.value = 1;
+
+  calbtn.addEventListener("click", ()=>{
+    let start_index = Number(calbtn.getAttribute("data-total-periods")) + 1;
+    let start_index_slots = Number(calbtn.getAttribute("data-total-slots")) + 1;
+    let period_inputs = create_period_inputs(1, start_index);
+    if (period_inputs){
+      periodContainerPage2.innerHTML = period_inputs;
+      periodContainerPage2.style.display = "block";
+    } else {
+      periodContainerPage2.innerHTML = '';
+      periodContainerPage2.style.display = "none";
+    }
+
+    let totalPeriods = Number(calbtn.getAttribute("data-total-periods"));
+
+    if (totalPeriods <1){
+      slotsContainerPage2.innerHTML = "<div class='alert alert-info mt-2'>Please Add Periods First</div>";
+    } else {
+      if (Number(calbtn.getAttribute("data-total-periods")) > 0) {
+
+        let slots_inputs = create_slot_inputs(1, start_index_slots);
+        if (slots_inputs){
+          slotsContainerPage2.innerHTML = slots_inputs;
+          slotsContainerPage2.style.display = "block";
+        } else {
+          slotsContainerPage2.innerHTML = '';
+          slotsContainerPage2.style.display = "none";
+        }
+      }
+    }
+
+
+  });
+
+});
+
+/*  delete periods toggle */
+
+function startDeletePeriod(event){
+  event.preventDefault();
+  const deletePeriodForm = document.querySelector("#delete_period_form");
+  deletePeriodForm.addEventListener("submit", displayCalendarEditWait);
+  const container1ID = event.target.getAttribute("data-level-1");
+  const container2ID = event.target.getAttribute("data-level-2");
+  const container1 = document.querySelector(`#${container1ID}`);
+  const container2 = document.querySelector(`#${container2ID}`);
+  container1.style.display = "none";
+  container2.style.display = "block";
+
+  container2.setAttribute("data-level-1", container1ID);
+
+  container2.classList.add('active-delete-period');
+
+}
+
+
+function backDefaultDelete(){
+  const deletePeriods1 = document.querySelectorAll(".delete_periods_s1");
+  const deletePeriods2 = document.querySelectorAll(".delete_periods_s2");
+  const deleteSlots1 = document.querySelectorAll(".delete_slots_s1");
+  const deleteSlots2 = document.querySelectorAll(".delete_slots_s2");
+  deletePeriods1.forEach( (period1)=>{
+    period1.style.display = "block";
+  });
+  deletePeriods2.forEach( (period2)=>{
+    period2.style.display = "none";
+    if (period2.classList.add('active-delete-period')){
+      period2.classList.remove('active-delete-period');
+    }
+  });
+  deleteSlots1.forEach( (slot1)=>{
+    slot1.style.display = "block";
+  });
+  deleteSlots2.forEach( (slot2)=>{
+    if (slot2.classList.add('active-delete-slot')){
+      slot2.classList.remove('active-delete-slot');
+    }
+    slot2.style.display = "none";
+  });
+}
+
+function endDeletePeriod(event){
+  event.preventDefault();
+  const container1ID = event.target.getAttribute("data-level-1");
+  const container2ID = event.target.getAttribute("data-level-2");
+  const container1 = document.querySelector(`#${container1ID}`);
+  const container2 = document.querySelector(`#${container2ID}`);
+  container1.style.display = "block";
+  container2.style.display = "none";
+  backDefaultDelete();
+}
+
+/*  delete slots toggle */
+
+function startDeleteSlot(event){
+  event.preventDefault();
+  const deletePeriodForm = document.querySelector("#delete_period_form");
+  deletePeriodForm.addEventListener("submit", displayCalendarEditWait);
+  const container1ID = event.target.getAttribute("data-level-1");
+  const container2ID = event.target.getAttribute("data-level-2");
+  const container1 = document.querySelector(`#${container1ID}`);
+  const container2 = document.querySelector(`#${container2ID}`);
+  container1.style.display = "none";
+  container2.style.display = "block";
+
+  container2.setAttribute("data-level-1", container1ID);
+  container2.classList.add('active-delete-period');
+
+}
+
+
+function endDeleteSlot(event){
+  event.preventDefault();
+  const container1ID = event.target.getAttribute("data-level-1");
+  const container2ID = event.target.getAttribute("data-level-2");
+  const container1 = document.querySelector(`#${container1ID}`);
+  const container2 = document.querySelector(`#${container2ID}`);
+  container1.style.display = "block";
+  container2.style.display = "none";
+  backDefaultDelete();
+}
+
+function startDeleteSlot(event){
+  event.preventDefault();
+
+  const deleteSlotForm = document.querySelector("#delete_slot_form");
+  deleteSlotForm.addEventListener("submit", displayCalendarEditWait);
+
+  const container1ID = event.target.getAttribute("data-level-1");
+  const container2ID = event.target.getAttribute("data-level-2");
+  const container1 = document.querySelector(`#${container1ID}`);
+  const container2 = document.querySelector(`#${container2ID}`);
+
+  container1.style.display = "none";
+  container2.style.display = "block";
+
+  container2.setAttribute("data-level-1", container1ID);
+  container2.classList.add('active-delete-period');
+}
 
 </script>
 
