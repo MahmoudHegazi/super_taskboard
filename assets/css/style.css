@@ -101,6 +101,10 @@ div.aside_container .nav_item:hover {
 
 }
 
+.hover_cssrule:hover {
+  background: lightgray;
+}
+
 #editCalendar, #addCalendar, #removeCalendar, #addUser, #editUser, #removeUser{
   font-family: cursive;
 }

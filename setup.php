@@ -20,6 +20,7 @@ global $pdo;
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="assets/js/jquery-3.5.1.min.js" type="text/javascript"></script>
+
 </head>
 <body>
 
@@ -126,7 +127,7 @@ global $pdo;
    <!-- calendar card start -->
      <div class="col-sm-4 text-white text-center">
        <div class="container  p-3 mt-4 mb-4 m-2 border border-secondary rounded cal-card">
-
+         <p class="badge bg-secondary text-white"><?php echo $cal_id; ?></p>
          <div class="container" style="<?php echo $used_style; ?>">
            <?php if ($cal_used == 1){ ?>
              <div class="ribbon">
@@ -299,17 +300,24 @@ global $pdo;
         </div>
 
         <!-- controlls -->
-        <div class="container mt-3 mb-2 text-center"><h4 class="badge bg-info p-2">Control Periods And Slots (Additonal)</h4></div>
+        <div class="container text-center mt-2">
+          <h3 class="badge bg-info p-2" style="font-size: 18px;">Periods</h3>
+        </div>
 
          <div class="form-group mt-2">
           <label for="period_per_day">Periods Per Day: </label>
           <input type="number" name="period_per_day" id="period_per_day" min="0" value="3" class="form-control" required>
         </div>
 
-         <div class="form-group mt-2" style="display:none;" id="periods_container">
-        </div>
 
-        <hr />
+         <div class="form-group mt-2" style="display:none;" id="periods_container">
+         </div>
+
+         <hr />
+
+         <div class="container mt-2 text-center">
+           <h3 class="badge bg-primary p-2" style="font-size: 18px;">Slots</h3>
+         </div>
 
         <div class="form-group mt-2">
           <label for="slots_per_period">Slots Per Period: </label>
@@ -341,7 +349,7 @@ global $pdo;
 
 <!-- Edit Calendar Model -->
 <div class="modal" id="editCalendar">
-  <div class="modal-dialog modal-lg">
+  <div class="modal-dialog modal-xl">
 
     <div class="modal-content">
 
@@ -662,16 +670,15 @@ global $pdo;
 <script src="assets/js/setup_ajax.js" type="text/javascript"></script>
 
 <script>
-
 /* Helpers Functions */
-function displayCalendarEditWait(event){
-  event.preventDefault;
-  const calWaitBody = document.querySelector("#edit_cal_body");
-  const calWaitContainer = document.querySelector("#action_loading_container");
-  calWaitBody.style.visibility = "hidden";
-  calWaitContainer.style.display = "block";
-  event.target.submit();
-  return false;
+function displayCalendarEditWait(event) {
+    event.preventDefault;
+    const calWaitBody = document.querySelector("#edit_cal_body");
+    const calWaitContainer = document.querySelector("#action_loading_container");
+    calWaitBody.style.visibility = "hidden";
+    calWaitContainer.style.display = "block";
+    event.target.submit();
+    return false;
 }
 const addedYearsForm = document.querySelector("#added_years_form");
 addedYearsForm.addEventListener("submit", displayCalendarEditWait);
@@ -685,50 +692,184 @@ const periodContainer = document.querySelector("#periods_container");
 
 
 
-period_input.addEventListener( "input", mange_period_inputs );
+period_input.addEventListener("input", mange_period_inputs);
 
-function create_period_inputs(count, start_index=1){
-  if (count < 1){return false;}
-  let index = start_index;
-  let html_inputs = '';
-  for (let i=0; i<count; i++){
-  html_inputs += `
-<div class="form-group border border-dark mt-1 p-2 bg-light text-black">
-  <h5 class="text-center badge bg-success text-white">Period ${index}</h5>
-  <div class="row">
-    <div class="col-sm-6">
-      <label for="period_date_${index}">Period DateTime: </label>
-      <input required name="period_date_${index}" data-index="${index}" type="datetime-local" class="form-control period-date period_input" />
-    </div>
-    <div class="col-sm-6">
-      <label for="period_description_${index}">Period Description</label>
-      <input maxlength="50" size="50" name="period_description_${index}" type="text" class="form-control period-description period_input" data-index="${index}" placeholder="Enter Period Description" />
-    </div>
+function create_period_inputs(count, start_index = 1, type='add') {
+    if (count < 1) {
+        return false;
+    }
+    let index = start_index;
+    let html_inputs = '';
+
+    let period_date = type == 'add' ? 'time' : 'time';
+    for (let i = 0; i < count; i++) {
+        html_inputs += `
+  <div class="form-group border border-dark mt-1 p-2 bg-light text-black">
+     <h5 class="text-center badge bg-success text-white">Period ${index}</h5>
+     <div class="row">
+        <div class="col-sm-6">
+           <label for="period_date_${index}">Period DateTime: </label>
+           <input type="hidden" name="slot_add_index_${index}" value="${index}">
+           <input required name="period_date_${index}" data-index="${index}" type="${period_date}" class="form-control period-date period_input" />
+        </div>
+        <div class="col-sm-6">
+           <label for="period_description_${index}">Period Description</label>
+           <input maxlength="50" size="50" name="period_description_${index}" type="text" class="form-control period-description period_input" data-index="${index}" placeholder="Enter Period Description" />
+        </div>
+     </div>
+     <!-- styles -->
+     <div class="row">
+        <div class="col-sm-3">
+           <label for="period_color_${index}">Font Color</label>
+           <input required name="period_color_${index}" id="period_color_${index}"
+              data-index="${index}" type="color" value="#ffffff" class="form-control period_style_color1" />
+        </div>
+        <div class="col-sm-3">
+           <label for="period_background_${index}">Background color</label>
+           <input required name="period_background_${index}" id="period_background_${index}"
+              data-index="${index}" type="color" value="#3190d8" class="form-control period_style_bgcolor1" />
+        </div>
+        <div class="col-sm-3">
+           <label for="period_fontfamily_${index}">Font Family</label>
+           <select name="period_fontfamily_${index}" data-index="${index}" class="form-control period_font_family1">
+              <option value="">Default</option>
+              <option style="font-family:Georgia;" value="font-family:Georgia;" checked>Georgia</option>
+              <option style="font-family:Palatino Linotype;" value="font-family:Palatino Linotype;">Palatino Linotype</option>
+              <option style="font-family:Book Antiqua;" value="font-family:Book Antiqua;">Book Antiqua</option>
+              <option style="font-family:Times New Roman;" value="font-family:Times New Roman;">Times New Roman</option>
+              <option style="font-family:Arial;" value="font-family:Arial;">Arial</option>
+              <option style="font-family:Helvetica;" value="font-family:Helvetica;">Helvetica</option>
+              <option style="font-family:Impact;" value="font-family:Impact;">Impact</option>
+              <option style="font-family:Lucida Sans Unicode;" value="font-family:Lucida Sans Unicode;">Lucida Sans Unicode</option>
+              <option style="font-family:Tahoma;" value="font-family:Tahoma;">Tahoma</option>
+              <option style="font-family:Verdana;" value="font-family:Verdana;">Verdana</option>
+              <option style="font-family:Courier New;" value="font-family:Courier New;">Courier New</option>
+              <option style="font-family:Lucida Console;" value="font-family:Lucida Console;">Lucida Console</option>
+              <option style="font-family:initial;" value="font-family:initial;">initial</option>
+           </select>
+        </div>
+        <div class="col-sm-3">
+           <label for="period_fontsize_${index}">Font Size</label>
+           <select id="period_fontsize_${index}" name="period_fontsize_${index}" data-index="${index}"
+            class="form-control period_fontsize1">
+              <option value="" checked>Default</option>
+              <option style="font-size: 8px;" value="font-size: 8px;">8px</option>
+              <option style="font-size: 10px;" value="font-size: 10px;">10px</option>
+              <option style="font-size: 12px;" value="font-size: 12px;">12px</option>
+              <option style="font-size: 14px;" value="font-size: 14px;">14px</option>
+              <option style="font-size: 16px;" value="font-size: 16px;">16px</option>
+              <option style="font-size: 18px;" value="font-size: 18px;">18px</option>
+              <option style="font-size: 1rem;" value="font-size: 1rem;">1 rem</option>
+              <option style="font-size: 1rem;" value="font-size: 1rem;">1.5 rem</option>
+              <option style="font-size: 0.825em;" value="font-size: 0.825em;">0.825 em</option>
+              <option style="font-size: 0.925em;" value="font-size: 0.925em;">0.925 em</option>
+              <option style="font-size: 1em;" value="font-size: 1em;">1 em</option>
+              <option style="font-size: 1.5em;" value="font-size: 1.5em;">1.5 em</option>
+              <option style="font-size: 2em;" value="font-size: 2em;">2 em</option>
+              <option style="font-size: 1rem;" value="font-size: 1rem;">2 rem</option>
+           </select>
+        </div>
+     </div>
+     <div class="row">
+        <div class="col-sm-3">
+           <label for="period_border_color_${index}">Border Color</label>
+           <select id="period_border_color_${index}" name="period_border_color_${index}"
+            data-index="${index}" class="form-control period_border_part1_1 period_border1">
+              <option value="" checked>No Border</option>
+              <option value="black;">Black</option>
+              <option value="white;">White</option>
+              <option value="red;">Red</option>
+              <option value="green;">Green</option>
+              <option value="gold;">Gold</option>
+              <option value="blue;">Blue</option>
+           </select>
+        </div>
+        <div class="col-sm-3">
+           <label for="period_border_size_${index}">Border Size</label>
+           <select id="period_border_size_${index}" name="period_border_size_${index}"
+           data-index="${index}" class="form-control period_border_part2_1 period_border1">
+              <option value="" checked>No Border</option>
+              <option value="border:1px">1px</option>
+              <option value="border:1px">2px</option>
+              <option value="border:1px">3px</option>
+              <option value="border:1px">4px</option>
+              <option value="border:1px">5px</option>
+           </select>
+        </div>
+        <div class="col-sm-3">
+           <label for="period_border_type_${index}">Border Type</label>
+           <select id="period_border_type_${index}" name="period_border_type_${index}"
+           data-index="${index}" class="form-control period_border_part3_1 period_border1">
+               <option value="" checked>No Border</option>
+               <option value="solid">solid</option>
+               <option value="dotted">dotted</option>
+               <option value="dashed">dashed</option>
+               <option value="double">double</option>
+               <option value="groove">groove</option>
+               <option value="ridge">ridge</option>
+               <option value="inset">inset</option>
+               <option value="outset">outset</option>
+               <option value="mix">mix</option>
+           </select>
+        </div>
+     </div>
+     <div class="container mt-3" id="accordion_period1_${index}">
+        <div class="card">
+           <div class="card-header">
+              <a class="collapsed btn" data-bs-toggle="collapse" href="#collapseTwoPeriod${index}">
+              Advanced Style
+              </a>
+           </div>
+           <div id="collapseTwoPeriod${index}" class="collapse" data-bs-parent="#accordion_period1_${index}">
+              <div class="card-body">
+                 <div class="row">
+                    <div class="col-sm-12">
+                       <label for="period_customcss_${index}">Custom CSS</label>
+                       <input id="period_customcss_${index}" placeholder="Custom CSS" name="period_customcss_${index}"
+                          data-index="${index}" type="text" class="form-control" />
+                    </div>
+                    <div class="col-sm-12 mt-2">
+                       <div class="d-grid">
+                         <button type="button" class="btn btn-primary btn-block" data-bs-toggle="collapse"
+                          data-bs-target="#pread_more_${index}">
+                          What Is Custom CSS and How I use it
+                         </button>
+                       </div>
+
+                       <div id="pread_more_${index}" class="collapse">
+                          <p>custom css will change the style of specific period or slot you can add any css you need but it has two uses first you can group some css rules together in this case no need to use comma so all activated will be one unit , second use , whenever it is It's better to create your own css rules with a comma so that you can only delete the given rule, note that the maximum length of one unit without a comma is 250 characters. So adding a comma after each css rule would be better to avoid that and have more control</p>
+                       </div>
+
+                    </div>
+                 </div>
+              </div>
+           </div>
+        </div>
+     </div>
   </div>
-</div>
 <hr />
   `;
-  index += 1;
-  }
- return html_inputs;
+        index += 1;
+    }
+    return html_inputs;
 
 }
 
-function mange_period_inputs(event){
-  let period_inputs = create_period_inputs(event.target.value);
-  if (period_inputs){
+function mange_period_inputs(event) {
+    let period_inputs = create_period_inputs(event.target.value, 1, 'add');
+    if (period_inputs) {
+        periodContainer.innerHTML = period_inputs;
+        periodContainer.style.display = "block";
+    } else {
+        periodContainer.innerHTML = '';
+        periodContainer.style.display = "none";
+    }
+}
+
+let period_inputs = create_period_inputs(period_input.value, 1, 'add');
+if (period_inputs) {
     periodContainer.innerHTML = period_inputs;
     periodContainer.style.display = "block";
-  } else {
-    periodContainer.innerHTML = '';
-    periodContainer.style.display = "none";
-  }
-}
-
-let period_inputs = create_period_inputs(period_input.value);
-if (period_inputs){
-  periodContainer.innerHTML = period_inputs;
-  periodContainer.style.display = "block";
 }
 
 
@@ -743,14 +884,16 @@ const slot_input = document.querySelector("#slots_per_period");
 const slotContainer = document.querySelector("#slots_container");
 
 
-slot_input.addEventListener( "input", mange_slot_inputs );
+slot_input.addEventListener("input", mange_slot_inputs);
 
-function create_slot_inputs(count, start_index=1){
-  if (count < 1){return false;}
+function create_slot_inputs(count, start_index = 1) {
+    if (count < 1) {
+        return false;
+    }
     let index = start_index;
     let html_inputs = '';
-    for (let i=0; i<count; i++){
-    html_inputs += `
+    for (let i = 0; i < count; i++) {
+        html_inputs += `
 <div class="form-group border border-dark mt-1 p-2 bg-light text-black">
   <h5 class="text-center badge bg-success text-white">Slot ${index}</h5>
   <div class="row">
@@ -763,30 +906,170 @@ function create_slot_inputs(count, start_index=1){
       <input required name="end_at_slot_${index}" data-index="${index}" type="time" class="form-control slot-end-at slot_input" />
     </div>
   </div>
+
+  <!-- styles -->
+  <div class="row">
+     <div class="col-sm-3">
+        <label for="slot_color_${index}">Font Color</label>
+        <input required name="slot_color_${index}" id="slot_color_${index}"
+           data-index="${index}" type="color" value="#000000" class="form-control slot_style_color1" />
+           <input value="${index}" type="hidden" style="display:none;" name="slot_add_index_${index}">
+     </div>
+     <div class="col-sm-3">
+        <label for="slot_background_${index}">Background color</label>
+        <input required name="slot_background_${index}" id="slot_background_${index}"
+           data-index="${index}" type="color" value="#ffffff" class="form-control slot_style_bgcolor1" />
+     </div>
+     <div class="col-sm-3">
+        <label for="slot_fontfamily_${index}">Font Family</label>
+        <select name="slot_fontfamily_${index}" data-index="${index}" class="form-control slot_font_family1">
+           <option value="">Default</option>
+           <option style="font-family:Georgia;" value="font-family:Georgia;" checked>Georgia</option>
+           <option style="font-family:Palatino Linotype;" value="font-family:Palatino Linotype;">Palatino Linotype</option>
+           <option style="font-family:Book Antiqua;" value="font-family:Book Antiqua;">Book Antiqua</option>
+           <option style="font-family:Times New Roman;" value="font-family:Times New Roman;">Times New Roman</option>
+           <option style="font-family:Arial;" value="font-family:Arial;">Arial</option>
+           <option style="font-family:Helvetica;" value="font-family:Helvetica;">Helvetica</option>
+           <option style="font-family:Impact;" value="font-family:Impact;">Impact</option>
+           <option style="font-family:Lucida Sans Unicode;" value="font-family:Lucida Sans Unicode;">Lucida Sans Unicode</option>
+           <option style="font-family:Tahoma;" value="font-family:Tahoma;">Tahoma</option>
+           <option style="font-family:Verdana;" value="font-family:Verdana;">Verdana</option>
+           <option style="font-family:Courier New;" value="font-family:Courier New;">Courier New</option>
+           <option style="font-family:Lucida Console;" value="font-family:Lucida Console;">Lucida Console</option>
+           <option style="font-family:initial;" value="font-family:initial;">initial</option>
+        </select>
+     </div>
+     <div class="col-sm-3">
+        <label for="slot_fontsize_${index}">Font Size</label>
+        <select id="slot_fontsize_${index}" name="slot_fontsize_${index}" data-index="${index}"
+         class="form-control slot_fontsize1">
+           <option value="" checked>Default</option>
+           <option style="font-size: 8px;" value="font-size: 8px;">8px</option>
+           <option style="font-size: 10px;" value="font-size: 10px;">10px</option>
+           <option style="font-size: 12px;" value="font-size: 12px;">12px</option>
+           <option style="font-size: 14px;" value="font-size: 14px;">14px</option>
+           <option style="font-size: 16px;" value="font-size: 16px;">16px</option>
+           <option style="font-size: 18px;" value="font-size: 18px;">18px</option>
+           <option style="font-size: 1rem;" value="font-size: 1rem;">1 rem</option>
+           <option style="font-size: 1rem;" value="font-size: 1rem;">1.5 rem</option>
+           <option style="font-size: 0.825em;" value="font-size: 0.825em;">0.825 em</option>
+           <option style="font-size: 0.925em;" value="font-size: 0.925em;">0.925 em</option>
+           <option style="font-size: 1em;" value="font-size: 1em;">1 em</option>
+           <option style="font-size: 1.5em;" value="font-size: 1.5em;">1.5 em</option>
+           <option style="font-size: 2em;" value="font-size: 2em;">2 em</option>
+           <option style="font-size: 1rem;" value="font-size: 1rem;">2 rem</option>
+        </select>
+     </div>
+     <div class="col-sm-3">
+        <label for="slot_border_color_${index}">Border Color</label>
+        <select id="slot_border_color_${index}" name="slot_border_color_${index}"
+         data-index="${index}" class="form-control slot_border_part1_1 slot_border1">
+           <option value="" checked>No Border</option>
+           <option value="black;">Black</option>
+           <option value="white;">White</option>
+           <option value="red;">Red</option>
+           <option value="green;">Green</option>
+           <option value="gold;">Gold</option>
+           <option value="blue;">Blue</option>
+        </select>
+     </div>
+     <div class="col-sm-3">
+        <label for="slot_border_size_${index}">Border Size</label>
+        <select id="slot_border_size_${index}" name="slot_border_size_${index}"
+        data-index="${index}" class="form-control slot_border_part2_1 slot_border1">
+           <option value="" checked>No Border</option>
+           <option value="border:1px">1px</option>
+           <option value="border:1px">2px</option>
+           <option value="border:1px">3px</option>
+           <option value="border:1px">4px</option>
+           <option value="border:1px">5px</option>
+        </select>
+     </div>
+     <div class="col-sm-3">
+        <label for="slot_border_type_${index}">Border Type</label>
+        <select id="slot_border_type_${index}" name="slot_border_type_${index}"
+        data-index="${index}" class="form-control slot_border_part3_1 slot_border1">
+           <option value="" checked>No Border</option>
+           <option value="solid">solid</option>
+           <option value="dotted">dotted</option>
+           <option value="dashed">dashed</option>
+           <option value="double">double</option>
+           <option value="groove">groove</option>
+           <option value="ridge">ridge</option>
+           <option value="inset">inset</option>
+           <option value="outset">outset</option>
+           <option value="mix">mix</option>
+        </select>
+     </div>
+
+  </div>
+  <div class="container mt-3" id="accordion_slot1_${index}">
+     <div class="card">
+        <div class="card-header">
+           <a class="collapsed btn" data-bs-toggle="collapse" href="#collapseTwoSlot${index}">
+           Advanced Style
+           </a>
+        </div>
+        <div id="collapseTwoSlot${index}" class="collapse" data-bs-parent="#accordion_slot1_${index}">
+           <div class="card-body">
+              <div class="row">
+                 <div class="col-sm-12">
+                    <label for="slot_customcss_${index}">Custom CSS</label>
+                    <input id="slot_customcss_${index}" placeholder="Custom CSS" name="slot_customcss_${index}"
+                       data-index="${index}" type="text" class="form-control" />
+
+                 </div>
+                 <div class="col-sm-12 mt-2">
+                    <div class="d-grid">
+                      <button type="button" class="btn btn-primary btn-block" data-bs-toggle="collapse"
+                       data-bs-target="#slot_more_${index}">
+                       What Is Custom CSS and How I use it
+                      </button>
+                    </div>
+
+
+
+                    <div id="slot_more_${index}" class="collapse">
+                       <p>custom css will change the style of specific period or slot you can add any css
+                        you need but it has two uses first you can group
+                        some css rules together in this case no need
+                        vertical bar example <code>font-weight:bold;text-align:center;</code>
+                        or make each rule as single unit to easy control it
+                        <code>font-weight:bold;|text-align:center;</code>
+                        or make mix <code>font-weight:bold;text-align:center;|background:red !important;</code>
+                        in last example we have 2 group of rules one has 2 rules together and the second spreated rule
+                        not the app can deatect some invalid css and ignore it but make sure to avoid wrong css
+                    </div>
+                 </div>
+              </div>
+           </div>
+        </div>
+     </div>
+  </div>
 </div>
     `;
-    index += 1;
-  }
- return html_inputs;
+        index += 1;
+    }
+    return html_inputs;
 
 }
 
-function mange_slot_inputs(event){
-  let slots_inputs = create_slot_inputs(event.target.value);
-  if (slots_inputs){
-    slotContainer.innerHTML = slots_inputs;
-    slotContainer.style.display = "block";
-  } else {
-    slotContainer.innerHTML = '';
-    slotContainer.style.display = "none";
-  }
+function mange_slot_inputs(event) {
+    let slots_inputs = create_slot_inputs(event.target.value);
+    if (slots_inputs) {
+        slotContainer.innerHTML = slots_inputs;
+        slotContainer.style.display = "block";
+    } else {
+        slotContainer.innerHTML = '';
+        slotContainer.style.display = "none";
+    }
 
 }
 
 let slots_inputs = create_slot_inputs(period_input.value);
-if (slots_inputs){
-  slotContainer.innerHTML = slots_inputs;
-  slotContainer.style.display = "block";
+if (slots_inputs) {
+    slotContainer.innerHTML = slots_inputs;
+    slotContainer.style.display = "block";
 }
 
 
@@ -795,19 +1078,19 @@ if (slots_inputs){
 /* remove calendar */
 const removeCalendarBtns = document.querySelectorAll(".remove_calendar");
 const calendarIdDelete = document.querySelector("#remove_calendar_id");
-removeCalendarBtns.forEach( (removeBtn)=>{
-  removeBtn.addEventListener("click", (event)=>{
-    calendarIdDelete.value = event.target.getAttribute("data-calendar");
-  });
+removeCalendarBtns.forEach((removeBtn) => {
+    removeBtn.addEventListener("click", (event) => {
+        calendarIdDelete.value = event.target.getAttribute("data-calendar");
+    });
 });
 
 /* remove user */
 const removeUserBtns = document.querySelectorAll(".delete_user");
 const removeUserId = document.querySelector("#remove_user_id");
-removeUserBtns.forEach( (removeBtn)=>{
-  removeBtn.addEventListener("click", (event)=>{
-    removeUserId.value = event.target.getAttribute("data-user");
-  });
+removeUserBtns.forEach((removeBtn) => {
+    removeBtn.addEventListener("click", (event) => {
+        removeUserId.value = event.target.getAttribute("data-user");
+    });
 });
 
 
@@ -819,14 +1102,14 @@ const usernameEdit = document.querySelector("#username_edit");
 const emailEdit = document.querySelector("#email_edit");
 const useridEdit = document.querySelector("#userid_edit");
 const passwordInputEdit = document.querySelector("#password_edit");
-editUserBtns.forEach( (editBtn)=>{
-  editBtn.addEventListener("click", (event)=>{
-    fullnameEdit.value = event.target.getAttribute("data-name");
-    usernameEdit.value = event.target.getAttribute("data-username");
-    emailEdit.value = event.target.getAttribute("data-email");
-    useridEdit.value = event.target.getAttribute("data-user");
-    passwordInputEdit.value = "";
-  });
+editUserBtns.forEach((editBtn) => {
+    editBtn.addEventListener("click", (event) => {
+        fullnameEdit.value = event.target.getAttribute("data-name");
+        usernameEdit.value = event.target.getAttribute("data-username");
+        emailEdit.value = event.target.getAttribute("data-email");
+        useridEdit.value = event.target.getAttribute("data-user");
+        passwordInputEdit.value = "";
+    });
 });
 
 /* edit calendar */
@@ -845,90 +1128,94 @@ const t_periodsInputPage2 = document.querySelector("#period_per_day_page2");
 const t_slotsInputPage2 = document.querySelector("#slots_per_day_page2");
 
 
-editCalendarBtns.forEach( (editBtn)=>{
-  editBtn.addEventListener("click", (event)=>{
-    /* page 1 */
-    calendarTitleEdit.value = event.target.getAttribute("data-title");
-    calendarDescriptionEdit.value = event.target.getAttribute("data-description");
-    calendarUseridEdit.value = event.target.getAttribute("data-calendar");
-    addedYearCalId.value = event.target.getAttribute("data-calendar");
-    addNewYearEdit.setAttribute("placeholder", event.target.getAttribute("data-added-years"));
+editCalendarBtns.forEach((editBtn) => {
+    editBtn.addEventListener("click", (event) => {
+      /*
 
-    /* page 2*/
-    addPeriodsCalId.value = event.target.getAttribute("data-calendar");
-    addSlotsCalId.value = event.target.getAttribute("data-calendar");
-    t_periodsInputPage2.setAttribute("data-total-periods", event.target.getAttribute("data-total-periods"));
-    t_slotsInputPage2.setAttribute("data-total-slots", event.target.getAttribute("data-total-slots"));
-    t_slotsInputPage2.setAttribute("data-total-periods", event.target.getAttribute("data-total-periods"));
+      */
 
-  });
+        /* page 1 */
+        calendarTitleEdit.value = event.target.getAttribute("data-title");
+        calendarDescriptionEdit.value = event.target.getAttribute("data-description");
+        calendarUseridEdit.value = event.target.getAttribute("data-calendar");
+        addedYearCalId.value = event.target.getAttribute("data-calendar");
+        addNewYearEdit.setAttribute("placeholder", event.target.getAttribute("data-added-years"));
+
+        /* page 2*/
+        addPeriodsCalId.value = event.target.getAttribute("data-calendar");
+        addSlotsCalId.value = event.target.getAttribute("data-calendar");
+        t_periodsInputPage2.setAttribute("data-total-periods", event.target.getAttribute("data-total-periods"));
+        t_slotsInputPage2.setAttribute("data-total-slots", event.target.getAttribute("data-total-slots"));
+        t_slotsInputPage2.setAttribute("data-total-periods", event.target.getAttribute("data-total-periods"));
+
+    });
 });
 /* edit calendar end */
 
 
 const toggleEditPass = document.querySelector("#toggle_edit_pass");
 
-toggleEditPass.addEventListener("change", (event)=>{
-  console.log(event.target);
-  if (event.target.checked == true){
-    if (passwordInputEdit.hasAttribute("disabled")){
-      passwordInputEdit.removeAttribute("disabled");
+toggleEditPass.addEventListener("change", (event) => {
+    console.log(event.target);
+    if (event.target.checked == true) {
+        if (passwordInputEdit.hasAttribute("disabled")) {
+            passwordInputEdit.removeAttribute("disabled");
+        }
+        if (!passwordInputEdit.hasAttribute("required")) {
+            passwordInputEdit.setAttribute("required", true);
+        }
+    } else {
+        if (!passwordInputEdit.hasAttribute("disabled")) {
+            passwordInputEdit.setAttribute("disabled", true);
+        }
+        if (passwordInputEdit.hasAttribute("required")) {
+            passwordInputEdit.removeAttribute("required");
+        }
     }
-    if (!passwordInputEdit.hasAttribute("required")){
-      passwordInputEdit.setAttribute("required", true);
-    }
-  } else {
-    if (!passwordInputEdit.hasAttribute("disabled")){
-      passwordInputEdit.setAttribute("disabled", true);
-    }
-    if (passwordInputEdit.hasAttribute("required")){
-      passwordInputEdit.removeAttribute("required");
-    }
-  }
 
 
 
 });
 
 /* change edit calendar content modal */
-function goToLevel(event){
-  const levelSpan = document.querySelector("#selected_page");
-  const selectedLevel = event.target.getAttribute("data-level");
-  if (selectedLevel){
-    const selectedContainer = document.querySelector(`div[data-content-level='${selectedLevel}']`);
-    if (selectedContainer){
-      const allLevelsContainers = document.querySelectorAll(".level_container");
-      allLevelsContainers.forEach( (levelContainer)=>{
-        levelContainer.style.display = "none";
-      });
-      selectedContainer.style.display = "block";
-      levelSpan.innerText = selectedLevel;
+function goToLevel(event) {
+    const levelSpan = document.querySelector("#selected_page");
+    const selectedLevel = event.target.getAttribute("data-level");
+    if (selectedLevel) {
+        const selectedContainer = document.querySelector(`div[data-content-level='${selectedLevel}']`);
+        if (selectedContainer) {
+            const allLevelsContainers = document.querySelectorAll(".level_container");
+            allLevelsContainers.forEach((levelContainer) => {
+                levelContainer.style.display = "none";
+            });
+            selectedContainer.style.display = "block";
+            levelSpan.innerText = selectedLevel;
+        }
     }
-  }
 }
 
 const editCalLevelBtns = document.querySelectorAll(".edit_cal_level");
-editCalLevelBtns.forEach( (levelBtn)=>{
-  levelBtn.addEventListener("click", goToLevel);
+editCalLevelBtns.forEach((levelBtn) => {
+    levelBtn.addEventListener("click", goToLevel);
 });
 
 
 /* display periods in add periods */
 const periodInputPage2 = document.querySelector("#period_per_day_page2");
 const periodContainerPage2 = document.querySelector("#periods_container_page2");
-periodInputPage2.addEventListener( "input", display_periods_page2 );
+periodInputPage2.addEventListener("input", display_periods_page2);
 
 
-function display_periods_page2(event){
-  let start_index = Number(event.target.getAttribute("data-total-periods")) + 1;
-  let period_inputs = create_period_inputs(event.target.value, start_index);
-  if (period_inputs){
-    periodContainerPage2.innerHTML = period_inputs;
-    periodContainerPage2.style.display = "block";
-  } else {
-    periodContainerPage2.innerHTML = '';
-    periodContainerPage2.style.display = "none";
-  }
+function display_periods_page2(event) {
+    let start_index = Number(event.target.getAttribute("data-total-periods")) + 1;
+    let period_inputs = create_period_inputs(event.target.value, start_index, 'edit');
+    if (period_inputs) {
+        periodContainerPage2.innerHTML = period_inputs;
+        periodContainerPage2.style.display = "block";
+    } else {
+        periodContainerPage2.innerHTML = '';
+        periodContainerPage2.style.display = "none";
+    }
 }
 
 
@@ -936,24 +1223,26 @@ function display_periods_page2(event){
 
 const slotsInputPage2 = document.querySelector("#slots_per_day_page2");
 const slotsContainerPage2 = document.querySelector("#slots_container_page2");
-slotsInputPage2.addEventListener( "input", display_slots_page2 );
+slotsInputPage2.addEventListener("input", display_slots_page2);
 
-function display_slots_page2(event){
-  let totalPeriods = Number(event.target.getAttribute("data-total-periods"));
-  slotsContainerPage2.innerHTML = "<div class='alert alert-info mt-2'>Please Add Periods First</div>";
-  if (totalPeriods == 0){return false;}
+function display_slots_page2(event) {
+    let totalPeriods = Number(event.target.getAttribute("data-total-periods"));
+    slotsContainerPage2.innerHTML = "<div class='alert alert-info mt-2'>Please Add Periods First</div>";
+    if (totalPeriods == 0) {
+        return false;
+    }
 
-  let start_index = Number(event.target.getAttribute("data-total-slots"))+1;
+    let start_index = Number(event.target.getAttribute("data-total-slots")) + 1;
 
-  // add the slots start from new index
-  let slots_inputs = create_slot_inputs(event.target.value, start_index);
-  if (slots_inputs){
-    slotsContainerPage2.innerHTML = slots_inputs;
-    slotsContainerPage2.style.display = "block";
-  } else {
-    slotsContainerPage2.innerHTML = '';
-    slotsContainerPage2.style.display = "none";
-  }
+    // add the slots start from new index
+    let slots_inputs = create_slot_inputs(event.target.value, start_index);
+    if (slots_inputs) {
+        slotsContainerPage2.innerHTML = slots_inputs;
+        slotsContainerPage2.style.display = "block";
+    } else {
+        slotsContainerPage2.innerHTML = '';
+        slotsContainerPage2.style.display = "none";
+    }
 
 }
 
@@ -961,147 +1250,167 @@ function display_slots_page2(event){
 
 // set inital input for add periods and slots to not let user add empty input by wrong
 const allEditCalbtns = document.querySelectorAll(".edit_calendar");
-allEditCalbtns.forEach( (calbtn)=>{
-  periodInputPage2.value = 1;
-  slotsInputPage2.value = 1;
+allEditCalbtns.forEach((calbtn) => {
+    periodInputPage2.value = 1;
+    slotsInputPage2.value = 1;
 
-  calbtn.addEventListener("click", ()=>{
-    let start_index = Number(calbtn.getAttribute("data-total-periods")) + 1;
-    let start_index_slots = Number(calbtn.getAttribute("data-total-slots")) + 1;
-    let period_inputs = create_period_inputs(1, start_index);
-    if (period_inputs){
-      periodContainerPage2.innerHTML = period_inputs;
-      periodContainerPage2.style.display = "block";
-    } else {
-      periodContainerPage2.innerHTML = '';
-      periodContainerPage2.style.display = "none";
-    }
+    calbtn.addEventListener("click", () => {
 
-    let totalPeriods = Number(calbtn.getAttribute("data-total-periods"));
 
-    if (totalPeriods <1){
-      slotsContainerPage2.innerHTML = "<div class='alert alert-info mt-2'>Please Add Periods First</div>";
-    } else {
-      if (Number(calbtn.getAttribute("data-total-periods")) > 0) {
-
-        let slots_inputs = create_slot_inputs(1, start_index_slots);
-        if (slots_inputs){
-          slotsContainerPage2.innerHTML = slots_inputs;
-          slotsContainerPage2.style.display = "block";
+        let start_index = Number(calbtn.getAttribute("data-total-periods")) + 1;
+        let start_index_slots = Number(calbtn.getAttribute("data-total-slots")) + 1;
+        let period_inputs = create_period_inputs(1, start_index, 'edit');
+        if (period_inputs) {
+            periodContainerPage2.innerHTML = period_inputs;
+            periodContainerPage2.style.display = "block";
         } else {
-          slotsContainerPage2.innerHTML = '';
-          slotsContainerPage2.style.display = "none";
+            periodContainerPage2.innerHTML = '';
+            periodContainerPage2.style.display = "none";
         }
-      }
-    }
+
+        let totalPeriods = Number(calbtn.getAttribute("data-total-periods"));
+
+        if (totalPeriods < 1) {
+            slotsContainerPage2.innerHTML = "<div class='alert alert-info mt-2'>Please Add Periods First</div>";
+        } else {
+            if (Number(calbtn.getAttribute("data-total-periods")) > 0) {
+
+                let slots_inputs = create_slot_inputs(1, start_index_slots);
+                if (slots_inputs) {
+                    slotsContainerPage2.innerHTML = slots_inputs;
+                    slotsContainerPage2.style.display = "block";
+                } else {
+                    slotsContainerPage2.innerHTML = '';
+                    slotsContainerPage2.style.display = "none";
+                }
+            }
+        }
 
 
-  });
+    });
 
 });
 
 /*  delete periods toggle */
 
-function startDeletePeriod(event){
-  event.preventDefault();
-  const deletePeriodForm = document.querySelector("#delete_period_form");
-  deletePeriodForm.addEventListener("submit", displayCalendarEditWait);
-  const container1ID = event.target.getAttribute("data-level-1");
-  const container2ID = event.target.getAttribute("data-level-2");
-  const container1 = document.querySelector(`#${container1ID}`);
-  const container2 = document.querySelector(`#${container2ID}`);
-  container1.style.display = "none";
-  container2.style.display = "block";
+function startDeletePeriod(event) {
+    event.preventDefault();
+    const deletePeriodForm = document.querySelector("#delete_period_form");
+    deletePeriodForm.addEventListener("submit", displayCalendarEditWait);
+    const container1ID = event.target.getAttribute("data-level-1");
+    const container2ID = event.target.getAttribute("data-level-2");
+    const container1 = document.querySelector(`#${container1ID}`);
+    const container2 = document.querySelector(`#${container2ID}`);
+    container1.style.display = "none";
+    container2.style.display = "block";
 
-  container2.setAttribute("data-level-1", container1ID);
+    container2.setAttribute("data-level-1", container1ID);
 
-  container2.classList.add('active-delete-period');
+    container2.classList.add('active-delete-period');
 
 }
 
 
-function backDefaultDelete(){
-  const deletePeriods1 = document.querySelectorAll(".delete_periods_s1");
-  const deletePeriods2 = document.querySelectorAll(".delete_periods_s2");
-  const deleteSlots1 = document.querySelectorAll(".delete_slots_s1");
-  const deleteSlots2 = document.querySelectorAll(".delete_slots_s2");
-  deletePeriods1.forEach( (period1)=>{
-    period1.style.display = "block";
-  });
-  deletePeriods2.forEach( (period2)=>{
-    period2.style.display = "none";
-    if (period2.classList.add('active-delete-period')){
-      period2.classList.remove('active-delete-period');
-    }
-  });
-  deleteSlots1.forEach( (slot1)=>{
-    slot1.style.display = "block";
-  });
-  deleteSlots2.forEach( (slot2)=>{
-    if (slot2.classList.add('active-delete-slot')){
-      slot2.classList.remove('active-delete-slot');
-    }
-    slot2.style.display = "none";
-  });
+function backDefaultDelete() {
+    const deletePeriods1 = document.querySelectorAll(".delete_periods_s1");
+    const deletePeriods2 = document.querySelectorAll(".delete_periods_s2");
+    const deleteSlots1 = document.querySelectorAll(".delete_slots_s1");
+    const deleteSlots2 = document.querySelectorAll(".delete_slots_s2");
+    deletePeriods1.forEach((period1) => {
+        period1.style.display = "block";
+    });
+    deletePeriods2.forEach((period2) => {
+        period2.style.display = "none";
+        if (period2.classList.add('active-delete-period')) {
+            period2.classList.remove('active-delete-period');
+        }
+    });
+    deleteSlots1.forEach((slot1) => {
+        slot1.style.display = "block";
+    });
+    deleteSlots2.forEach((slot2) => {
+        if (slot2.classList.add('active-delete-slot')) {
+            slot2.classList.remove('active-delete-slot');
+        }
+        slot2.style.display = "none";
+    });
 }
 
-function endDeletePeriod(event){
-  event.preventDefault();
-  const container1ID = event.target.getAttribute("data-level-1");
-  const container2ID = event.target.getAttribute("data-level-2");
-  const container1 = document.querySelector(`#${container1ID}`);
-  const container2 = document.querySelector(`#${container2ID}`);
-  container1.style.display = "block";
-  container2.style.display = "none";
-  backDefaultDelete();
+function endDeletePeriod(event) {
+    event.preventDefault();
+    const container1ID = event.target.getAttribute("data-level-1");
+    const container2ID = event.target.getAttribute("data-level-2");
+    const container1 = document.querySelector(`#${container1ID}`);
+    const container2 = document.querySelector(`#${container2ID}`);
+    container1.style.display = "block";
+    container2.style.display = "none";
+    backDefaultDelete();
 }
 
 /*  delete slots toggle */
 
-function startDeleteSlot(event){
-  event.preventDefault();
-  const deletePeriodForm = document.querySelector("#delete_period_form");
-  deletePeriodForm.addEventListener("submit", displayCalendarEditWait);
-  const container1ID = event.target.getAttribute("data-level-1");
-  const container2ID = event.target.getAttribute("data-level-2");
-  const container1 = document.querySelector(`#${container1ID}`);
-  const container2 = document.querySelector(`#${container2ID}`);
-  container1.style.display = "none";
-  container2.style.display = "block";
+function startDeleteSlot(event) {
+    event.preventDefault();
+    const deletePeriodForm = document.querySelector("#delete_period_form");
+    deletePeriodForm.addEventListener("submit", displayCalendarEditWait);
+    const container1ID = event.target.getAttribute("data-level-1");
+    const container2ID = event.target.getAttribute("data-level-2");
+    const container1 = document.querySelector(`#${container1ID}`);
+    const container2 = document.querySelector(`#${container2ID}`);
+    container1.style.display = "none";
+    container2.style.display = "block";
 
-  container2.setAttribute("data-level-1", container1ID);
-  container2.classList.add('active-delete-period');
+    container2.setAttribute("data-level-1", container1ID);
+    container2.classList.add('active-delete-period');
 
 }
 
 
-function endDeleteSlot(event){
-  event.preventDefault();
-  const container1ID = event.target.getAttribute("data-level-1");
-  const container2ID = event.target.getAttribute("data-level-2");
-  const container1 = document.querySelector(`#${container1ID}`);
-  const container2 = document.querySelector(`#${container2ID}`);
-  container1.style.display = "block";
-  container2.style.display = "none";
-  backDefaultDelete();
+function endDeleteSlot(event) {
+    event.preventDefault();
+    const container1ID = event.target.getAttribute("data-level-1");
+    const container2ID = event.target.getAttribute("data-level-2");
+    const container1 = document.querySelector(`#${container1ID}`);
+    const container2 = document.querySelector(`#${container2ID}`);
+    container1.style.display = "block";
+    container2.style.display = "none";
+    backDefaultDelete();
 }
 
-function startDeleteSlot(event){
-  event.preventDefault();
+function startDeleteSlot(event) {
+    event.preventDefault();
 
-  const deleteSlotForm = document.querySelector("#delete_slot_form");
-  deleteSlotForm.addEventListener("submit", displayCalendarEditWait);
+    const deleteSlotForm = document.querySelector("#delete_slot_form");
+    deleteSlotForm.addEventListener("submit", displayCalendarEditWait);
 
-  const container1ID = event.target.getAttribute("data-level-1");
-  const container2ID = event.target.getAttribute("data-level-2");
-  const container1 = document.querySelector(`#${container1ID}`);
-  const container2 = document.querySelector(`#${container2ID}`);
+    const container1ID = event.target.getAttribute("data-level-1");
+    const container2ID = event.target.getAttribute("data-level-2");
+    const container1 = document.querySelector(`#${container1ID}`);
+    const container2 = document.querySelector(`#${container2ID}`);
 
-  container1.style.display = "none";
-  container2.style.display = "block";
+    container1.style.display = "none";
+    container2.style.display = "block";
 
-  container2.setAttribute("data-level-1", container1ID);
-  container2.classList.add('active-delete-period');
+    container2.setAttribute("data-level-1", container1ID);
+    container2.classList.add('active-delete-period');
+}
+
+// toggle show and hide custom css style period
+function toggleEditCustomCSS(event){
+
+  let dataIndex = event.target.getAttribute("data-index");
+  dataIndex = !dataIndex ? event.target.parentElement.getAttribute("data-index") : dataIndex;
+  const currentForm = document.querySelector(`form.edit_customcss_form[data-index='${dataIndex}']`);
+  if (currentForm){
+    const currentStatus  = currentForm.getAttribute("data-visible");
+    if (currentStatus == 'false'){
+      currentForm.style.display = "block";
+      currentForm.setAttribute("data-visible", "true");
+    } else {
+      currentForm.style.display = "none";
+      currentForm.setAttribute("data-visible", "false");
+    }
+  }
 }
 
 </script>

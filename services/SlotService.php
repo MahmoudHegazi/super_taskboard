@@ -16,9 +16,11 @@ class SlotService {
     $this->slot_mapper = new SlotMapper($pdo);
   }
   // Add New slot
-  function add($start_from, $end_at, $period_id, $empty, $slot_index){
+  function add($start_from, $end_at, $period_id, $empty, $slot_index, $element_id='', $element_class=''){
     $slot_obj = new Slot();
     $slot_obj->init($start_from, $end_at, $period_id, $empty, $slot_index);
+    $slot_obj->set_element_id($element_id);
+    $slot_obj->set_element_class($element_class);
     return $this->slot_mapper->insert($slot_obj);
   }
 
@@ -42,6 +44,8 @@ class SlotService {
       $slot_row['slot_index']
     );
     $slot->set_id($slot_row['id']);
+    $slot->set_element_id($slot_row['element_id']);
+    $slot->set_element_class($slot_row['element_class']);
     return $slot;
   }
 
@@ -63,6 +67,8 @@ class SlotService {
 
         );
         $slot->set_id($slot_rows[$i]['id']);
+        $slot->set_element_id($slot_rows[$i]['element_id']);
+        $slot->set_element_class($slot_rows[$i]['element_class']);
         array_push($slot_list, $slot);
     }
     return $slot_list;
@@ -95,14 +101,16 @@ class SlotService {
     $slot = new Slot();
 
     for ($i=0; $i<count($slot_data_list); $i++){
-      if (is_array($slot_data_list[$i]) && count($slot_data_list[$i]) == 5){
+      if (is_array($slot_data_list[$i]) && count($slot_data_list[$i]) == 7){
 
          $slot->init(
            $slot_data_list[$i][0],
            $slot_data_list[$i][1],
            $slot_data_list[$i][2],
            $slot_data_list[$i][3],
-           $slot_data_list[$i][4]
+           $slot_data_list[$i][4],
+           $slot_data_list[$i][5],
+           $slot_data_list[$i][6]
          );
          $slot_id = $this->slot_mapper->insert($slot);
          array($slots_ids, $slot_id);
@@ -142,6 +150,7 @@ class SlotService {
   function get_distinct_slots_data($slots_data_rows){
     if (!isset($slots_data_rows) || empty($slots_data_rows)){return array();}
     $slots_data = array();
+
     for ($s=0; $s<count($slots_data_rows); $s++){
       $row_data = $this->get_slots_where('slot_index', intval($slots_data_rows[$s]['slot_index']), 1);
       if (count($row_data) > 0){
@@ -149,7 +158,25 @@ class SlotService {
           'id'=> $row_data[0]['id'],
           'slot_index'=> $row_data[0]['slot_index'],
           'start_from'=> $row_data[0]['start_from'],
-          'end_at'=> $row_data[0]['end_at'])
+          'end_at'=> $row_data[0]['end_at'],
+          'element_id'=> $row_data[0]['element_id'],
+          'element_class'=> $row_data[0]['element_class']
+        )
+        );
+      }
+    };
+    return $slots_data;
+  }
+
+  function get_distinct_slots_classnames($slots_data_rows){
+    if (!isset($slots_data_rows) || empty($slots_data_rows)){return array();}
+    $slots_data = array();
+    for ($s=0; $s<count($slots_data_rows); $s++){
+      $row_data = $this->get_slots_where('slot_index', intval($slots_data_rows[$s]['slot_index']), 1);
+      if (count($row_data) > 0){
+        array_push($slots_data,array(
+          'element_class'=> $row_data[0]['element_class']
+        )
         );
       }
     };

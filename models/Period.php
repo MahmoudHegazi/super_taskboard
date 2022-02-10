@@ -6,6 +6,8 @@ class Period {
   public $period_date;
   public $description;
   public $period_index;
+  public $element_id;
+  public $element_class;
 
 
   function init($day_id, $period_date, $description, $period_index){
@@ -48,6 +50,20 @@ class Period {
   }
   function get_period_index() {
     return $this->period_index;
+  }
+
+  function set_element_id($element_id) {
+    $this->element_id = $element_id;
+  }
+  function get_element_id() {
+    return $this->element_id;
+  }
+
+  function set_element_class($element_class) {
+    $this->element_class = $element_class;
+  }
+  function get_element_class() {
+    return $this->element_class;
   }
 
 }

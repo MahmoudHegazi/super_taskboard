@@ -18,9 +18,11 @@ class PeriodService {
 
 
   // Add New Period
-  function add($day_id, $period_date, $description, $period_index){
+  function add($day_id, $period_date, $description, $period_index, $element_id='', $element_class=''){
     $period_obj = new Period();
     $period_obj->init($day_id, $period_date, $description, $period_index);
+    $period_obj->set_element_id($element_id);
+    $period_obj->set_element_class($element_class);
     return $this->period_mapper->insert($period_obj);
   }
 
@@ -40,12 +42,15 @@ class PeriodService {
       $period_row['day_id'],
       $period_row['period_date'],
       $period_row['description'],
+      $period_row['element_id'],
+      $period_row['element_class'],
       $period_row['period_index']
     );
     $period->set_id($period_row['id']);
+    $period->set_element_id($period_row['element_id']);
+    $period->set_element_class($period_row['element_class']);
     return $period;
   }
-
   // get All period
   function get_all_periods(){
 
@@ -59,9 +64,13 @@ class PeriodService {
           $period_rows[$i]['day_id'],
           $period_rows[$i]['period_date'],
           $period_rows[$i]['description'],
+          $period_rows[$i]['element_id'],
+          $period_rows[$i]['element_class'],
           $period_rows[$i]['period_index']
         );
         $period->set_id($period_rows[$i]['id']);
+        $period->set_element_id($period_rows[$i]['element_id']);
+        $period->set_element_class($period_rows[$i]['element_class']);
         array_push($period_list, $period);
     }
     return $period_list;
@@ -95,13 +104,15 @@ class PeriodService {
     $period = new Period();
 
     for ($i=0; $i<count($period_data_list); $i++){
-      if (is_array($period_data_list[$i]) && count($period_data_list[$i]) == 4){
+      if (is_array($period_data_list[$i]) && count($period_data_list[$i]) == 6){
 
          $period->init(
            $period_data_list[$i][0],
            $period_data_list[$i][1],
            $period_data_list[$i][2],
-           $period_data_list[$i][3]
+           $period_data_list[$i][3],
+           $period_data_list[$i][4],
+           $period_data_list[$i][5]
          );
          $period_id = $this->period_mapper->insert($period);
          array_push($periods_ids, $period_id);
@@ -151,7 +162,26 @@ class PeriodService {
           'id'=> $row_data[0]['id'],
           'period_index'=> $row_data[0]['period_index'],
           'period_date'=> $row_data[0]['period_date'],
-          'description'=> $row_data[0]['description'])
+          'description'=> $row_data[0]['description'],
+          'element_id'=> $row_data[0]['element_id'],
+          'element_class'=> $row_data[0]['element_class']
+        )
+        );
+      }
+    }
+    return $periods_data;
+  }
+
+
+  function get_distinct_periods_classnames($periods_data_rows){
+    if (!isset($periods_data_rows) || empty($periods_data_rows)){return array();}
+    $periods_data = array();
+    for ($s=0; $s<count($periods_data_rows); $s++){
+      $row_data = $this->get_periods_where('period_index', intval($periods_data_rows[$s]['period_index']), 1);
+      if (count($row_data) > 0){
+        array_push($periods_data,array(
+          'element_class'=> $row_data[0]['element_class']
+        )
         );
       }
     }

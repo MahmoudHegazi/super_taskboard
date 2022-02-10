@@ -19,13 +19,15 @@ class PeriodMapper {
 
   public function insert($period) {
       $pdo = $this->getPDO();
-      $statement = $pdo->prepare('INSERT INTO period(day_id, period_date, description, period_index) VALUES(:day_id, :period_date, :description, :period_index)');
+      $statement = $pdo->prepare('INSERT INTO period(day_id, period_date, description, element_id, element_class, period_index) VALUES(:day_id, :period_date, :description, :element_id, :element_class, :period_index)');
 
       $period_date = date('Y-m-d H:i:s', strtotime(test_input($period->get_period_date())));
       $statement->execute(array(
           'day_id' => $period->get_day_id(),
           'period_date' => $period_date,
           'description' => $period->get_description(),
+          'element_id' => $period->get_element_id(),
+          'element_class' => $period->get_element_class(),
           'period_index' => $period->get_period_index()
       ));
       return $pdo->lastInsertId();
@@ -44,11 +46,13 @@ class PeriodMapper {
 
 
   function update($period){
-    $statement = $pdo->prepare('UPDATE period (day_id, period_date, description) VALUES(:day_id, :period_date, :description)');
+    $statement = $pdo->prepare('UPDATE period (day_id, period_date, description, element_id, element_class) VALUES(:day_id, :period_date, :description, :element_id, :element_class)');
     $statement->execute(array(
       'day_id' => $period->get_day_id(),
       'period_date' => $period->get_period_date(),
-      'description' => $period->get_description()
+      'description' => $period->get_description(),
+      'element_id' => $period->get_element_id(),
+      'element_class' => $period->get_element_class()
     ));
   }
 

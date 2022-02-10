@@ -142,6 +142,8 @@ class CalendarService {
     return $this->calendar_mapper->free_db_command($sql);
   }
 
+
+
 }
 /* ##################### Test #################### */
 /* #####################

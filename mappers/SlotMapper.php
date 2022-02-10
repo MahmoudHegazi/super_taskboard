@@ -19,12 +19,14 @@ class SlotMapper {
 
   public function insert($slot) {
       $pdo = $this->getPDO();
-      $statement = $pdo->prepare('INSERT INTO slot(start_from, end_at, period_id, empty, slot_index) VALUES(:start_from, :end_at, :period_id, :empty, :slot_index)');
+      $statement = $pdo->prepare('INSERT INTO slot(start_from, end_at, period_id, element_id, element_class, empty, slot_index) VALUES(:start_from, :end_at, :period_id, :element_id, :element_class, :empty, :slot_index)');
       $statement->execute(array(
         'start_from' => $slot->get_start_from(),
         'end_at' => $slot->get_end_at(),
         'period_id' => $slot->get_period_id(),
         'empty' => $slot->get_empty(),
+        'element_id' => $slot->get_element_id(),
+        'element_class' => $slot->get_element_class(),
         'slot_index' => $slot->get_slot_index()
       ));
       return $pdo->lastInsertId();
@@ -44,11 +46,13 @@ class SlotMapper {
 
 
   function update($slot){
-    $statement = $pdo->prepare('UPDATE slot (start_from, end_at, period_id, empty) VALUES(:start_from, :end_at, :period_id, :empty)');
+    $statement = $pdo->prepare('UPDATE slot (start_from, end_at, period_id, element_id, element_class, empty) VALUES(:start_from, :end_at, :period_id, :element_id, :element_class, :empty)');
     $statement->execute(array(
       'start_from' => $slot->get_start_from(),
       'end_at' => $slot->get_end_at(),
       'period_id' => $slot->get_period_id(),
+      'element_id' => $slot->get_element_id(),
+      'element_class' => $slot->get_element_class(),
       'empty' => $slot->get_empty()
     ));
   }
