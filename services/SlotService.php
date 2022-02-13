@@ -182,6 +182,29 @@ class SlotService {
     };
     return $slots_data;
   }
+
+
+  // this update 28x speed added
+  function insert_group_fast($data){
+    $slots_objects = array();
+    foreach($data as $item)
+    {
+
+      $slot_obj = new Slot();
+      $slot_obj->init(
+        $item['start_from'],
+        $item['end_at'],
+        $item['period_id'],
+        $item['empty'],
+        $item['slot_index']
+      );
+      $slot_obj->set_element_id($item['element_id']);
+      $slot_obj->set_element_class($item['element_class']);
+      $slots_objects[] = $slot_obj;
+    }
+    return $this->slot_mapper->insert_group_fast($slots_objects);
+  }
+
 }
 
 /* ##################### Test #################### */

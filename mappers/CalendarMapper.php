@@ -141,6 +141,15 @@ class CalendarMapper {
       return  $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    function free_single_query($sql){
+      $pdo = $this->getPDO();
+      $query_sql = test_input($sql);
+      $stmt = $pdo->prepare($query_sql);
+      $stmt->execute();
+      return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+
     function free_db_command($sql){
       $pdo = $this->getPDO();
       $query_sql = test_input($sql);

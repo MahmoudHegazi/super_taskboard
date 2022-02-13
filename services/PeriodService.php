@@ -42,8 +42,6 @@ class PeriodService {
       $period_row['day_id'],
       $period_row['period_date'],
       $period_row['description'],
-      $period_row['element_id'],
-      $period_row['element_class'],
       $period_row['period_index']
     );
     $period->set_id($period_row['id']);
@@ -64,8 +62,6 @@ class PeriodService {
           $period_rows[$i]['day_id'],
           $period_rows[$i]['period_date'],
           $period_rows[$i]['description'],
-          $period_rows[$i]['element_id'],
-          $period_rows[$i]['element_class'],
           $period_rows[$i]['period_index']
         );
         $period->set_id($period_rows[$i]['id']);
@@ -188,6 +184,26 @@ class PeriodService {
     return $periods_data;
   }
 
+
+  function insert_group_fast($data){
+    $periods_objects = array();
+    foreach($data as $item)
+    {
+      $period_obj = new Period();
+      $period_obj->init(
+        $item['day_id'],
+        $item['period_date'],
+        $item['description'],
+        $item['period_index']
+      );
+      $period_obj->set_element_id($item['element_id']);
+      $period_obj->set_element_class($item['element_class']);
+      $periods_objects[] = $period_obj;
+
+    }
+
+    return $this->period_mapper->insert_group_fast($periods_objects);
+  }
 }
 /* ##################### Test #################### */
 /* #####################

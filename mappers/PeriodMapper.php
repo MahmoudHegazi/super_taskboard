@@ -130,6 +130,31 @@ class PeriodMapper {
     return  $stmt->fetchAll(PDO::FETCH_ASSOC);
   }
 
+  // new update
+  function insert_group_fast($data){
+    $inserted_ids = array();
+    $pdo = $this->getPDO();
+    $pdo->setAttribute(PDO::ATTR_AUTOCOMMIT, 0);
+    $pdo->beginTransaction(); // also helps speed up your inserts.
+    $stmt = $pdo->prepare('INSERT INTO period(day_id, period_date, description, element_id, element_class, period_index) VALUES(:day_id, :period_date, :description, :element_id, :element_class, :period_index)');
+    foreach($data as $item)
+    {
+        $stmt->bindValue(':day_id', $item->get_day_id());
+        $stmt->bindValue(':period_date', $item->get_period_date());
+        $stmt->bindValue(':description', $item->get_description());
+        $stmt->bindValue(':element_id', $item->get_element_id());
+        $stmt->bindValue(':element_class', $item->get_element_class());
+        $stmt->bindValue(':period_index', $item->get_period_index());
+        $stmt->execute();
+        $id = $pdo->lastInsertId();
+        array_push($inserted_ids, $id);
+    }
+    $pdo->commit();
+    $pdo->setAttribute(PDO::ATTR_AUTOCOMMIT, 1);
+    return $inserted_ids;
+  }
+
+
 
 
 }

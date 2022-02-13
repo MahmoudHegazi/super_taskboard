@@ -108,6 +108,20 @@ div.aside_container .nav_item:hover {
 #editCalendar, #addCalendar, #removeCalendar, #addUser, #editUser, #removeUser{
   font-family: cursive;
 }
+
+:root {
+  --darkseagreen: #darkseagreen;
+  --white: #ffffff;
+  --active_shadow: 2px 2px 8px rgb(12 155 120 / 60%);
+}
+
+.bg__green{
+  background-color: var(--darkseagreen);
+}
+.active_shadow{
+  box-shadow: var(--active_shadow);
+}
+
 @media only screen and (max-width: 575px) {
 
   div.aside_container {

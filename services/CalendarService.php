@@ -137,6 +137,10 @@ class CalendarService {
   function free_group_query($sql){
     return $this->calendar_mapper->free_group_query($sql);
   }
+  function free_single_query($sql){
+    return $this->calendar_mapper->free_single_query($sql);
+  }
+
 
   function excute_on_db($sql){
     return $this->calendar_mapper->free_db_command($sql);

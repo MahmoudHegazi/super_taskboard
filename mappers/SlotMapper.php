@@ -123,4 +123,32 @@ class SlotMapper {
   }
 
 
+  // new update
+  function insert_group_fast($data){
+    $inserted_ids = array();
+    $pdo = $this->getPDO();
+    $pdo->setAttribute(PDO::ATTR_AUTOCOMMIT, 0);
+    $pdo->beginTransaction(); // also helps speed up your inserts.
+    $stmt = $pdo->prepare('INSERT INTO slot(start_from, end_at, period_id, element_id, element_class, empty, slot_index) VALUES(:start_from, :end_at, :period_id, :element_id, :element_class, :empty, :slot_index)');
+    foreach($data as $item)
+    {
+
+        $stmt->bindValue(':start_from', $item->get_start_from());
+        $stmt->bindValue(':end_at', $item->get_end_at());
+        $stmt->bindValue(':period_id', $item->get_period_id());
+        $stmt->bindValue(':empty', $item->get_empty());
+        $stmt->bindValue(':element_id', $item->get_element_id());
+        $stmt->bindValue(':element_class', $item->get_element_class());
+        $stmt->bindValue(':slot_index', $item->get_slot_index());
+        $stmt->execute();
+        $id = $pdo->lastInsertId();
+        array_push($inserted_ids, $id);
+    }
+    $pdo->commit();
+    $pdo->setAttribute(PDO::ATTR_AUTOCOMMIT, 1);
+    return $inserted_ids;
+  }
+
+
+
 }

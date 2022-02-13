@@ -18,6 +18,8 @@ class StyleMapper {
 
     public function insert($style) {
         $pdo = $this->getPDO();
+        $pdo->setAttribute(PDO::ATTR_AUTOCOMMIT, 0);
+        $pdo->beginTransaction();
         $statement = $pdo->prepare('INSERT INTO style(classname, element_id, style, class_id, active, custom, cal_id, title, category) VALUES(:classname, :element_id, :style, :class_id, :active, :custom, :cal_id, :title, :category)');
         $statement->execute(array(
             'classname' => $style->get_classname(),
@@ -31,6 +33,8 @@ class StyleMapper {
             'category' => $style->get_category()
 
         ));
+        $pdo->setAttribute(PDO::ATTR_AUTOCOMMIT, 1);
+        $pdo->commit();
         return $pdo->lastInsertId();
     }
 
@@ -116,5 +120,41 @@ class StyleMapper {
         return array();
       }
     }
+
+
+  function placeholders($text, $count=0, $separator=","){
+      $result = array();
+      if($count > 0){
+        for($x=0; $x<$count; $x++){
+          $result[] = $text;
+        }
+      }
+      return implode($separator, $result);
+  }
+
+
+  function insert_group_fast($data){
+    $pdo = $this->getPDO();
+    $pdo->setAttribute(PDO::ATTR_AUTOCOMMIT, 0);
+    $pdo->beginTransaction(); // also helps speed up your inserts.
+    $stmt = $pdo->prepare('INSERT INTO style(classname, element_id, style, class_id, active, cal_id, custom, title, category) VALUES(:classname, :element_id, :style, :class_id, :active, :cal_id, :custom, :title, :category)');
+    $total = 0;
+    foreach($data as $item)
+    {
+        $stmt->bindValue(':classname', $item->get_classname());
+        $stmt->bindValue(':element_id', $item->get_element_id());
+        $stmt->bindValue(':style', $item->get_style());
+        $stmt->bindValue(':class_id', $item->get_class_id());
+        $stmt->bindValue(':active', $item->get_active());
+        $stmt->bindValue(':custom', $item->get_custom());
+        $stmt->bindValue(':cal_id', $item->get_cal_id());
+        $stmt->bindValue(':title', $item->get_title());
+        $stmt->bindValue(':category', $item->get_category());
+        $total += $stmt->execute() ? 1 : 0;
+    }
+    $pdo->commit();
+    $pdo->setAttribute(PDO::ATTR_AUTOCOMMIT, 1);
+    return $total;
+  }
 
 }

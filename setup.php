@@ -1413,6 +1413,89 @@ function toggleEditCustomCSS(event){
   }
 }
 
+
+function toggle_show_css(event){
+
+  const currentBtn = event.target;
+  if (!currentBtn.hasAttribute("href")){
+    return false;
+  }
+  const btnHrefSplited = currentBtn.getAttribute("href").split("#");
+  if (btnHrefSplited.length < 2){
+    return false;
+  } else {
+    event.preventDefault();
+  }
+  const currentContainerId = btnHrefSplited[1];
+  const currentContainer = document.getElementById(currentContainerId);
+  if (currentContainer){
+    if (currentBtn.getAttribute("data-status") == 'show'){
+      if (!currentBtn.classList.contains("active_shadow")){
+        currentBtn.classList.add("active_shadow");
+      }
+      if (!currentContainer.classList.contains("active_shadow")){
+        currentContainer.classList.add("active_shadow");
+      }
+      currentBtn.setAttribute("data-status", "hide");
+    } else {
+      if (currentBtn.classList.contains("active_shadow")){
+        currentBtn.classList.remove("active_shadow");
+      }
+      if (currentContainer.classList.contains("active_shadow")){
+        currentContainer.classList.remove("active_shadow");
+      }
+      currentBtn.setAttribute("data-status", "show");
+    }
+
+  }
+}
+
+
+// handle main css edit
+function handleMainCss(event, code_id){
+
+  const cssIntialValuesElm = document.querySelector(`#${code_id}`);
+  const errorElm = document.querySelector(`p[data-code='${code_id}']`);
+
+  if (!cssIntialValuesElm){
+    alert("Unexcpted Error");
+    event.preventDefault();
+    return false;
+  }
+  event.preventDefault();
+  const intialValues = cssIntialValuesElm.innerText.split(",");
+  console.log(intialValues);
+
+  const allMainCSSInputs = document.querySelectorAll(".main_css");
+  let currentDisabled = 0;
+  allMainCSSInputs.forEach( (inp)=>{
+    const inputPeviousValue = intialValues[Number(inp.getAttribute("data-i"))];
+    const inputCurentValue = inp.value;
+    if (inputPeviousValue == inputCurentValue){
+      inp.setAttribute("disabled", "disabled");
+      inp.classList.add("disabled_inp");
+      currentDisabled += 1;
+    }
+  });
+
+
+
+  if (currentDisabled < allMainCSSInputs.length){
+    errorElm.innerText = "";
+    errorElm.style.display = "none";
+    event.target.submit();
+  } else {
+     errorElm.style.display = "block";
+     errorElm.innerText = "No Changes Were detected.";
+     errorElm.style.border = "2px solid red";
+     setTimeout(()=>{errorElm.style.border = "";},300);
+     const allDisabled = document.querySelectorAll(".disabled_inp");
+     allDisabled.forEach( (dis)=>{
+       dis.classList.remove("disabled_inp");
+       dis.removeAttribute("disabled");
+     });
+  }
+}
 </script>
 
 

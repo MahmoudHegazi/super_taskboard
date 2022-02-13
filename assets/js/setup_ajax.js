@@ -35,6 +35,31 @@ window.addEventListener('DOMContentLoaded', (event) => {
     }
   }
 
+  function get_last_index_dynamic(titles){
+   if (titles.length < 1){
+     return 1;
+   }
+   // np string will be unique
+   const current_indexs_nums = [];
+   let max = 1;
+   titles.forEach( (title)=>{
+     const splited_title = title.split("_");
+
+     if (splited_title.length > 0){
+       const target_numb = splited_title[splited_title.length-1];
+       if (!isNaN(parseInt(target_numb))){
+         current_indexs_nums.push(Number(target_numb));
+       }
+     }
+   });
+   if (current_indexs_nums.length < 1){
+     return 1;
+   } else {
+     return Math.max(...current_indexs_nums)+1;
+   }
+
+}
+
   let proprties_index1 = 1;
   function getCSSPerioprtiesFormPeriod(data){
     let cssRulesContainers = '';
@@ -43,6 +68,7 @@ window.addEventListener('DOMContentLoaded', (event) => {
       const currentActionBtn = cssRule.active == '1' ?'<i class="fa fa-pause"></i>' : '<i class="fa fa-play"></i>';
       cssRulesContainers += `
       <div class="slot_styles_container border border-secondary m-1 p-1 hover_cssrule">
+         <h5 class="badge bg-success">${cssRule.title}</h5><br />
          <code>${cssRule.style}</code><br />
          <span class="pl-1 ml-1" title="Remove CSS rule" style="cursor:pointer;">
            <form style="display:inline;" action="controllers/setup_controller.php" method="POST">
@@ -65,17 +91,26 @@ window.addEventListener('DOMContentLoaded', (event) => {
          </span>
 
          <span class="pl-1 ml-1" title="Edit CSS rule" style="cursor:pointer;">
-           <button data-index="${proprties_index1}"
+           <button data-index="period_${cssRule.id}"
              class="bg-warning border border-light rounded text-white" type="buttom"
              onclick="toggleEditCustomCSS(event)"
              >
              <i class="fa fa-edit"></i>
            </button>
-           <form data-visible="false"  action="controllers/setup_controller.php" method="POST" style="display:none;" class="edit_customcss_form" data-index="${proprties_index}">
-             <input name="period_cedit_style_calid"  value="${cssRule.cal_id}" style="display:none;">
-             <input name="period_cedit_style_title"  value="${cssRule.title}" style="display:none;">
-             <input name="period_cedit_style_classname"  value="${cssRule.classname}" style="display:none;">
-             <input name="period_cedit_style_style"  value="${cssRule.style}" >
+           <form data-visible="false"  action="controllers/setup_controller.php" method="POST"
+             style="display:none;" class="edit_customcss_form" data-index="period_${cssRule.id}">
+             <input name="period_cedit_sample_id"  value="${cssRule.id}" style="display:none;" required>
+             <input name="period_cedit_style_calid"  value="${cssRule.cal_id}" style="display:none;" required>
+             <input name="period_cedit_style_title"  value="${cssRule.title}" style="display:none;" required>
+             <input name="period_cedit_style_classname"  value="${cssRule.classname}" style="display:none;" required>
+             <div class="d-flex p-1">
+               <div>
+                 <input name="period_cedit_style_style"  value="${cssRule.style}" required>
+               </div>
+               <div>
+                  <button type="submit" class="btn btn-success"><i class="fa fa-check-square-o"></i></button>
+               </div>
+            </div>
            </form>
          </span>
       </div>
@@ -96,21 +131,22 @@ window.addEventListener('DOMContentLoaded', (event) => {
 
       cssRulesContainers += `
       <div class="slot_styles_container border border-secondary m-1 p-1 hover_cssrule">
+         <h5 class="badge bg-info">${cssRule.title}</h5><br />
          <code>${cssRule.style}</code><br />
          <span class="pl-1 ml-1" title="Remove CSS rule" style="cursor:pointer;">
            <form style="display:inline;" action="controllers/setup_controller.php" method="POST">
-             <input name="slot_cremove_style_calid"  value="${cssRule.cal_id}" style="display:none;">
-             <input name="slot_cremove_style_title"  value="${cssRule.title}" style="display:none;">
-             <input name="slot_cremove_style_classname"  value="${cssRule.classname}" style="display:none;">
+             <input name="slot_cremove_style_calid"  value="${cssRule.cal_id}" style="display:none;" required>
+             <input name="slot_cremove_style_title"  value="${cssRule.title}" style="display:none;" required>
+             <input name="slot_cremove_style_classname"  value="${cssRule.classname}" style="display:none;" required>
              <input class="bg-danger border border-light rounded  text-white" type="submit" value="X" />
            </form>
          </span>
          <span class="pl-1 ml-1" title="Pause/Enable CSS rule" style="cursor:pointer;">
              <form style="display:inline;"  action="controllers/setup_controller.php" method="POST">
-             <input name="slot_cpause_style_active"  value="${pauseOrActive}" style="display:none;">
-             <input name="slot_cpause_style_calid"  value="${cssRule.cal_id}" style="display:none;">
-             <input name="slot_cpause_style_title"  value="${cssRule.title}" style="display:none;">
-             <input name="slot_cpause_style_classname"  value="${cssRule.classname}" style="display:none;">
+             <input name="slot_cpause_style_active"  value="${pauseOrActive}" style="display:none;" required>
+             <input name="slot_cpause_style_calid"  value="${cssRule.cal_id}" style="display:none;" required>
+             <input name="slot_cpause_style_title"  value="${cssRule.title}" style="display:none;" required>
+             <input name="slot_cpause_style_classname"  value="${cssRule.classname}" style="display:none;" required>
              <button class="bg-primary border border-light rounded text-white" type="submit">
                ${currentActionBtn}
              </button>
@@ -118,17 +154,26 @@ window.addEventListener('DOMContentLoaded', (event) => {
          </span>
 
          <span class="pl-1 ml-1" title="Edit CSS rule" style="cursor:pointer;">
-           <button data-index="${proprties_index}"
+           <button data-index="slot_${cssRule.id}"
              class="bg-warning border border-light rounded text-white" type="buttom"
              onclick="toggleEditCustomCSS(event)"
              >
              <i class="fa fa-edit" data-style-target="style_value_${cssRule.cal_id}" class="edit_style_inputc"></i>
            </button>
-           <form data-visible="false"  action="controllers/setup_controller.php" method="POST" style="display:none;" class="edit_customcss_form" data-index="${proprties_index}">
-             <input name="slot_cedit_style_calid"  value="${cssRule.cal_id}" style="display:none;">
-             <input name="slot_cedit_style_title"  value="${cssRule.title}" style="display:none;">
-             <input name="slot_cedit_style_classname"  value="${cssRule.classname}" style="display:none;">
-             <input data-style-target="style_value_${cssRule.cal_id}" name="slot_cedit_style_style"  value="${cssRule.style}" >
+           <form data-visible="false"  action="controllers/setup_controller.php" method="POST" style="display:none;"
+             class="edit_customcss_form" data-index="slot_${cssRule.id}">
+             <input name="slot_cedit_sample_id"  value="${cssRule.id}" style="display:none;" required>
+             <input name="slot_cedit_style_calid"  value="${cssRule.cal_id}" style="display:none;" required>
+             <input name="slot_cedit_style_title"  value="${cssRule.title}" style="display:none;" required>
+             <input name="slot_cedit_style_classname"  value="${cssRule.classname}" style="display:none;" required>
+             <div class="d-flex p-1">
+               <div>
+                 <input class="form-control" name="slot_cedit_style_style"  value="${cssRule.style}" required>
+               </div>
+               <div>
+                  <button type="submit" class="btn btn-success"><i class="fa fa-check-square-o"></i></button>
+               </div>
+            </div>
            </form>
          </span>
       </div>
@@ -136,6 +181,231 @@ window.addEventListener('DOMContentLoaded', (event) => {
       proprties_index += 1;
     });
     return cssRulesContainers;
+}
+
+
+let current_main_calues = [];
+function mainCSSPeriods(main_styles, elm_index, color_name, background_name, fontsize_name, fontfamily_name, bordersize_name, borderType_name, borderColor_name, main_css_calid, main_css_classname, main_css_title){
+
+  let mainCSSFormHTML = '';
+
+  let colorValue = '#ffffff';
+  let backgroundColor = '#3190d8';
+  let fontFamily = '';
+  let fontSize = '';
+  let borderSize = '';
+  let borderType = '';
+  let borderColor = '';
+  let code_id = 'code_data_0';
+  let main_css_calid_value = '';
+  let main_css_classname_value =  '';
+  let main_css_title_value = '';
+  let borderSizeOptions = '';
+  let borderTypeOptions = '';
+  let borderColorOptions = '';
+
+  const randDefTitleIndex = Math.floor((Math.random() * 50) + (Math.random() * 100) + (Math.random() * 80));
+  let colorTitle = 'color_title_'+randDefTitleIndex;
+  let backgroundColorTitle = 'background_title_'+randDefTitleIndex;
+  let fontFamilyTitle = 'fontfamily_title_'+randDefTitleIndex;
+  let fontSizeTitle = 'fontSize_title_'+randDefTitleIndex;
+  let borderTitle = 'border_title_'+randDefTitleIndex;
+
+
+  main_styles.forEach( (mainStyle)=>{
+    if ( mainStyle.category == 'color' ){
+        colorL = mainStyle.style.split(":");
+        if (colorL.length > 1){
+          colorValue = colorL[1].trim().replace(";", "");
+
+        }
+      colorTitle = mainStyle.title;
+    } else if ( mainStyle.category == 'backgroundcolor' ) {
+
+        backgroundColorL = mainStyle.style.split(":");
+        if (backgroundColorL.length > 1){
+          backgroundColor = backgroundColorL[1].trim().replace(";", "");
+        }
+        backgroundColorTitle = mainStyle.title;
+
+    } else if ( mainStyle.category == 'fontfamily' ) {
+      fontFamily = mainStyle.style;
+      fontFamilyTitle = mainStyle.title;
+
+    } else if ( mainStyle.category == 'fontsize' ) {
+      fontSize = mainStyle.style;
+      fontSizeTitle = mainStyle.title;
+
+    } else if ( mainStyle.category == 'border' ) {
+      border = mainStyle.style;
+      borderSplited = border.split(" ");
+      if (border != '' && borderSplited.length == 3){
+        borderSize = borderSplited[0];
+        borderType = borderSplited[1];
+        borderColor = borderSplited[2];
+      }
+      borderTitle = mainStyle.title;
+    }
+    code_id = mainStyle.id ?  'code_data_' + mainStyle.id : code_id;
+    main_css_calid_value = mainStyle.cal_id ? mainStyle.cal_id : main_css_calid_value;
+    main_css_classname_value = mainStyle.classname ? mainStyle.classname : main_css_classname_value;
+
+});
+
+
+    /* border size */
+    const currentBSizes = ['border:1px', 'border:2px', 'border:3px', 'border:4px', 'border:5px'];
+    currentBSizes.forEach( (sizeOption, index)=>{
+
+        if (index == 0  && sizeOption != borderSize){
+          borderSizeOptions = '<option value="" selected>No Border</option>';
+        } else if (index > 0 && sizeOption == borderSize){
+          borderSizeOptions += `<option value="${sizeOption}" selected>${sizeOption.split(":")[1]}</option>`;
+        } else {
+          borderSizeOptions += `<option value="${sizeOption}" >${sizeOption.split(":")[1]}</option>`;
+        }
+    });
+
+    /* border type */
+    const currentBTypes = ['solid', 'dotted', 'dashed', 'double', 'groove', 'ridge', 'inset', 'outset', 'mix'];
+    currentBTypes.forEach( (typeOption, index)=>{
+      if (index == 0 && typeOption != borderType){
+        borderTypeOptions = '<option value="" selected>No Border</option>';
+      } else if (index > 0 && typeOption == borderType){
+        borderTypeOptions += `<option value="${typeOption}" selected>${typeOption}</option>`;
+      } else {
+        borderTypeOptions += `<option value="${typeOption}" >${typeOption}</option>`;
+      }
+    });
+
+
+    /* border color */
+    const currentBColors = ['black;', 'white;', 'red;', 'green;', 'gold;', 'blue;', 'lightblue;'];
+    currentBColors.forEach( (colorOption, index)=>{
+      if (index == 0 && colorOption != borderColor){
+        borderColorOptions = '<option value="" selected>No Border</option>';
+      } else if (index > 0 && colorOption == borderColor){
+        borderColorOptions += `<option value="${colorOption}" selected>${colorOption.slice(0,colorOption.length-1)}</option>`;
+      } else {
+        borderColorOptions += `<option value="${colorOption}" >${colorOption.slice(0,colorOption.length-1)}</option>`;
+      }
+    });
+
+
+    mainCSSFormHTML += `
+
+
+
+    <form onsubmit="handleMainCss(event, '${code_id}')" class="row" class="period_editform" action="controllers/setup_controller.php" method="POST">
+      <div class="col-sm-3">
+         <label for="${color_name}">Font Color</label>
+         <input name="${color_name}" id="${color_name}"
+         data-index="1" type="color" value="${colorValue}"
+         class="form-control period_style_color1 main_css" data-i="0">
+      </div>
+      <div class="col-sm-3">
+         <label for="${background_name}">Background color</label>
+         <input name="${background_name}" id="${background_name}"
+          data-index="1" type="color" value="${backgroundColor}"
+          class="form-control period_style_bgcolor1 main_css" data-i="1">
+      </div>
+      <div class="col-sm-3">
+         <label for="${fontfamily_name}">Font Family</label>
+         <select name="${fontfamily_name}"
+         id="${fontfamily_name}" data-index="1" class="form-control period_font_family1 main_css"
+         data-i="2">
+            <option value="" selected>Default</option>
+            <option style="font-family:Georgia;" value="font-family:Georgia;" ${fontFamily == 'font-family:Georgia;' ? 'selected' : ''}>Georgia</option>
+            <option style="font-family:Palatino Linotype;" value="font-family:Palatino Linotype;"  ${fontFamily == 'font-family:Palatino Linotype;' ? 'selected' : ''} >Palatino Linotype</option>
+            <option style="font-family:Book Antiqua;" value="font-family:Book Antiqua;" ${fontFamily == 'font-family:Book Antiqua;' ? 'selected' : ''} >Book Antiqua</option>
+            <option style="font-family:Times New Roman;" value="font-family:Times New Roman;" ${fontFamily == 'font-family:Times New Roman;' ? 'selected' : ''} >Times New Roman</option>
+            <option style="font-family:Arial;" value="font-family:Arial;" ${fontFamily == 'font-family:Arial;' ? 'selected' : ''} >Arial</option>
+            <option style="font-family:Helvetica;" value="font-family:Helvetica;" ${fontFamily == 'font-family:Helvetica;' ? 'selected' : ''} >Helvetica</option>
+            <option style="font-family:Impact;" value="font-family:Impact;" ${fontFamily == 'font-family:Impact;' ? 'selected' : ''} >Impact</option>
+            <option style="font-family:Lucida Sans Unicode;" value="font-family:Lucida Sans Unicode;" ${fontFamily == 'font-family:Lucida Sans Unicode;' ? 'selected' : ''} >Lucida Sans Unicode</option>
+            <option style="font-family:Tahoma;" value="font-family:Tahoma;" ${fontFamily == 'font-family:Tahoma;' ? 'selected' : ''} >Tahoma</option>
+            <option style="font-family:Verdana;" value="font-family:Verdana;" ${fontFamily == 'font-family:Verdana;' ? 'selected' : ''} >Verdana</option>
+            <option style="font-family:Courier New;" value="font-family:Courier New;" ${fontFamily == 'font-family:Courier New;' ? 'selected' : ''} >Courier New</option>
+            <option style="font-family:Lucida Console;" value="font-family:Lucida Console;" ${fontFamily == 'font-family:Lucida Console;' ? 'selected' : ''} >Lucida Console</option>
+            <option style="font-family:initial;" value="font-family:initial;" ${fontFamily == 'font-family:initial;' ? 'selected' : ''} >initial</option>
+         </select>
+      </div>
+
+      <div class="col-sm-3">
+         <label for="${fontsize_name}">Font Size</label>
+         <select id="${fontsize_name}" name="${fontsize_name}" data-index="1"
+         class="form-control period_fontsize1 main_css" data-i="3">
+            <option value="" selected>Default</option>
+            <option style="font-size: 8px;" value="font-size: 8px;" ${fontSize == 'font-size: 8px;' ? 'selected' : ''}>8px</option>
+            <option style="font-size: 10px;" value="font-size: 10px;" ${fontSize == 'font-size: 10px;' ? 'selected' : ''}>10px</option>
+            <option style="font-size: 12px;" value="font-size: 12px;" ${fontSize == 'font-size: 12px;' ? 'selected' : ''}>12px</option>
+            <option style="font-size: 14px;" value="font-size: 14px;" ${fontSize == 'font-size: 14px;' ? 'selected' : ''}>14px</option>
+            <option style="font-size: 16px;" value="font-size: 16px;" ${fontSize == 'font-size: 16px;' ? 'selected' : ''}>16px</option>
+            <option style="font-size: 18px;" value="font-size: 18px;" ${fontSize == 'font-size: 18px;' ? 'selected' : ''}>18px</option>
+            <option style="font-size: 1rem;" value="font-size: 1rem;" ${fontSize == 'font-size: 1rem;' ? 'selected' : ''}>1 rem</option>
+            <option style="font-size: 1rem;" value="font-size: 1rem;" ${fontSize == 'font-size: 1rem;' ? 'selected' : ''}>1.5 rem</option>
+            <option style="font-size: 0.825em;" value="font-size: 0.825em;" ${fontSize == 'font-size: 0.825em;' ? 'selected' : ''}>0.825 em</option>
+            <option style="font-size: 0.925em;" value="font-size: 0.925em;" ${fontSize == 'font-size: 0.925em;' ? 'selected' : ''}>0.925 em</option>
+            <option style="font-size: 1em;" value="font-size: 1em;" ${fontSize == 'font-size: 1em;' ? 'selected' : ''}>1 em</option>
+            <option style="font-size: 1.5em;" value="font-size: 1.5em;" ${fontSize == 'font-size: 1.5em;' ? 'selected' : ''}>1.5 em</option>
+            <option style="font-size: 2em;" value="font-size: 2em;" ${fontSize == 'font-size: 2em;' ? 'selected' : ''}>2 em</option>
+            <option style="font-size: 1rem;" value="font-size: 1rem;" ${fontSize == 'font-size: 1rem;' ? 'selected' : ''}>2 rem</option>
+         </select>
+      </div>
+
+      <div class="row">
+         <div class="col-sm-3">
+          <label for="${bordersize_name}">Border Size</label>
+          <select id="${bordersize_name}" name="${bordersize_name}" data-index="1"
+          class="form-control period_border_part1_1 period_border1 main_css"
+          data-i="4">
+               ${borderSizeOptions}
+          </select>
+         </div>
+            <div class="col-sm-3">
+               <label for="${borderType_name}">Border Type</label>
+               <select id="${borderType_name}" name="${borderType_name}" data-index="1"
+               class="form-control period_border_part2_1 period_border1 main_css"
+               data-i="5">
+                 ${borderTypeOptions}
+               </select>
+            </div>
+            <div class="col-sm-3">
+               <label for="${borderColor_name}">Border Color</label>
+               <select id="${borderColor_name}" name="${borderColor_name}"
+               data-index="1"
+               class="form-control period_border_part3_1 period_border1 main_css" data-i="6">
+                 ${borderColorOptions}
+               </select>
+            </div>
+        </div>
+        <div class="row mt-2 mb-1">
+           <p class="alert alert-warning col-sm-12 text-center" data-code="${code_id}" style="display:none;"></p>
+        </div>
+        <div class="d-grid">
+          <input type="hidden" name="${main_css_calid}" style="display:none;" value="${main_css_calid_value}">
+          <input type="hidden" name="${main_css_classname}" style="display:none;" value="${main_css_classname_value}">
+
+          <input type="hidden" name="main_css_title1" style="display:none;" value="${colorTitle}">
+          <input type="hidden" name="main_css_title2" style="display:none;" value="${backgroundColorTitle}">
+          <input type="hidden" name="main_css_title3" style="display:none;" value="${fontFamilyTitle}">
+          <input type="hidden" name="main_css_title4" style="display:none;" value="${fontSizeTitle}">
+          <input type="hidden" name="main_css_title5" style="display:none;" value="${borderTitle}">
+          <button type="submit"  class="btn btn-primary" >Edit Main Styles</button>
+        </div>
+    </form>`;
+
+
+
+
+
+
+
+  const maincss_values = `
+  <code style="display:none;" id="${code_id}">${colorValue},${backgroundColor},${fontFamily},${fontSize},${borderSize},${borderType},${borderColor}</code>
+  `;
+  //console.log(current_main_calues);
+  return mainCSSFormHTML + maincss_values;
 }
 
 
@@ -150,12 +420,12 @@ window.addEventListener('DOMContentLoaded', (event) => {
         success: function(data){
 
             if (data.code == 200){
-              //console.log(data);
+              console.log(data);
 
               //console.log(data);
               if (data.total_periods > 0){
 
-                console.log(data);
+                //console.log(data);
                 /* Periods Display */
                 const periods = data.period_data;
                 let periodsHTML = '';
@@ -213,10 +483,10 @@ function getPeriodHTMLText(period_index, period_date, period_description, period
 
   const formated_time = getFormatedTime(period_date);
 
-  let periodMainStyles = '';
-  let periodCustomStyles = '';
-  const mainStyle = '';
   const customStyle = getCSSPerioprtiesFormPeriod(customCSS);
+
+  let customTitles = customCSS.map(customObj => customObj.title);
+  const lastCustomIndex = get_last_index_dynamic(customTitles);
 
   const periodHtml = `
   <div class="container border border-secondary p-2 rounded">
@@ -252,11 +522,12 @@ function getPeriodHTMLText(period_index, period_date, period_description, period
         <input type="submit" class="form-control text-white btn ${getRandomBtnBG(1)}" value='Change Period ${period_index}'>
       </div>
     </form>
+
     <!-- style start -->
       <div id="accordion_period_${period_index}">
         <div class="card">
           <div class="card-header">
-            <a class="btn" data-bs-toggle="collapse" href="#show_period_css${period_index}">
+            <a onclick="toggle_show_css(event)" class="btn btn-secondary show_more_css" data-status="show" data-bs-toggle="collapse" href="#show_period_css${period_index}">
               Show CSS
             </a>
           </div>
@@ -269,23 +540,48 @@ function getPeriodHTMLText(period_index, period_date, period_description, period
                 </div>
               </div>
               <div class="container text-center mt-2">
+                <h3>Main CSS</h3>
+              </div>
+              <!-- main css start -->
+              <div class="container">
+                ${mainCSSPeriods(mainCSS, period_index, 'main_color_periods', 'main_background_periods', 'main_font_size_periods', 'main_font_family_periods', 'main_border_size_periods', 'main_border_type_periods', 'main_border_color_periods', 'main_css_calid_p', 'main_css_classname_p', 'main_css_title_p')}
+              </div>
+              <!-- main css end -->
+              <div class="container text-center mt-2">
                  <h3>Custom CSS Rules</h3>
               </div>
-              <div class="d-flex justify-content-left bg-light mb-3 p-2">
+              <div class="d-flex justify-content-left bg-light mb-3 p-2 flex-wrap">
                 ${customStyle}
               </div>
-              <div class="d-flex justify-content-center align-items-center">
+              <div class="d-flex justify-content-center align-items-center border border-secondary">
                 <div class="col-sm-10">
-                  <form>
-                    <div class="form-group d-flex flex-wrap">
-                      <label>Rule Title (unique)</label>
-                      <input name="slot_customrule_add_title" type="text" class="form-control">
-                      <label>CSS code</label>
-                      <input name="period_customrule_add_code" type="text" class="form-control">
-                      <input name="period_customrule_add_index" value="${period_index}" type="hidden" class="form-control">
+                  <form action="controllers/setup_controller.php" method="POST" method="POST">
+                    <div class="form-group">
+                      <div class="container">
+                        <h3 class="text-center mt-1">Add CSS Custom Style Rule</h3>
+                      </div>
+                      <div class="form-group p-2">
+                        <label for="custom_style_period_active">Active</label>
+                        <input class="from-control" id="custom_style_period_active" name="custom_style_period_active" type="checkbox" title="If this is not checked, the custom style rule will be ignored" checked/>
+                      </div>
+                      <div class="form-group p-2">
+                        <label for="custom_style_period_title">Title</label>
+                        <input  class="form-control" value="custom_period_${lastCustomIndex}"
+                          id="custom_style_period_title" name="custom_style_period_title" type="text"
+                          title="title is id to set all periods custom css so it must be unique the system will generate unique custom style title for you"
+                          required>
+                      </div>
+                      <div class="form-group p-2">
+                        <label for="custom_style_period_style">CSS rules</label>
+                        <input placeholder="color:gold !important;" class="form-control" id="custom_style_period_style" name="custom_style_period_style" type="text" required title="add single css rule or group separated by | wrong formated rules will be ignored" />
+                      </div>
                     </div>
                     <div class="form-group mt-2 d-grid">
                       <input type="submit" value="Add Custom Rule" class="btn btm-block btn-primary">
+                      <input type="hidden" value="${cal_id}" class="form-control"
+                      name="period_add_calid" style="display:none;">
+                      <input type="hidden" value="${lastCustomIndex}" class="form-control"
+                      name="custom_period_newindex" style="display:none;" required>
                     </div>
                   </form>
                 </div>
@@ -335,7 +631,8 @@ function getSlotHTMLText(slot_index, start_from, end_at, slot_id, cal_id, elemen
   const customStyle = getCSSPerioprtiesFormSlot(customCSS);
 
 
-
+  let customTitles = customCSS.map(customObj => customObj.title);
+  const lastCustomIndex = get_last_index_dynamic(customTitles);
 
   const slotHtml = `
   <div class="container border border-secondary p-2 rounded">
@@ -362,8 +659,12 @@ function getSlotHTMLText(slot_index, start_from, end_at, slot_id, cal_id, elemen
       <div id="accordion_slot_${slot_index}">
         <div class="card">
           <div class="card-header">
-            <a class="btn" data-bs-toggle="collapse" href="#show_slot_css${slot_index}">
-              Show CSS
+            <div class="card-header">
+              <a onclick="toggle_show_css(event)" class="btn btn-secondary show_more_css" data-status="show" data-bs-toggle="collapse"
+                href="#show_slot_css${slot_index}">
+                Show CSS
+              </a>
+            </div>
             </a>
           </div>
           <div id="show_slot_css${slot_index}" class="collapse" data-bs-parent="#accordion_slot_${slot_index}">
@@ -374,27 +675,45 @@ function getSlotHTMLText(slot_index, start_from, end_at, slot_id, cal_id, elemen
                   <div class="p-2 badge bg-light text-black">First ID Selector: ${element_id}</div>
                 </div>
               </div>
-            </div>
-            <div class="container text-center mt-2">
-               <h3>Custom CSS Rules</h3>
-            </div>
-            <div class="d-flex flex-wrap bg-light mb-3 p-2">
-              ${customStyle}
-            </div>
-            <div class="d-flex justify-content-center align-items-center">
-              <div class="col-sm-10">
-                <form>
-                  <div class="form-group d-flex flex-wrap">
-                    <label>Rule Title (unique)</label>
-                    <input name="slot_customrule_add_title" type="text" class="form-control">
-                    <label>CSS code</label>
-                    <input name="slot_customrule_add_code" type="text" class="form-control">
-                    <input name="slot_customrule_add_index" value="${slot_index}" type="hidden" class="form-control">
-                  </div>
-                  <div class="form-group mt-2 d-grid">
-                    <input type="submit" value="Add Custom Rule" class="btn btm-block btn-primary">
-                  </div>
-                </form>
+              <div class="container text-center mt-2">
+                 <h3>Custom CSS Rules</h3>
+              </div>
+              <div class="d-flex flex-wrap bg-light mb-3 p-2 flex-wrap">
+                ${customStyle}
+              </div>
+              <hr />
+              <div class="d-flex justify-content-center align-items-center border border-secondary">
+                <div class="col-sm-10 p-2">
+                  <form action="controllers/setup_controller.php" method="POST" method="POST">
+                    <div class="form-group">
+                      <div class="container">
+                        <h3 class="text-center mt-1">Add CSS Custom Style Rule</h3>
+                      </div>
+                      <div class="form-group p-2">
+                        <label for="custom_style_period_active">Active</label>
+                        <input class="from-control" id="custom_style_slot_active" name="custom_style_slot_active" type="checkbox" title="If this is not checked, the custom style rule will be ignored" checked/>
+                      </div>
+                      <div class="form-group p-2">
+                        <label for="custom_style_period_title">Title</label>
+                        <input  class="form-control" value="custom_slot_${lastCustomIndex}"
+                          id="custom_style_slot_title" name="custom_style_slot_title" type="text"
+                          title="title is id to set all periods custom css so it must be unique the system will generate unique custom style title for you"
+                          required>
+                      </div>
+                      <div class="form-group p-2">
+                        <label for="custom_style_period_style">CSS rules</label>
+                        <input placeholder="text-align:center;|color:gold;" class="form-control" id="custom_style_slot_style" name="custom_style_slot_style" type="text" required title="add single css rule or group separated by | wrong formated rules will be ignored" />
+                      </div>
+                    </div>
+                    <div class="form-group mt-2 d-grid">
+                      <input type="submit" value="Add Custom Rule" class="btn btm-block btn-primary">
+                      <input type="hidden" value="${cal_id}" class="form-control"
+                      name="slot_add_calid" style="display:none;">
+                      <input type="hidden" value="${lastCustomIndex}" class="form-control"
+                      name="custom_slot_newindex" style="display:none;">
+                    </div>
+                  </form>
+                </div>
               </div>
             </div>
           </div>

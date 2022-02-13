@@ -187,6 +187,10 @@ class StyleService {
     return implode("", $result);
   }
 
+  function formatsignle_css($rule_str){
+    $explode_rules = explode("|", $rule_str);
+    return implode("", $explode_rules);
+  }
   function mymap($function_name, $data){
     $allowed_functions = array('check_css_block', 'check_css_block_advanced');
     if (!in_array($function_name, $allowed_functions)){
@@ -200,7 +204,9 @@ class StyleService {
     }
     for ($i=0; $i<count($data); $i++){
       $function_result = $this->{$function_name}($data[$i]);
-      array_push($result, $function_result);
+      if (isset($function_result) && !empty($function_result) && $function_result && $function_result != ''){
+        array_push($result, $function_result);
+      }
     }
     return $result;
   }
@@ -227,6 +233,29 @@ class StyleService {
     return $periods_data;
   }
 
+
+
+  function insert_group_fast($data){
+    $style_objects = array();
+    foreach($data as $item)
+    {
+
+      $style_obj = new Style();
+      $style_obj->init(
+        $item['element_class'],
+        $item['element_id'],
+        $item['style'],
+        $item['class_id'],
+        $item['active'],
+        $item['title'],
+        $item['custom'],
+        $item['cal_id'],
+        $item['category']
+      );
+      $style_objects[] = $style_obj;
+    }
+    return $this->style_mapper->insert_group_fast($style_objects);
+  }
 
 }
 
