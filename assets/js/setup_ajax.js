@@ -185,7 +185,36 @@ window.addEventListener('DOMContentLoaded', (event) => {
 
 
 let current_main_calues = [];
-function mainCSSPeriods(main_styles, elm_index, color_name, background_name, fontsize_name, fontfamily_name, bordersize_name, borderType_name, borderColor_name, main_css_calid, main_css_classname, main_css_title){
+function getMainCSS(main_styles, elm_index, type='periods'){
+
+  const periodNames = {
+    color_name:'main_color_periods',
+    background_name:'main_background_periods',
+    fontsize_name:'main_font_size_periods',
+    fontfamily_name:'main_font_family_periods',
+    bordersize_name:'main_border_size_periods',
+    borderType_name:'main_border_type_periods',
+    borderColor_name:'main_border_color_periods',
+    main_css_calid:'main_css_calid_p',
+    main_css_classname:'main_css_classname_p',
+    main_css_title:'main_css_title_p',
+    form_class:'form_main_period'
+  };
+  const slotNames = {
+    color_name:'main_color_slots',
+    background_name:'main_background_slots',
+    fontsize_name:'main_font_size_slots',
+    fontfamily_name:'main_font_family_slots',
+    bordersize_name:'main_border_size_slots',
+    borderType_name:'main_border_type_slots',
+    borderColor_name:'main_border_color_slots',
+    main_css_calid:'main_css_calid_s',
+    main_css_classname:'main_css_classname_s',
+    main_css_title:'main_css_title_s',
+    form_class:'form_main_slot'
+  };
+  const currentNames = type == 'slots' ? slotNames : periodNames
+
 
   let mainCSSFormHTML = '';
 
@@ -296,23 +325,23 @@ function mainCSSPeriods(main_styles, elm_index, color_name, background_name, fon
 
 
 
-    <form onsubmit="handleMainCss(event, '${code_id}')" class="row" class="period_editform" action="controllers/setup_controller.php" method="POST">
+    <form onsubmit="handleMainCss(event, '${code_id}'), displayCalendarEditWait(event)" class="row ${currentNames.form_class}"  action="controllers/setup_controller.php" method="POST">
       <div class="col-sm-3">
-         <label for="${color_name}">Font Color</label>
-         <input name="${color_name}" id="${color_name}"
+         <label for="${currentNames.color_name}">Font Color</label>
+         <input name="${currentNames.color_name}" id="${currentNames.color_name}"
          data-index="1" type="color" value="${colorValue}"
          class="form-control period_style_color1 main_css" data-i="0">
       </div>
       <div class="col-sm-3">
-         <label for="${background_name}">Background color</label>
-         <input name="${background_name}" id="${background_name}"
+         <label for="${currentNames.background_name}">Background color</label>
+         <input name="${currentNames.background_name}" id="${currentNames.background_name}"
           data-index="1" type="color" value="${backgroundColor}"
           class="form-control period_style_bgcolor1 main_css" data-i="1">
       </div>
       <div class="col-sm-3">
-         <label for="${fontfamily_name}">Font Family</label>
-         <select name="${fontfamily_name}"
-         id="${fontfamily_name}" data-index="1" class="form-control period_font_family1 main_css"
+         <label for="${currentNames.fontfamily_name}">Font Family</label>
+         <select name="${currentNames.fontfamily_name}"
+         id="${currentNames.fontfamily_name}" data-index="1" class="form-control period_font_family1 main_css"
          data-i="2">
             <option value="" selected>Default</option>
             <option style="font-family:Georgia;" value="font-family:Georgia;" ${fontFamily == 'font-family:Georgia;' ? 'selected' : ''}>Georgia</option>
@@ -332,8 +361,8 @@ function mainCSSPeriods(main_styles, elm_index, color_name, background_name, fon
       </div>
 
       <div class="col-sm-3">
-         <label for="${fontsize_name}">Font Size</label>
-         <select id="${fontsize_name}" name="${fontsize_name}" data-index="1"
+         <label for="${currentNames.fontsize_name}">Font Size</label>
+         <select id="${currentNames.fontsize_name}" name="${currentNames.fontsize_name}" data-index="1"
          class="form-control period_fontsize1 main_css" data-i="3">
             <option value="" selected>Default</option>
             <option style="font-size: 8px;" value="font-size: 8px;" ${fontSize == 'font-size: 8px;' ? 'selected' : ''}>8px</option>
@@ -355,24 +384,24 @@ function mainCSSPeriods(main_styles, elm_index, color_name, background_name, fon
 
       <div class="row">
          <div class="col-sm-3">
-          <label for="${bordersize_name}">Border Size</label>
-          <select id="${bordersize_name}" name="${bordersize_name}" data-index="1"
+          <label for="${currentNames.bordersize_name}">Border Size</label>
+          <select id="${currentNames.bordersize_name}" name="${currentNames.bordersize_name}" data-index="1"
           class="form-control period_border_part1_1 period_border1 main_css"
           data-i="4">
                ${borderSizeOptions}
           </select>
          </div>
             <div class="col-sm-3">
-               <label for="${borderType_name}">Border Type</label>
-               <select id="${borderType_name}" name="${borderType_name}" data-index="1"
+               <label for="${currentNames.borderType_name}">Border Type</label>
+               <select id="${currentNames.borderType_name}" name="${currentNames.borderType_name}" data-index="1"
                class="form-control period_border_part2_1 period_border1 main_css"
                data-i="5">
                  ${borderTypeOptions}
                </select>
             </div>
             <div class="col-sm-3">
-               <label for="${borderColor_name}">Border Color</label>
-               <select id="${borderColor_name}" name="${borderColor_name}"
+               <label for="${currentNames.borderColor_name}">Border Color</label>
+               <select id="${currentNames.borderColor_name}" name="${currentNames.borderColor_name}"
                data-index="1"
                class="form-control period_border_part3_1 period_border1 main_css" data-i="6">
                  ${borderColorOptions}
@@ -383,8 +412,8 @@ function mainCSSPeriods(main_styles, elm_index, color_name, background_name, fon
            <p class="alert alert-warning col-sm-12 text-center" data-code="${code_id}" style="display:none;"></p>
         </div>
         <div class="d-grid">
-          <input type="hidden" name="${main_css_calid}" style="display:none;" value="${main_css_calid_value}">
-          <input type="hidden" name="${main_css_classname}" style="display:none;" value="${main_css_classname_value}">
+          <input type="hidden" name="${currentNames.main_css_calid}" style="display:none;" value="${main_css_calid_value}">
+          <input type="hidden" name="${currentNames.main_css_classname}" style="display:none;" value="${main_css_classname_value}">
 
           <input type="hidden" name="main_css_title1" style="display:none;" value="${colorTitle}">
           <input type="hidden" name="main_css_title2" style="display:none;" value="${backgroundColorTitle}">
@@ -544,7 +573,7 @@ function getPeriodHTMLText(period_index, period_date, period_description, period
               </div>
               <!-- main css start -->
               <div class="container">
-                ${mainCSSPeriods(mainCSS, period_index, 'main_color_periods', 'main_background_periods', 'main_font_size_periods', 'main_font_family_periods', 'main_border_size_periods', 'main_border_type_periods', 'main_border_color_periods', 'main_css_calid_p', 'main_css_classname_p', 'main_css_title_p')}
+                ${getMainCSS(mainCSS, period_index, 'periods')}
               </div>
               <!-- main css end -->
               <div class="container text-center mt-2">
@@ -593,7 +622,7 @@ function getPeriodHTMLText(period_index, period_date, period_description, period
       </div>
     <!-- style end-->
     <!-- remove period form -->
-    <form id="delete_period_form" action="controllers/setup_controller.php" method="POST">
+    <form id="delete_period_form" action="controllers/setup_controller.php" method="POST" onsubmit="displayCalendarEditWait(event)">
 
       <div class="form-group">
         <input type="hidden" value="${cal_id}" class="form-control"
@@ -637,7 +666,7 @@ function getSlotHTMLText(slot_index, start_from, end_at, slot_id, cal_id, elemen
   const slotHtml = `
   <div class="container border border-secondary p-2 rounded">
   <div class="badge bg-primary">Slot Index: ${slot_index}</div>
-    <form action="controllers/setup_controller.php" method="POST">
+    <form action="controllers/setup_controller.php" method="POST" onsubmit="displayCalendarEditWait(event)">
         <div class="form-group text-center">
           <label for="add_new_year_edit">Start From: </label>
           <input type="time" name="start_from_edit" class="form-control" value="${start_from}">
@@ -675,6 +704,14 @@ function getSlotHTMLText(slot_index, start_from, end_at, slot_id, cal_id, elemen
                   <div class="p-2 badge bg-light text-black">First ID Selector: ${element_id}</div>
                 </div>
               </div>
+              <div class="container text-center mt-2">
+                <h3>Main CSS</h3>
+              </div>
+              <!-- main css start -->
+              <div class="container">
+                ${getMainCSS(mainCSS, slot_index, 'slots')}
+              </div>
+              <!-- main css end -->
               <div class="container text-center mt-2">
                  <h3>Custom CSS Rules</h3>
               </div>
@@ -721,7 +758,7 @@ function getSlotHTMLText(slot_index, start_from, end_at, slot_id, cal_id, elemen
       </div>
     <!-- style end-->
     <!-- remove period form -->
-    <form id="delete_slot_form" action="controllers/setup_controller.php" method="POST">
+    <form id="delete_slot_form" action="controllers/setup_controller.php" method="POST" onsubmit="displayCalendarEditWait(event)">
 
       <div class="form-group">
         <input type="hidden" value="${cal_id}" class="form-control"

@@ -266,81 +266,88 @@ global $pdo;
 <!-- Add Calendar Model -->
 <div class="modal " id="addCalendar">
   <div class="modal-dialog modal-lg">
-    <form action="controllers/setup_controller.php" method="POST" enctype="multipart/form-data">
+    <form onsubmit="addCalWait(event)" action="controllers/setup_controller.php" method="POST" enctype="multipart/form-data" id="calnew_id_form">
     <div class="modal-content">
+
 
       <!-- Modal Header -->
       <div class="modal-header">
         <h4 class="modal-title edit_title">Add New Calendar</h4>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
-
-      <!-- Modal body -->
-      <div class="modal-body">
-        <div class="form-group">
-          <label for="calendar_title">Calendar Title: </label>
-          <input maxlength="30" size="30" type="text" name="calendar_title" id="calendar_title" class="form-control" placeholder="Enter Calendar Title" required>
-        </div>
-
-        <div class="form-group mt-2">
-         <label for="calendar_title" for="calendar_description">Calendar Description: </label>
-         <textarea maxlength="100" size="100" placeholder="Enter Calendar Description It will apears in the calendar home page after title" class="form-control" name="calendar_description" id="calendar_description"></textarea>
-        </div>
-
-
-
-        <div class="form-group mt-2">
-          <label for="start_year">Start Year: </label>
-          <input type="number" name="start_year" id="start_year"  min="1900" value="2022" class="form-control" required>
-        </div>
-
-        <div class="form-group mt-2">
-          <label for="add_new_year">Years Added: </label>
-          <input type="number" name="add_new_year" id="add_new_year" min="1" value="1" class="form-control" required>
-        </div>
-
-        <!-- controlls -->
-        <div class="container text-center mt-2">
-          <h3 class="badge bg-info p-2" style="font-size: 18px;">Periods</h3>
-        </div>
-
-         <div class="form-group mt-2">
-          <label for="period_per_day">Periods Per Day: </label>
-          <input type="number" name="period_per_day" id="period_per_day" min="0" value="3" class="form-control" required>
-        </div>
-
-
-         <div class="form-group mt-2" style="display:none;" id="periods_container">
-         </div>
-
-         <hr />
-
-         <div class="container mt-2 text-center">
-           <h3 class="badge bg-primary p-2" style="font-size: 18px;">Slots</h3>
-         </div>
-
-        <div class="form-group mt-2">
-          <label for="slots_per_period">Slots Per Period: </label>
-          <input type="number" name="slots_per_period" id="slots_per_period" min="0" value="3" class="form-control" required>
-        </div>
-
-         <div class="form-group mt-2" style="display:none;" id="slots_container">
-        </div>
-        <hr />
-
-
-        <div class="form-group mt-2">
-          <label for="calendar_title">Calendar Background</label>
-          <input type="file" name="background_image" id="background_image" value="0" class="form-control">
-        </div>
+      <div id="action_loading_container2" style="display:none;">
+        <h3>Please wait...</h3>
+        <img src="assets/images/gif-preloader.gif" id="loading_circle2" style="width:100%;">
       </div>
+      <div id="add_newcal_container">
 
-      <!-- Modal footer -->
-      <div class="modal-footer">
-          <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
-          <button type="submit" class="btn btn-primary">Submit</button>
+        <!-- Modal body -->
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="calendar_title">Calendar Title: </label>
+            <input maxlength="30" size="30" type="text" name="calendar_title" id="calendar_title" class="form-control" placeholder="Enter Calendar Title" required>
+          </div>
+
+          <div class="form-group mt-2">
+           <label for="calendar_title" for="calendar_description">Calendar Description: </label>
+           <textarea maxlength="100" size="100" placeholder="Enter Calendar Description It will apears in the calendar home page after title" class="form-control" name="calendar_description" id="calendar_description"></textarea>
+          </div>
+
+
+
+          <div class="form-group mt-2">
+            <label for="start_year">Start Year: </label>
+            <input type="number" name="start_year" id="start_year"  min="1900" value="2022" class="form-control" required>
+          </div>
+
+          <div class="form-group mt-2">
+            <label for="add_new_year">Years Added: </label>
+            <input type="number" name="add_new_year" id="add_new_year" min="1" value="1" class="form-control" required>
+          </div>
+
+          <!-- controlls -->
+          <div class="container text-center mt-2">
+            <h3 class="badge bg-info p-2" style="font-size: 18px;">Periods</h3>
+          </div>
+
+           <div class="form-group mt-2">
+            <label for="period_per_day">Periods Per Day: </label>
+            <input type="number" name="period_per_day" id="period_per_day" min="0" value="3" class="form-control" required>
+          </div>
+
+
+           <div class="form-group mt-2" style="display:none;" id="periods_container">
+           </div>
+
+           <hr />
+
+           <div class="container mt-2 text-center">
+             <h3 class="badge bg-primary p-2" style="font-size: 18px;">Slots</h3>
+           </div>
+
+          <div class="form-group mt-2">
+            <label for="slots_per_period">Slots Per Period: </label>
+            <input type="number" name="slots_per_period" id="slots_per_period" min="0" value="3" class="form-control" required>
+          </div>
+
+           <div class="form-group mt-2" style="display:none;" id="slots_container">
+          </div>
+          <hr />
+
+
+          <div class="form-group mt-2">
+            <label for="calendar_title">Calendar Background</label>
+            <input type="file" name="background_image" id="background_image" value="0" class="form-control">
+          </div>
+        </div>
+
+        <!-- Modal footer -->
+        <div class="modal-footer">
+            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </div>
+
       </div>
-
     </div>
   </form>
   </div>
@@ -682,7 +689,6 @@ function displayCalendarEditWait(event) {
 }
 const addedYearsForm = document.querySelector("#added_years_form");
 addedYearsForm.addEventListener("submit", displayCalendarEditWait);
-
 
 
 /* Mange Periods In form start */
@@ -1111,7 +1117,6 @@ editUserBtns.forEach((editBtn) => {
         passwordInputEdit.value = "";
     });
 });
-
 /* edit calendar */
 const editCalendarBtns = document.querySelectorAll(".edit_calendar");
 const calendarTitleEdit = document.querySelector("#calendar_title_edit");
@@ -1496,6 +1501,16 @@ function handleMainCss(event, code_id){
      });
   }
 }
+
+function addCalWait(event){
+  event.preventDefault();
+  const currentWait = document.querySelector("#action_loading_container2");
+  const formActionsContainer = document.querySelector("#add_newcal_container");
+  formActionsContainer.style.display = "none";
+  currentWait.style.display = "block";
+  event.target.submit();
+}
+
 </script>
 
 

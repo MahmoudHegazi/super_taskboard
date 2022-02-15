@@ -128,6 +128,25 @@ class DayService {
   function get_total_days(){
     return $this->day_mapper->get_total_days();
   }
+
+
+  function insert_group_fast($data){
+    $days_objects = array();
+    foreach($data as $item)
+    {
+      $day_object = new Day();
+      $day_object->init(
+        $item['day'],
+        $item['day_name'],
+        $item['day_date'],
+        $item['month_id']
+      );
+      $days_objects[] = $day_object;
+
+    }
+    return $this->day_mapper->insert_group_fast($days_objects);
+  }
+
 }
 
 /* ##################### Test #################### */

@@ -2474,80 +2474,83 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST')
 
     }
 }
-
 if ($_SERVER['REQUEST_METHOD'] == 'POST')
 {
-
-    if (isset($_POST['custom_style_slot_active']) && isset($_POST['custom_style_slot_title']) && isset($_POST['custom_style_slot_style']) && isset($_POST['custom_slot_newindex']) && isset($_POST['slot_add_calid']))
+    if (isset($_POST['main_css_calid_s']) && isset($_POST['main_css_classname_s']) && isset($_POST['main_css_title1']) && isset($_POST['main_css_title2']) && isset($_POST['main_css_title3']) && isset($_POST['main_css_title4']) && isset($_POST['main_css_title5']))
     {
-
-        if (empty($_POST['custom_style_slot_title']) || empty($_POST['custom_style_slot_style']) || empty($_POST['slot_add_calid']) || empty($_POST['custom_slot_newindex']))
-        {
-            setup_redirect($redirect_url, 'false', 'Period Style rule group could not add missing required data');
-            die();
-        }
 
         global $pdo;
         $calendar_service = new CalendarService($pdo);
         $style_service = new StyleService($pdo);
 
-        $active = isset($_POST['custom_style_slot_active']) && !empty($_POST['custom_style_slot_active']) ? 1 : 0;
-        $slot_style_title = test_input($_POST['custom_style_slot_title']);
-
-        $duplicate_title_sql = "SELECT id FROM style WHERE title='" . $slot_style_title . "' LIMIT 1";
-        $duplicate_title_query = $calendar_service->free_single_query($duplicate_title_sql);
-        $duplicate_title = $duplicate_title_query && count($duplicate_title_query) > 0 ? true : false;
-
-        if ($duplicate_title_query)
+        if (empty($_POST['main_css_calid_s']) || empty($_POST['main_css_classname_s']) || empty($_POST['main_css_title1']) || empty($_POST['main_css_title2']) || empty($_POST['main_css_title3']) || empty($_POST['main_css_title4']) || empty($_POST['main_css_title5']))
         {
-            setup_redirect($redirect_url, 'false', 'Can not add custom style to slot becuase the title is not unqiue please change it.');
+            setup_redirect($redirect_url, 'false', 'Slot main styles not edited due to missing required data');
             die();
         }
 
-        $slot_style = test_input($_POST['custom_style_slot_style']);
-        $cal_id = test_input($_POST['slot_add_calid']);
-        $req_new_index = intval(test_input($_POST['custom_slot_newindex']));
+        $calid_s = test_input($_POST['main_css_calid_s']);
+        $classname_s = test_input($_POST['main_css_classname_s']);
 
-        $style_rules = $style_service->get_advanced_style_data(explode('|', $slot_style));
+        $color = isset($_POST['main_color_slots']) && !empty($_POST['main_color_slots']) ? test_input($_POST['main_color_slots']) : 0;
+        $backgrounds = isset($_POST['main_background_slots']) && !empty($_POST['main_background_slots']) ? test_input($_POST['main_background_slots']) : 0;
+        $font_size = isset($_POST['main_font_size_slots']) && !empty($_POST['main_font_size_slots']) ? test_input($_POST['main_font_size_slots']) : 0;
+        $font_family = isset($_POST['main_font_family_slots']) && !empty($_POST['main_font_family_slots']) ? test_input($_POST['main_font_family_slots']) : 0;
+        $border_size = isset($_POST['main_border_size_slots']) && !empty($_POST['main_border_size_slots']) ? test_input($_POST['main_border_size_slots']) : 0;
 
-        $all_cal_slots_sql = "SELECT slot.id, slot.element_id, slot.element_class, calendar.id AS cal_id FROM slot JOIN period ON slot.period_id = period.id JOIN day ON period.day_id = day.id JOIN month ON day.month_id = month.id JOIN year ON month.year_id = year.id JOIN calendar ON year.cal_id = calendar.id WHERE cal_id=" . $cal_id;
-        $cal_slots = $calendar_service->free_group_query($all_cal_slots_sql);
+        $border_type = isset($_POST['main_border_type_slots']) && !empty($_POST['main_border_type_slots']) ? test_input($_POST['main_border_type_slots']) : 0;
+        $border_color = isset($_POST['main_border_color_slots']) && !empty($_POST['main_border_color_slots']) ? test_input($_POST['main_border_color_slots']) : 0;
 
-        $total_effected = 0;
+        $main_color_title = test_input($_POST['main_css_title1']);
+        $main_background_title = test_input($_POST['main_css_title2']);
+        $main_fontfamily_title = test_input($_POST['main_css_title3']);
+        $main_fontsize_title = test_input($_POST['main_css_title4']);
+        $main_border_title = test_input($_POST['main_css_title5']);
 
-        for ($s = 0;$s < count($style_rules);$s++)
+
+        // create update sting
+        $updated = 0;
+
+        if ($color)
         {
-            $current_style_title = $slot_style_title;
-            if ($s > 0)
-            {
-                $current_style_title = $slot_style_title . '_l:' . $req_new_index;
-            }
-            $req_new_index += 1;
-
-            $style_data = array();
-            for ($slot = 0;$slot < count($cal_slots);$slot++)
-            {
-                $current_title = $current_style_title;
-                $data_row = array(
-                    'element_class' => $cal_slots[$slot]['element_class'],
-                    'element_id' => $cal_slots[$slot]['element_id'],
-                    'style' => $style_rules[$s],
-                    'class_id' => $cal_slots[$slot]['id'],
-                    'active' => $active,
-                    'title' => $current_title,
-                    'custom' => 1,
-                    'cal_id' => $cal_slots[$slot]['cal_id'],
-                    'category' => 'custom'
-                );
-                array_push($style_data, $data_row);
-            }
-            $total_effected += $style_service->insert_group_fast($style_data);
+            $edit_style_slot = "UPDATE style SET style='color: " . $color . ";' WHERE title='" . $main_color_title . "' AND classname='" . $classname_s . "' AND cal_id=" . $calid_s . " AND custom=0";
+            $updated += $calendar_service->excute_on_db($edit_style_slot) ? 1 : 0;
+        }
+        if ($backgrounds)
+        {
+            $edit_style_slot = "UPDATE style SET style='background-color: " . $backgrounds . ";' WHERE title='" . $main_background_title . "' AND classname='" . $classname_s . "' AND cal_id=" . $calid_s . " AND custom=0";
+            $updated += $calendar_service->excute_on_db($edit_style_slot) ? 1 : 0;
+        }
+        if ($font_size)
+        {
+            $edit_style_slot = "UPDATE style SET style='" . $font_size . "' WHERE title='" . $main_fontsize_title . "' AND classname='" . $classname_s . "' AND cal_id=" . $calid_s . " AND custom=0";
+            $updated += $calendar_service->excute_on_db($edit_style_slot) ? 1 : 0;
+        }
+        if ($font_family)
+        {
+            $edit_style_slot = "UPDATE style SET style='" . $font_family . "' WHERE title='" . $main_fontfamily_title . "' AND classname='" . $classname_s . "' AND cal_id=" . $calid_s . " AND custom=0";
+            $updated += $calendar_service->excute_on_db($edit_style_slot) ? 1 : 0;
         }
 
-        $success = $total_effected > 0 ? 'true' : 'false';
-        $message = $total_effected > 0 ? 'Action On Slots: successfully Add Custom Style Rule With Title:' . $slot_style_title . ' total effected:' . $total_effected : 'Action On Periods: Could not edit custom style with title:' . $slot_style_title . ' total effected:' . $total_effected;
+        $slot_border = '';
+        if ($border_size && $border_type && $border_color)
+        {
+            $slot_border_result = $border_size . " " . $border_type . " " . $border_color;
+            $slot_border = $style_service->is_valid_css($slot_border_result) ? $slot_border_result : '';
+
+        }
+
+        if ($slot_border)
+        {
+            $edit_style_slot = "UPDATE style SET style='" . $slot_border . "' WHERE title='" . $main_border_title . "' AND classname='" . $classname_s . "' AND cal_id=" . $calid_s . " AND custom=0";
+            $updated += $calendar_service->excute_on_db($edit_style_slot) ? 1 : 0;
+        }
+
+        $success = $updated ? 'true' : 'false';
+        $message = $updated ? 'Action On Slots: successfully edited Main Style Total Changes On: ' . $updated . ' Style rules' : 'Action On Slots: Could not edit Main style';
         setup_redirect($redirect_url, $success, $message);
         die();
+
     }
 }
 /* edit main style slots */

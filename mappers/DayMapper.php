@@ -85,9 +85,31 @@ class DayMapper {
       $stmt= $pdo->prepare($sql);
       return $stmt->execute([$value, $id]);
     }
-    
+
     function get_total_days(){
       $pdo = $this->getPDO();
       return $pdo->query('select count(id) from day')->fetchColumn();
+    }
+
+    // new update
+    function insert_group_fast($data){
+      $inserted_ids = array();
+      $pdo = $this->getPDO();
+      $pdo->setAttribute(PDO::ATTR_AUTOCOMMIT, 0);
+      $pdo->beginTransaction(); // also helps speed up your inserts.
+      $stmt = $pdo->prepare('INSERT INTO day(day, day_name, day_date, month_id) VALUES(:day, :day_name, :day_date, :month_id)');
+      foreach($data as $item)
+      {
+          $stmt->bindValue(':day', $item->get_day());
+          $stmt->bindValue(':day_name', $item->get_day_name());
+          $stmt->bindValue(':day_date', $item->get_day_date());
+          $stmt->bindValue(':month_id', $item->get_month_id());
+          $stmt->execute();
+          $id = $pdo->lastInsertId();
+          array_push($inserted_ids, $id);
+      }
+      $pdo->commit();
+      $pdo->setAttribute(PDO::ATTR_AUTOCOMMIT, 1);
+      return $inserted_ids;
     }
 }

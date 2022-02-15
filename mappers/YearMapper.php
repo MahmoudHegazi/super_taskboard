@@ -88,4 +88,26 @@ class YearMapper {
     $pdo = $this->getPDO();
     return $pdo->query('select count(id) from year')->fetchColumn();
   }
+
+  // new update
+  function insert_group_fast($data){
+    $inserted_ids = array();
+    $pdo = $this->getPDO();
+    $pdo->setAttribute(PDO::ATTR_AUTOCOMMIT, 0);
+    $pdo->beginTransaction(); // also helps speed up your inserts.
+    $stmt = $pdo->prepare('INSERT INTO year(year, cal_id) VALUES(:year, :cal_id)');
+    foreach($data as $item)
+    {
+
+        $stmt->bindValue(':year', $item->get_year());
+        $stmt->bindValue(':cal_id', $item->get_cal_id());
+        $stmt->execute();
+        $id = $pdo->lastInsertId();
+        array_push($inserted_ids, $id);
+    }
+    $pdo->commit();
+    $pdo->setAttribute(PDO::ATTR_AUTOCOMMIT, 1);
+    return $inserted_ids;
+  }
+
 }

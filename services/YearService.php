@@ -119,6 +119,25 @@ class YearService {
     return $this->year_mapper->get_total_years();
   }
 
+
+
+  function insert_group_fast($data){
+    $years_objects = array();
+    foreach($data as $item)
+    {
+      $year_obj = new Year();
+      $year_obj->init(
+        $item['year'],
+        $item['cal_id']
+      );
+      $years_objects[] = $year_obj;
+
+    }
+
+    return $this->year_mapper->insert_group_fast($years_objects);
+  }
+
+
 }
 
 

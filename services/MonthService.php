@@ -121,6 +121,25 @@ class MonthService {
   }
 
 
+
+
+  function insert_group_fast($data){
+    $months_objects = array();
+    foreach($data as $item)
+    {
+      $month_obj = new Month();
+      $month_obj->init(
+        $item['month'],
+        $item['year_id']
+      );
+      $months_objects[] = $month_obj;
+
+    }
+
+    return $this->month_mapper->insert_group_fast($months_objects);
+  }
+
+
 }
 
 

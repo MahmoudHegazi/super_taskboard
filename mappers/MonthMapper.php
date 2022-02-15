@@ -86,4 +86,25 @@ class MonthMapper {
       return $pdo->query('select count(id) from month')->fetchColumn();
     }
 
+
+    // new update
+    function insert_group_fast($data){
+      $inserted_ids = array();
+      $pdo = $this->getPDO();
+      $pdo->setAttribute(PDO::ATTR_AUTOCOMMIT, 0);
+      $pdo->beginTransaction(); // also helps speed up your inserts.
+      $stmt = $pdo->prepare('INSERT INTO month(month, year_id) VALUES(:month, :year_id)');
+      foreach($data as $item)
+      {
+          $stmt->bindValue(':month', $item->get_month());
+          $stmt->bindValue(':year_id', $item->get_year_id());
+          $stmt->execute();
+          $id = $pdo->lastInsertId();
+          array_push($inserted_ids, $id);
+      }
+      $pdo->commit();
+      $pdo->setAttribute(PDO::ATTR_AUTOCOMMIT, 1);
+      return $inserted_ids;
+    }
+
 }
