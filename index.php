@@ -17,8 +17,9 @@ $cal_id = null;
 // this important it handle all exception from indexController
 try {
   // if you get here, all is fine and you can use $object
+  $current_month = isset($_GET['month']) && !empty($_GET['month']) ? test_input($_GET['month']) : null;
   global $pdo;
-  $index_controller = new IndexController($pdo);
+  $index_controller = new IndexController($pdo, $current_month);
   $current_calendar = $index_controller->get_used_calendar();
   $current_months = $index_controller->get_current_months();
   $cal_years = $index_controller->get_years();
@@ -422,7 +423,13 @@ catch( Exception $e ) {
                 <!-- month switcher start -->
                 <div  class="container month_row d-flex flex-wrap align-items-start justify-content-between p-2  text-black border border-light">
                   <i class="display-6 flex-fill fa fa-arrow-circle-left text-white month_arrow"></i>
-                  <h3 id="selected_month_name" class="flex-fill month_name text_shadow01 text-white">September</h3>
+                  <h3 id="selected_month_name" class="flex-fill month_name text_shadow01 text-white">
+                    <?php if (!is_null($index_controller->get_current_month())){
+                      $dateObj = DateTime::createFromFormat('!m', $index_controller->get_current_month()->get_month());
+                      $monthName = $dateObj->format('F');
+                      echo $monthName;
+                    } ?>
+                  </h3>
                   <i class="display-6 flex-fill fa fa-arrow-circle-right text-white month_arrow"></i>
                 </div>
                 <!-- month switcher end -->
@@ -455,11 +462,9 @@ catch( Exception $e ) {
                       for ($m=0; $m<count($current_months); $m++){
                         ?>
                         <!-- change month by number better UX option for old man -->
-                        <form class="bg-light p-1 m-1 rounded-circle d-flex justify-content-center align-items-center month_toggle_btn">
+                        <form method="GET" action="./" class="month_form bg-light p-1 m-1 rounded-circle d-flex justify-content-center align-items-center month_toggle_btn">
                           <span class="p-1 text-center"><?php echo $current_months[$m]->get_month(); ?></span>
-                          <input type="hidden" style="display:none;" name="cal_id" value="<?php echo defined('Calid') ? Calid : ''; ?>" required>
-                          <input type="hidden" style="display:none;" name="year_id" value="<?php echo $current_months[$m]->get_year_id(); ?>" required>
-                          <input type="hidden" style="display:none;" name="month_id" value="<?php echo $current_months[$m]->get_id(); ?>" required>
+                          <input type="hidden" style="display:none;" name="month" value="<?php echo $current_months[$m]->get_month(); ?>" required>
                         </form>
                         <?php
                       }
@@ -484,7 +489,7 @@ catch( Exception $e ) {
                   <span class="short_day" style="display:none;">Tue</span>
                 </div>
                 <div class="flex-fill border border-light cal_card_cell">
-                  <span class="full_day">Tuesday</span>
+                  <span class="full_day">Wednesday</span>
                   <span class="short_day" style="display:none;">Wed</span>
                 </div>
                 <div class="flex-fill border border-light cal_card_cell">
@@ -558,13 +563,12 @@ catch( Exception $e ) {
                           $day_name = $selected_day->get_day_name();
                         ?>
                         <!-- day start -->
-                        <div class="flex-fill border border-light cal_card_cell day_card">
+                        <div class="flex-fill border border-light cal_card_cell day_card" id="day_<?php echo $day_id;  ?>">
 
                            <!-- day meta -->
                              <h6 class="text-center"><?php echo $day_name . ' ' . $day; ?></h6>
                              <h6 class="text-center bg-light text-black badge"><?php echo $day_date; ?></h6>
                              <!-- array_distribution -->
-
                            <!-- all periods start -->
                            <div class="all_periods">
 
@@ -751,8 +755,10 @@ catch( Exception $e ) {
 const playSound = (selector)=>{
   //open_modal_sound unable_open_modal
   const selectedSound = document.querySelector(`${selector}`);
-  selectedSound.play();
   selectedSound.volume = 0.1;
+  // important for on time sound like it play from begning and ignore previous
+  selectedSound.currentTime = 0;
+  selectedSound.play();
 
 }
 
@@ -819,7 +825,6 @@ window.addEventListener( 'scroll', ()=>{
        let active = top > (nagtive_height + 50) && top < min_elm_hieght;
 
        if (active==false && i==0){
-         activeSection = allSections[i];
        }
        if (active){
          activeSection = allSections[i];
@@ -839,21 +844,53 @@ window.addEventListener( 'scroll', ()=>{
 
 });
 
+// switch month form
+const monthForms = document.querySelectorAll(".month_form");
+monthForms.forEach( (monthForm)=>{
+  monthForm.addEventListener("click", (event)=>{
+    if (event.target.nodeName.toLowerCase() == 'form'){
+      event.target.submit();
+    } else {
+      if (event.currentTarget.nodeName.toLowerCase() == 'form'){
+        event.currentTarget.submit();
+      } else {
+        let current_parent = event.target.parentElement;
+        for (let i=0; i<4; i++){
+          if (current_parent.nodeName.toLowerCase() == 'form'){
+            current_parent.submit();
+            break;
+          } else {
+            current_parent = event.target.parentElement;
+          }
+        }
+      }
+
+    }
+  });
+});
 
 /* sound effects not owned by current user */
 const allUsedSlots = document.querySelectorAll(".used_slot");
 allUsedSlots.forEach( (slot)=>{
-  slot.addEventListener("click", ()=>{playSound("#unable_open_modal")});
+  slot.addEventListener("click", ()=>{
+    playSound("#unable_open_modal");
+    return true;
+  });
 
 });
 
 const allEmptySlots = document.querySelectorAll(".empty_slot");
 allEmptySlots.forEach( (slot)=>{
-  slot.addEventListener("click", ()=>{playSound("#open_modal_sound")});
+  slot.addEventListener("click", ()=>{
+    playSound("#open_modal_sound");
+    return true;
+});
 });
 
 const addResAisde = document.querySelector(".aside_add_res");
 addResAisde.addEventListener("click", ()=>{playSound("#open_modal_sound")});
+
+
 
 
     </script>

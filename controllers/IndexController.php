@@ -44,6 +44,7 @@ class IndexController {
   protected $current_months;
   protected $current_weeks;
 
+
   /* Date and Time */
   protected $visit_date;
   protected $today_year;
@@ -55,7 +56,7 @@ class IndexController {
 
   //$calendarMapper = new CalendarMapper($this->pdo);
   // build the pdo for global use in object only
-  public function __construct(PDO $pdo)
+  public function __construct(PDO $pdo, $selected_month=null)
   {
     // incase no used calendar which mean no calendars in app or deleted by DB (IMP), so will raise error
     $this->pdo = $pdo;
@@ -86,7 +87,8 @@ class IndexController {
     $this->set_current_year($current_year);
 
     // current month
-    $current_month = $this->return_curent_month($this->get_current_year()->get_id(), $this->get_today_month());
+    $target_month = !is_null($selected_month) ? $selected_month : $this->get_today_month();
+    $current_month = $this->return_curent_month($this->get_current_year()->get_id(), $target_month);
     if (empty($current_month) || is_null($current_month)){
       throw new Exception( "We Can not Get the Month Error Error:01" );
     }
@@ -104,9 +106,6 @@ class IndexController {
       throw new Exception( "We Can not Load the current dats of calendar Error Error:03" );
     }
     $this->set_current_days($current_days);
-
-
-
     $this->set_current_weeks(array_distribution($this->monday_start_mange($current_days), 7, 5, $default=false));
 
 
@@ -215,6 +214,7 @@ class IndexController {
   public function get_current_weeks(){
     return $this->current_weeks;
   }
+
 
 
 
@@ -363,15 +363,17 @@ class IndexController {
   // and will give final easy and direct weeks and can later add previous days which not good but can added
   // update to get previous days
   public function monday_start_mange($current_days){
-    if (empty($current_days)){return array();}
+    if (empty($current_days) || !isset($this->day_service)){return array();}
     $result = $current_days;
+    // if changed month name take care of this do not change inital names
     $days_index=array(0=>"Monday",1=>"Tuesday",2=>"Wednesday",3=>'Thursday', 4=>'Friday', 5=>'Saturday', 6=>'Sunday');
     $missing_days_at_begin = array_search($current_days[0]->get_day_name(), $days_index);
     $last_id = $current_days[0]->get_id();
+    $current_prev = $last_id;
     // so here to solve the calendar known problem where so here will get the old days until it make it start monday
     // or u can disable the day to if u need easy just remove current prev and qury and insert false
     for ($mis=0; $mis<$missing_days_at_begin; $mis++){
-      $current_prev = $last_id - 1;
+      $current_prev--;
       // only one case the day will not found if first year not start at monday but np other solution wait it for example try add unkown id here below
       $get_day = $this->day_service->get_day_by_id($current_prev);
       array_unshift($result, $get_day);
