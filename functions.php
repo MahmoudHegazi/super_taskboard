@@ -16,6 +16,8 @@ function test_input($data) {
   return $data;
 }
 
+
+
 function add_query_parameters($url, $parms, $values){
   if (count($parms) != count($values)){return false;}
   $newurl = count(explode("?",$url)) > 1 ? $url . '&' : $url .'?';
@@ -27,6 +29,30 @@ function add_query_parameters($url, $parms, $values){
   }
   return $newurl;
 }
+// advanced function I created for array distribution with default text and muliti used better than chunk and more wider to serve the calendar
+function array_distribution($data_array, $max_per_array, $max_array, $default=false){
+  $result = array();
+  $project_data = $data_array;
+  // loop over num of arrays needed
+  for ($arr=0; $arr<$max_array; $arr++){
+    // create new array which can accept the max elements or add specafied value in case no again
+    $new_child = array();
+    for($elm=0; $elm<$max_per_array; $elm++){
+      if (count($project_data) > 0){
+        array_push($new_child, $project_data[0]);
+        array_shift($project_data);
+      } else {
+        array_push($new_child, $default);
+        array_shift($project_data);
+      }
+      // now remove the added elem note in case it removed all np it will add the default else no more loops
+
+    }
+    array_push($result, $new_child);
+  }
+  return $result;
+}
+
 
 function replace_query_paremeters($url, $parms, $values){
   if (count($parms) != count($values)){return false;}
@@ -156,6 +182,16 @@ function upload_image($FILES, $target_dir, $input_name, $allowed_extensions, $ma
     }
 
 
+  }
+}
+
+function getDynamicBaseUrl(){
+  $is_https = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off';
+  $scheme = $is_https ? 'https' : 'http';
+  $url_list = explode("/", "/supercalendar/controllers/index_controller.php");
+  if (count($url_list) > 1 ){
+    $current_url  = $url_list[0] != '' ? $url_list[0] : $url_list[1];
+    return $scheme . '://' . $_SERVER['HTTP_HOST'] . '/' . $current_url . '/';
   }
 }
 

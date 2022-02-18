@@ -71,6 +71,16 @@ class YearMapper {
     return $data;
   }
 
+  function read_all_where($column, $value, $limit=''){
+    $pdo = $this->getPDO();
+    $sql = "SELECT * FROM year WHERE ".test_input($column)."=?".$limit;
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([$value]);
+    $data = $stmt->fetchAll();
+    return $data;
+  }
+
+
   function delete_all(){
     $pdo = $this->getPDO();
     $statement = $pdo->prepare('DELETE FROM year WHERE id > 0');
@@ -108,6 +118,26 @@ class YearMapper {
     $pdo->commit();
     $pdo->setAttribute(PDO::ATTR_AUTOCOMMIT, 1);
     return $inserted_ids;
+  }
+
+  function get_years_where($column, $value, $limit='', $and_column='', $and_val=''){
+    $limit  = $limit != '' ? ' LIMIT ' . $limit : '';
+    $pdo = $this->getPDO();
+    $data;
+    if ($and_column != '' && $and_val != ''){
+      $sql = "SELECT * FROM year WHERE ".$column."=? AND ".$and_column."=?" . $limit;
+      $stmt = $pdo->prepare($sql);
+      $data = $stmt->execute([$value, $and_val]);
+    } else {
+      $sql = "SELECT * FROM year WHERE ".$column."=?".$limit;
+      $stmt = $pdo->prepare($sql);
+      $data = $stmt->execute([$value]);
+    }
+    if ($data){
+      return $stmt->fetchAll();
+    } else {
+      return array();
+    }
   }
 
 }

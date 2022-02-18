@@ -1,3 +1,4 @@
+
 <?php
 require_once('config.php');
 require_once('controllers/IndexController.php');
@@ -528,6 +529,8 @@ catch( Exception $e ) {
               <!-- week Titles row end -->
               <?php
                 if (!is_null($current_weeks) && !empty($current_weeks)){
+                  $first_monday = false;
+                  $days_index = array('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday');
                   for ($w=0; $w<count($current_weeks); $w++){
                     // new week
                     $current_week = $current_weeks[$w];
@@ -556,13 +559,28 @@ catch( Exception $e ) {
                           $day = $selected_day->get_day();
                           $day_date = $selected_day->get_day_date();
                           $day_name = $selected_day->get_day_name();
+
+                          $previous_days = $days_index[$d] == $day_name;
+                          for ($pr=0; $pr<7; $pr++){
+                            $previous_days = $days_index[$pr] == $day_name;
+                            if ($previous_days == false && $first_monday == false){
+                              // old day not monday
+                              ?>
+                              <div class="flex-fill border border-light cal_card_cell day_card null_day" title="This Day Not on that month">
+
+                              </div>
+                              <?php
+                            } else {
+                              $first_monday = true;
+                            }
+                          }
                         ?>
                         <!-- day start -->
                         <div class="flex-fill border border-light cal_card_cell day_card">
 
                            <!-- day meta -->
                              <h6 class="text-center"><?php echo $day_name . ' ' . $day; ?></h6>
-                             <h6 class="text-center bg-light text-black badge"><?php echo $day_date; ?></h6>
+                             <h6 class="text-center"><?php echo $day_date; ?></h6>
                              <!-- array_distribution -->
 
                            <!-- all periods start -->
@@ -819,7 +837,7 @@ window.addEventListener( 'scroll', ()=>{
        let active = top > (nagtive_height + 50) && top < min_elm_hieght;
 
        if (active==false && i==0){
-         activeSection = allSections[i];
+         console.log(top);
        }
        if (active){
          activeSection = allSections[i];

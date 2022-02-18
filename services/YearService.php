@@ -41,6 +41,16 @@ class YearService {
     return $year;
   }
 
+  function get_year_object($year_row){
+    if (!isset($year_row['id']) || empty($year_row['id'])){return array();}
+    $year = new Year();
+    $year->init(
+      $year_row['year'],
+      $year_row['cal_id']
+    );
+    $year->set_id($year_row['id']);
+    return $year;
+  }
   // get All year
   function get_all_years(){
 
@@ -59,6 +69,25 @@ class YearService {
     }
     return $year_list;
   }
+
+  // get All year
+  function get_all_years_where($column, $value, $limit=''){
+    $limit = $limit && $limit != '' && is_numeric($limit) ? ' ORDER BY year LIMIT ' . $limit : ' ORDER BY year';
+    $year_list = array();
+    $year_rows = $this->year_mapper->read_all_where($column, $value, $limit);
+    if (count($year_rows) == 0){return array();}
+    for ($i=0; $i<count($year_rows); $i++){
+        $year = new Year();
+        $year->init(
+          $year_rows[$i]['year'],
+          $year_rows[$i]['cal_id']
+        );
+        $year->set_id($year_rows[$i]['id']);
+        array_push($year_list, $year);
+    }
+    return $year_list;
+  }
+
 
   // services methods
   function get_years_by_id($list_of_ids){
@@ -135,6 +164,28 @@ class YearService {
     }
 
     return $this->year_mapper->insert_group_fast($years_objects);
+  }
+
+  // it will return single object if limit 1 else array
+  function get_years_where($column, $value, $limit='', $and_column='', $and_val=''){
+    $year_list = array();
+    $year_rows = $this->year_mapper->get_years_where($column, $value, $limit, $and_column, $and_val);
+    if (count($year_rows) == 0){return array();}
+    for ($i=0; $i<count($year_rows); $i++){
+        $year = new Year();
+        $year->init(
+          $year_rows[$i]['year'],
+          $year_rows[$i]['cal_id']
+        );
+        $year->set_id($year_rows[$i]['id']);
+        if (count($year_rows) == 1){
+          return $year;
+          break;
+        } else {
+          array_push($year_list, $year);
+        }
+    }
+    return $year_list;
   }
 
 

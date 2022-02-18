@@ -139,6 +139,34 @@ class MonthService {
     return $this->month_mapper->insert_group_fast($months_objects);
   }
 
+  function get_all_months_where($column, $value, $limit='', $and_column='', $and_val=''){
+
+    $limit = $limit && $limit != '' && is_numeric($limit) ? $limit : '';
+
+    $months_list = array();
+    $months_rows = $this->month_mapper->get_months_where($column, $value, $limit, $and_column, $and_val);
+    $total_rows = count($months_rows);
+    if (count($months_rows) == 0){return array();}
+
+    for ($i=0; $i<count($months_rows); $i++){
+        $month = new Month();
+        $month->init(
+          $months_rows[$i]['month'],
+          $months_rows[$i]['year_id']
+        );
+        $month->set_id($months_rows[$i]['id']);
+
+        if (count($months_rows) == 1){
+          return $month;
+          break;
+        } else {
+          array_push($months_list, $month);
+        }
+
+
+    }
+    return $months_list;
+  }
 
 }
 

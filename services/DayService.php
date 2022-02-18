@@ -147,6 +147,35 @@ class DayService {
     return $this->day_mapper->insert_group_fast($days_objects);
   }
 
+
+
+  function get_all_days_where($column, $value, $limit='', $and_column='', $and_val=''){
+
+    $limit = $limit && $limit != '' && is_numeric($limit) ? $limit : '';
+    $days_list = array();
+    $day_rows = $this->day_mapper->get_days_where($column, $value, $limit, $and_column, $and_val);
+    $total_rows = count($day_rows);
+    if ($total_rows == 0){return array();}
+
+    for ($i=0; $i<$total_rows; $i++){
+        $day = new Day();
+        $day->init(
+          $day_rows[$i]['day'],
+          $day_rows[$i]['day_name'],
+          $day_rows[$i]['day_date'],
+          $day_rows[$i]['month_id']
+        );
+        $day->set_id($day_rows[$i]['id']);
+
+        if ($total_rows == 1){
+          return $day;
+          break;
+        } else {
+          array_push($days_list, $day);
+        }
+    }
+    return $days_list;
+  }
 }
 
 /* ##################### Test #################### */

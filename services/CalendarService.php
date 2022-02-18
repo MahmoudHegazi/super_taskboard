@@ -35,6 +35,7 @@ class CalendarService {
     $calendar->init($calendar_row['title'], $calendar_row['start_year'], $calendar_row['added_years'], $calendar_row['periods_per_day'], $calendar_row['slots_per_period'], $calendar_row['description']);
     $calendar->set_id($calendar_row['id']);
     $calendar->set_used($calendar_row['used']);
+    $calendar->set_background_image($calendar_row['background_image']);
     return $calendar;
   }
 
@@ -123,6 +124,17 @@ class CalendarService {
   // update signle column  Calendar
   function update_one_column($column, $value, $id){
     return $this->calendar_mapper->update_column($column, $value, $id);
+  }
+
+  // get calendar by column specialy the used calendar
+  function get_used_calendar($column, $value){
+    $calendar_row = array();
+
+    $get_cal_id = $this->calendar_mapper->get_calendars_where($column, $value, 1, 'id');
+    if ($get_cal_id && is_array($get_cal_id) && isset($get_cal_id['id'])){
+      $calendar_row = $this->get_calendar_by_id($get_cal_id['id']);
+    }
+    return $calendar_row;
   }
 
 

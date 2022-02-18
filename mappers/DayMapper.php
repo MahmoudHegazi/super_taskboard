@@ -112,4 +112,27 @@ class DayMapper {
       $pdo->setAttribute(PDO::ATTR_AUTOCOMMIT, 1);
       return $inserted_ids;
     }
+
+
+    function get_days_where($column, $value, $limit='', $and_column='', $and_val=''){
+      $limit  = $limit != '' ? 'ORDER BY id LIMIT ' . $limit : ' ORDER BY id';
+      $pdo = $this->getPDO();
+      $data;
+      if ($and_column != '' && $and_val != ''){
+
+        $sql = "SELECT * FROM day WHERE ".$column."=? AND ".$and_column."=?" . $limit;
+        $stmt = $pdo->prepare($sql);
+        $data = $stmt->execute([$value, $and_val]);
+      } else {
+
+        $sql = "SELECT * FROM day WHERE ".$column."=?".$limit;
+        $stmt = $pdo->prepare($sql);
+        $data = $stmt->execute([$value]);
+      }
+      if ($data){
+        return $stmt->fetchAll();
+      } else {
+        return array();
+      }
+    }
 }

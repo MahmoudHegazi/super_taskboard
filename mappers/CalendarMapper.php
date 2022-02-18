@@ -118,12 +118,17 @@ class CalendarMapper {
       return $pdo->query('select count(id) from calendar')->fetchColumn();
     }
 
-    function get_calendars_where($column, $value){
+    function get_calendars_where($column, $value, $limit=1, $get_what='*'){
+      $limit = $limit < 1 ? 1 : intval($limit);
       $pdo = $this->getPDO();
-      $sql = "select * FROM calendar WHERE".$column."=?";
-      $stmt = $pdo->prepare($sql);
-      $stmt = $stmt->execute([$value]);
-      return $stmt->fetchAll();
+      $sql = "SELECT ".$get_what." FROM calendar WHERE ".test_input($column)."=? LIMIT ".test_input($limit)."";
+      $stmt= $pdo->prepare($sql);
+      $success = $stmt->execute([$value]);
+      if ($success){
+        return $stmt->fetch();
+      } else {
+        return array();
+      }
     }
 
     function upadate_where($column, $value, $new_value){
