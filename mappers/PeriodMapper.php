@@ -117,6 +117,18 @@ class PeriodMapper {
     }
   }
 
+  function get_periods_by_day($day_id){
+    $pdo = $this->getPDO();
+    $sql = "SELECT * FROM period WHERE day_id=? ";
+    $stmt = $pdo->prepare($sql);
+    $data = $stmt->execute([$day_id]);
+    if ($data){
+      return $stmt->fetchAll();
+    } else {
+      return array();
+    }
+  }
+
 
   function get_distinct_periods($cal_id){
     $pdo = $this->getPDO();

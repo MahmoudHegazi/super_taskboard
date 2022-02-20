@@ -1,12 +1,12 @@
 <?php
 class Reservation {
   // Propertiess
-  public $id;
-  public $name;
-  public $notes;
-  public $slot_id;
-  public $user_id;
-
+  private $id;
+  private $name;
+  private $notes;
+  private $slot_id;
+  private $user_id;
+  private $reservation_date;
 
   function init($name, $notes, $slot_id, $user_id){
     $this->notes = $notes;
@@ -50,5 +50,12 @@ class Reservation {
   }
   function get_user_id() {
     return $this->user_id;
+  }
+
+  function set_reservation_date($reservation_date) {
+    $this->reservation_date = $reservation_date;
+  }
+  function get_reservation_date() {
+    return $this->reservation_date;
   }
 }

@@ -1,11 +1,11 @@
 <?php
 class User {
   // Propertiess
-  public $id;
-  public $name;
-  public $username;
-  public $hashed_password;
-  public $email;
+  private $id;
+  private $name;
+  private $username;
+  private $hashed_password;
+  private $email;
 
   function init($name, $username, $hashed_password, $email){
     $this->name = $name;

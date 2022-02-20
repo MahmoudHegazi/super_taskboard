@@ -1,15 +1,15 @@
 <?php
 class Calendar {
   // Properties
-  public $id;
-  public $title;
-  public $start_year;
-  public $added_years;
-  public $periods_per_day;
-  public $slots_per_period;
-  public $description;
-  public $used;
-  public $background_image;
+  private $id;
+  private $title;
+  private $start_year;
+  private $added_years;
+  private $periods_per_day;
+  private $slots_per_period;
+  private $description;
+  private $used;
+  private $background_image;
 
   function init($title, $start_year, $added_years, $periods_per_day, $slots_per_period, $description){
     $this->title = $title;

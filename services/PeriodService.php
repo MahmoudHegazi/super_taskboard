@@ -72,6 +72,31 @@ class PeriodService {
     return $period_list;
   }
 
+  function get_day_periods($day_id){
+    if (!isset($day_id) || !is_numeric($day_id)){
+      return array();
+    }
+
+    $period_list = array();
+    $period_rows = $this->period_mapper->get_periods_by_day($day_id);
+    if (count($period_rows) == 0){return array();}
+
+    for ($i=0; $i<count($period_rows); $i++){
+        $period = new Period();
+        $period->init(
+          $period_rows[$i]['day_id'],
+          $period_rows[$i]['period_date'],
+          $period_rows[$i]['description'],
+          $period_rows[$i]['period_index']
+        );
+        $period->set_id($period_rows[$i]['id']);
+        $period->set_element_id($period_rows[$i]['element_id']);
+        $period->set_element_class($period_rows[$i]['element_class']);
+        array_push($period_list, $period);
+    }
+    return $period_list;
+  }
+
   // services methods
   function get_periods_by_id($list_of_ids){
 

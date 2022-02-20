@@ -110,6 +110,19 @@ class SlotMapper {
     }
   }
 
+  function get_slots_by_period($period_id){
+    $pdo = $this->getPDO();
+    $sql = "SELECT * FROM slot WHERE period_id=?";
+    $stmt = $pdo->prepare($sql);
+    $data = $stmt->execute([$period_id]);
+    if ($data){
+      return $stmt->fetchAll();
+    } else {
+      return array();
+    }
+  }
+
+
   function get_distinct_slots($cal_id){
     $pdo = $this->getPDO();
 

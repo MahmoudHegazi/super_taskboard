@@ -1,11 +1,11 @@
 <?php
 class Day {
   // Properties
-  public $id;
-  public $day;
-  public $day_name;
-  public $day_date;
-  public $month_id;
+  private $id;
+  private $day;
+  private $day_name;
+  private $day_date;
+  private $month_id;
 
   function init($day, $day_name, $day_date, $month_id){
     $this->day = $day;

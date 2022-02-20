@@ -8,12 +8,19 @@ require_once (dirname(__FILE__, 2) . '\services\MonthService.php');
 require_once (dirname(__FILE__, 2) . '\services\DayService.php');
 require_once (dirname(__FILE__, 2) . '\services\PeriodService.php');
 require_once (dirname(__FILE__, 2) . '\services\SlotService.php');
+require_once (dirname(__FILE__, 2) . '\services\ReservationService.php');
 require_once (dirname(__FILE__, 2) . '\services\UserService.php');
 require_once (dirname(__FILE__, 2) . '\services\StyleService.php');
 require_once (dirname(__FILE__, 2) . '\models\Calendar.php');
 
 
+/*
+setlocale(LC_TIME, 'sr_BA');
+$month_name = date('F', mktime(0, 0, 0, $i));
+echo $month_name;
 
+https://stackoverflow.com/questions/13845554/php-date-get-name-of-the-months-in-local-language
+*/
 
 $redirect_url = isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '';
 
@@ -29,6 +36,7 @@ class IndexController {
   protected $slot_service;
   protected $user_service;
   protected $style_service;
+  protected $reservation_service;
   //protected $calendarService;
   protected $Calendar;
 
@@ -53,10 +61,14 @@ class IndexController {
   protected $today_date;
   protected $today_time;
 
+  private $request_secert;
+
+
+
 
   //$calendarMapper = new CalendarMapper($this->pdo);
   // build the pdo for global use in object only
-  public function __construct(PDO $pdo, $selected_month=null)
+  public function __construct(PDO $pdo, $selected_month=null, $type='GET')
   {
     // incase no used calendar which mean no calendars in app or deleted by DB (IMP), so will raise error
     $this->pdo = $pdo;
@@ -68,6 +80,8 @@ class IndexController {
     $this->slot_service = new SlotService($pdo);
     $this->user_service = new UserService($pdo);
     $this->style_service = new StyleService($pdo);
+    $this->reservation_service = new ReservationService($pdo);
+
     $used_cal = $this->assign_used_calendar();
     if (!$used_cal || empty($used_cal) || !isset($used_cal)){
       // this error in case no used calendar, make sure not to use DB to delete calendars and if u did np but with next add/remove will solved
@@ -106,12 +120,26 @@ class IndexController {
       throw new Exception( "We Can not Load the current dats of calendar Error Error:03" );
     }
     $this->set_current_days($current_days);
-    $this->set_current_weeks(array_distribution($this->monday_start_mange($current_days), 7, 5, $default=false));
+    //$this->set_current_weeks(array_distribution($this->monday_start_mange($current_days), 7, 5, $default=false));
 
 
-    //echo "<pre>";
-    //print_r($this->get_current_days());
-    //echo "</pre>";
+    $projectData = $this->return_project_data($current_days);
+    $this->set_current_weeks(array_distribution($projectData, 7, 5, $default=false));
+
+    if ($type == 'GET'){
+      $this->set_request_secert($this->getnerate_request_secert());
+      $_SESSION['supcal_token'] = $this->get_request_secert();
+    }
+
+    /*
+    echo "<pre>";
+    print_r(array_distribution($projectData, 7, 5, $default=false));
+    //print_r(array_distribution($this->monday_start_mange($current_days), 7, 5, $default=false));
+    echo "</pre>";/*
+    die();
+    $day_periods = $this->return_day_periods($current_days[0]->get_id());
+    $period_slots = $this->return_period_slots($day_periods[0]->get_id());
+    */
   }
 
 
@@ -215,7 +243,13 @@ class IndexController {
     return $this->current_weeks;
   }
 
+  public function set_request_secert($request_secert){
+    $this->request_secert = $request_secert;
+  }
 
+  public function get_request_secert(){
+    return $this->request_secert;
+  }
 
 
   public function get_style(){
@@ -381,6 +415,8 @@ class IndexController {
     return $result;
   }
 
+
+
 /*
 $index_controller->return_current_year($current_calendar->get_id())
     $italy_current_time = date("Y-m-d H:i:s");
@@ -390,9 +426,45 @@ echo date("Y");
 */
 
 
-  public function return_day_periods(){
-
+  public function return_day_periods($day_id){
+    if (!isset($this->period_service) || !is_numeric($day_id)){return array();}
+    return $this->period_service->get_day_periods($day_id);
   }
+
+  public function return_period_slots($period_id){
+    if (!isset($this->slot_service) || !is_numeric($period_id)){return array();}
+    $data = $this->slot_service->get_period_slots($period_id);
+    return $data;
+  }
+
+  public function return_project_data($current_days){
+    $projectData = array();
+    $view_days = $this->monday_start_mange($current_days);
+    for ($d=0; $d<count($view_days); $d++){
+      // day data and inital day object same as before nothing changed
+      $day_obj = $view_days[$d];
+      if (!$day_obj || empty($day_obj)){
+        // this happend 1 per live when u select first year which has no monday so it will add empty days to complete the week 7 days begin and end
+        continue;
+      }
+      $day_periods = $this->return_day_periods($day_obj->get_id());
+      $day_array = array ('day'=>$day_obj, 'day_data'=>array());
+      for ($p=0; $p<count($day_periods); $p++){
+        // get periods of day if any cascadse and get it's data and it's slots to
+        $current_period = $day_periods[$p];
+        $period_slots = $this->return_period_slots($current_period->get_id());
+        $period_data = array('day_period'=> $current_period, 'day_slot'=> $period_slots);
+        // now no need loops we have slot data
+        array_push($day_array['day_data'], $period_data);
+      }
+      array_push($projectData, $day_array);
+    }
+    return $projectData;
+  }
+
+
+
+
 
   // ajax method for load slot data when add new reservation
   public function return_slot_data_ajax($slot_id){
@@ -412,14 +484,100 @@ echo date("Y");
 
   }
 
+  // insert reservation It return data for used in AJAX
+  public function add_reservation($slot_id, $name='', $notes=''){
+    $slot_id = test_input($slot_id);
+    $name = test_input($name);
+    $notes = test_input($notes);
+    if (!isset($this->reservation_service) || !isset($this->slot_service) || !isset($slot_id) || !is_numeric($slot_id)){
+      return array('success'=>'false', 'message'=>'Reservation Can not Added Invalid Data Sent.');
+    }
 
+    //check slot
+    $get_slot = $this->slot_service->get_slot_by_id($slot_id);
+    if (!isset($get_slot) || empty($get_slot)){
+      return array('success'=>false, 'message'=>'Slot Selected Not Found Reservation Can not Added.');
+    }
+
+    $get_reservation = $this->reservation_service->get_reservation_by_slot($slot_id);
+    if (!empty($get_reservation)){
+      if ($get_slot->get_empty() == 1){
+        $update_slot = $this->slot_service->update_one_column('empty', 0, $get_slot->get_id());
+      };
+      return array('success'=>false, 'message'=>'Reservation Can not Added There are a reservation in that slot The System Has recover and fix the problem.');
+    }
+
+    $reservation_id = $this->reservation_service->add($slot_id, $name, $notes, 2);
+    if ($reservation_id != false){
+        $update_slot = $this->slot_service->update_one_column('empty', 0, $slot_id);
+        if (!$update_slot){
+          $this->reservation_service->remove($reservation_id);
+          return array('success'=>false, 'message'=>'Slot Data Cound not Updated.');
+        }
+        $get_reservation_added = $this->reservation_service->get_reservation_by_id($reservation_id);
+        if (!$get_reservation_added){
+          return array('success'=>false, 'message'=>'Reservation created could not found.');
+        }
+
+        return array('success'=>true, 'message'=>'Added Reservation Successfully. ID:'.$get_reservation_added->get_id());
+
+      } else {
+        return array('success'=>false, 'message'=>'Reservation Can not Added to the system.');
+      }
+  }
+
+
+
+    public function getnerate_request_secert(){
+      $token = bin2hex(openssl_random_pseudo_bytes(16));
+      $token = isset($token) && !empty($token) ? $token : $token = bin2hex(random_bytes(16));
+      return $token;
+    }
+
+    public function handle_add_reservation($post_obj, $session_obj, $index_controller_obj, $error){
+      $check_request_data = !$error && isset($index_controller) &&
+      isset($_POST['reservation_slot_id']) && !empty($_POST['reservation_slot_id']) &&
+      isset($_POST['secuirty_token']) && !empty($_POST['secuirty_token']) &&
+      isset($_POST['reservation_name']) && isset($_POST['reservation_comment']);
+
+      if ($check_request_data){
+        return array('success'=>false, 'Can not Add reservation missing required data.');
+      }
+      /* secuirty */
+      $request_token = test_input($post_obj['secuirty_token']);
+      $session_token = $session_obj['supcal_token'];
+
+      if (!isset($session_obj['supcal_token']) || empty($session_obj['supcal_token'])){
+        return array('success'=>false, 'Access Deined.');
+      }
+      if ($session_token != $request_token){
+        return array('success'=>false, 'You have no premssions to Make this request');
+      }
+      /* secuirty end */
+      $reservation_slot_id = test_input($post_obj['reservation_slot_id']);
+      $reservation_name = !empty($post_obj['reservation_name']) ? test_input($post_obj['reservation_name']) : '';
+      $reservation_notes = !empty($post_obj['reservation_comment']) ? test_input($post_obj['reservation_comment']) : '';
+
+      $new_reservation = $index_controller_obj->add_reservation($reservation_slot_id, $reservation_name, $reservation_notes);
+      return $new_reservation;
+
+  }
+
+  ###################### Post Handler ############################
+  public function postHandler($index_controller, $post_obj, $session_obj, $redirect_url, $error){
+    // add new reservation
+    $new_reservation = $index_controller->handle_add_reservation($post_obj, $session_obj, $index_controller, $error);
+    $_SESSION['message'] = $new_reservation['message'];
+    $_SESSION['success'] = $new_reservation['success'];
+    header("Location: " . $redirect_url);
+    die();
+  }
+  ###################### Post Handler End ############################
 
   // load the ajax data for display periods and slots in selected day when user click + <
   // this will return data to used in add_reservation and add normal reservation
   public function return_day_periods_data($cal_id, $day_date){
   }
 
-  // add reservation
-  public function add_reservation($cal_id, $day_id, $slot_id, $notes){
-  }
+
 }

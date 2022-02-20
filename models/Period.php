@@ -1,13 +1,13 @@
 <?php
 class Period {
   // Properties
-  public $id;
-  public $day_id;
-  public $period_date;
-  public $description;
-  public $period_index;
-  public $element_id;
-  public $element_class;
+  private $id;
+  private $day_id;
+  private $period_date;
+  private $description;
+  private $period_index;
+  private $element_id;
+  private $element_class;
 
 
   function init($day_id, $period_date, $description, $period_index){

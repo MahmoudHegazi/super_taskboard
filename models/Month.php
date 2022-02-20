@@ -1,9 +1,9 @@
 <?php
 class Month {
   // Properties
-  public $id;
-  public $month;
-  public $year_id;
+  private $id;
+  private $month;
+  private $year_id;
 
   function init($month, $year_id){
     $this->month = $month;

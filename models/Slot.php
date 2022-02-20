@@ -1,14 +1,14 @@
 <?php
 class Slot {
   // Propertiess
-  public $id;
-  public $start_from;
-  public $end_at;
-  public $period_id;
-  public $empty;
-  public $slot_index;
-  public $element_id;
-  public $element_class;
+  private $id;
+  private $start_from;
+  private $end_at;
+  private $period_id;
+  private $empty;
+  private $slot_index;
+  private $element_id;
+  private $element_class;
 
 
   function init($start_from, $end_at, $period_id, $empty, $slot_index){

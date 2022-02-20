@@ -97,5 +97,5 @@ class Style {
   function get_category() {
     return $this->category;
   }
-  
+
 }

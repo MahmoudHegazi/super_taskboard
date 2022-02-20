@@ -1,9 +1,9 @@
 <?php
 class Year {
   // Propertiess
-  public $id;
-  public $year;
-  public $cal_id;
+  private $id;
+  private $year;
+  private $cal_id;
 
   function init($year, $cal_id){
     $this->year = $year;

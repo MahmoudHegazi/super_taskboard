@@ -19,9 +19,6 @@ class ReservationMapper {
 
   public function insert($reservation) {
       $pdo = $this->getPDO();
-
-
-
       $statement = $pdo->prepare('INSERT INTO reservation(name, notes, slot_id, user_id) VALUES(:name, :notes, :slot_id, :user_id)');
       $statement->execute(array(
           'name' => $reservation->get_name(),
@@ -42,6 +39,17 @@ class ReservationMapper {
     return $data;
   }
 
+  function get_reservation_by_slot($slot_id){
+    $pdo = $this->getPDO();
+    $stmt = $pdo->prepare("SELECT * FROM reservation WHERE slot_id=:slot_id");
+    $stmt->bindParam(':slot_id', $slot_id, PDO::PARAM_INT);
+    $data = $stmt->execute();
+    if ($data){
+      return $stmt->fetch();
+    } else {
+      return array();
+    }
+  }
 
 
   function update($reservation){
@@ -93,4 +101,6 @@ class ReservationMapper {
     $pdo = $this->getPDO();
     return $pdo->query('select count(id) from reservation')->fetchColumn();
   }
+
+  //
 }

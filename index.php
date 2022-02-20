@@ -1,7 +1,9 @@
 <?php
+ob_start();
 require_once('config.php');
 require_once('controllers/IndexController.php');
-ob_start();
+
+$request_type = $_SERVER['REQUEST_METHOD'] === 'POST' ? 'POST' : 'GET';
 
 /* Handle Used Calendar part and get all data needed from controller like the MVC but modifed by include controller instead of get the request */
 $current_calendar = null;
@@ -13,13 +15,15 @@ $cal_years = null;
 $current_year = null;
 $cal_id = null;
 
+$error = false;
 
 // this important it handle all exception from indexController
 try {
+  // Index Controller and view setup
   // if you get here, all is fine and you can use $object
   $current_month = isset($_GET['month']) && !empty($_GET['month']) ? test_input($_GET['month']) : null;
   global $pdo;
-  $index_controller = new IndexController($pdo, $current_month);
+  $index_controller = new IndexController($pdo, $current_month, $request_type);
   $current_calendar = $index_controller->get_used_calendar();
   $current_months = $index_controller->get_current_months();
   $cal_years = $index_controller->get_years();
@@ -29,24 +33,18 @@ try {
   define('TITLE', $current_calendar->get_title());
   define('DESCRIPTION', $current_calendar->get_description());
   define('THUMBNAIL', $current_calendar->get_background_image());
-
-  //$cal_id = $current_calendar->get_id();
 }
 catch( Exception $e ) {
-  // if you get here, something went terribly wrong.
-  // also, $object is undefined because the object was not createDocumentFragment
   $used_calendar_emessage = $e->getMessage();
+  $error = true;
 }
 
-// all current years $index_controller->get_years()
-//$index_controller->set_current_year($index_controller->return_all_years($current_calendar->get_id()));
-//print_r($index_controller->return_current_months(275));
-//print_r($index_controller->get_current_year());
-//print_r($index_controller->return_curent_month($index_controller->get_current_year()->get_id(), $index_controller->get_today_month()));
-
-
-// note any thing will used will be after exaption handle as it die with error message
-//die();
+if ($_SERVER['REQUEST_METHOD'] === 'POST'){
+  // This How The SuperMVC handle all view with all needed given post requests
+  $redirect_url = $_SERVER['HTTP_REFERER'];
+  $index_controller->postHandler($index_controller, $_POST, $_SESSION, $redirect_url, $error);
+  die();
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -173,7 +171,7 @@ catch( Exception $e ) {
       color: cornsilk;
       }
       .day_card {
-      min-height: 250px;
+      min-height: fit-content;
       cursor: default;
       }
 
@@ -401,6 +399,7 @@ catch( Exception $e ) {
       </p>
     </div>
 
+
     <!-- in case no used were calendar found -->
     <?php if(is_null($current_calendar)){ ?>
       <div class="alert alert-danger">
@@ -412,6 +411,20 @@ catch( Exception $e ) {
         </p>
       </div>
     <?php die();} ?>
+
+    <!-- in case no used were calendar found -->
+    <?php if(isset($_SESSION['message']) && isset($_SESSION['success']) && !empty($_SESSION['message']) && !empty($_SESSION['success'])){ ?>
+      <div class="alert alert-<?php echo $_SESSION['success'] ? 'success' : 'danger'; ?> alert-dismissible fade show">
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        <p class="text-center">
+          <?php echo $_SESSION['message']; ?>
+        </p>
+      </div>
+    <?php unset($_SESSION['message']);unset($_SESSION['success']);} ?>
+
+
+
+
 
     <div class="app_main container-fluid p-2 text-black text-center" style="width: 100% !important;">
       <div class="container-fluid main_cal_display border border-secondary">
@@ -545,8 +558,8 @@ catch( Exception $e ) {
                       // new day
                       for ($d=0; $d<count($current_week); $d++){
 
-                        $selected_day = $current_weeks[$w][$d];
-                        if ($selected_day == false){
+                        $day_data = $current_weeks[$w][$d];
+                        if ($day_data == false || empty($day_data)){
                           // empty day
 
                           ?>
@@ -556,55 +569,104 @@ catch( Exception $e ) {
 
                           </div>
                           <?php
+                          // day data array([day] => Day Object, [day_data] => Array)
                         } else {
+                          $selected_day = $day_data['day'];
                           $day_id = $selected_day->get_id();
                           $day = $selected_day->get_day();
                           $day_date = $selected_day->get_day_date();
                           $day_name = $selected_day->get_day_name();
+
+                          $selected_day_data = $day_data['day_data'];
                         ?>
                         <!-- day start -->
-                        <div class="flex-fill border border-light cal_card_cell day_card" id="day_<?php echo $day_id;  ?>">
+                        <div data-day="<?php echo $day_name; ?>" class="flex-fill border border-light cal_card_cell day_card" id="day_<?php echo $day_id;  ?>">
 
                            <!-- day meta -->
-                             <h6 class="text-center"><?php echo $day_name . ' ' . $day; ?></h6>
+                             <h6 class="text-center"><?php echo substr($day_name, 0, 3) . ' ' . $day; ?></h6>
                              <h6 class="text-center bg-light text-black badge"><?php echo $day_date; ?></h6>
-                             <!-- array_distribution -->
+                           <!-- array_distribution -->
                            <!-- all periods start -->
                            <div class="all_periods">
+                             <?php // now get periods from the data array
+                               // day_data array(Array([day_period] => Period Object, [day_slot] => Array([0] => Slot Object)))
+                               // loop over periods data (
+                               for ($p=0; $p<count($selected_day_data); $p++){
+                                 $selected_slots_data = $selected_day_data[$p];
+                                 $selected_period = isset($selected_slots_data['day_period']) ? $selected_slots_data['day_period'] : array();
+                                 // period data
+                                 $p_id = $selected_period->get_id();
+                                 $p_day_id = $selected_period->get_day_id();
+                                 $p_date = $selected_period->get_period_date();
+                                 $p_description = $selected_period->get_description();
+                                 $period_index = $selected_period->get_period_index();
+                                 $p_element_id = $selected_period->get_element_id();
+                                 $p_element_class = $selected_period->get_element_class();
+                                 /* ##################### display periods   ############################ */
+                                 ?>
+                                 <!-- period example start -->
+                                 <!-- notice here  the id come from database and class u can change also u can add normal css to target some slots in css file many ways -->
+                                 <div class="container period_background_default <?php echo $p_element_class; ?>" id="<?php echo $p_element_id; ?>" >
+                                    <!-- period title -->
+                                    <span class="badge bg-success mt-1 period_title_default" ><?php echo $p_description; ?></span>
+                                    <!-- all slots start -->
 
+                                    <?php
+                                      $slots_data = isset($selected_slots_data['day_slot']) ? $selected_slots_data['day_slot'] : array();
+                                      // now loop over slots
+                                      for ($s=0; $s<count($slots_data); $s++) {
+                                        // slot row
+                                        $slot_obj = $slots_data[$s];
+                                        $s_id = $slot_obj->get_id();
+                                        $s_start_from = $slot_obj->get_start_from();
+                                        $s_end_at = $slot_obj->get_end_at();
+                                        $s_period_id = $slot_obj->get_period_id();
+                                        $s_empty = $slot_obj->get_empty();
+                                        $s_slot_index = $slot_obj->get_slot_index();
+                                        $s_element_id = $slot_obj->get_element_id();
+                                        $s_element_class = $slot_obj->get_element_class();
+                                        // used slot
+                                        if ($s_empty == 0){
+                                          // display used slot
+                                          ?>
+                                          <!-- slot start booked already -->
+                                          <div class="slot_background_default m-1 used_slot <?php echo $s_element_class; ?>"
+                                            id="<?php echo $s_element_id; ?>">
+                                           <div class="container">
+                                             <i class="fa fa-calendar-check-o" style="font-size:1.1em;"></i>
+                                           </div>
+                                          </div>
+                                          <!-- slot end -->
+                                          <?php
+                                        } else {
+                                          ?>
+                                          <!-- slot start with booking -->
+                                          <div class="slot_background_default m-1 empty_slot <?php echo $s_element_class; ?>" id="<?php echo $s_element_id; ?>">
+                                           <div class="container book_open_btn"
+                                             data-slot-id="<?php echo $s_id; ?>"
+                                             data-slot-start_from="<?php echo $s_start_from; ?>"
+                                             data-slot-end_at="<?php echo $s_end_at; ?>"
+                                             data-slot-empty="<?php echo $s_empty; ?>"
+                                             data-slot-index="<?php echo $s_slot_index; ?>"
+                                             data-period-date="<?php echo $p_date; ?>"
+                                             data-period-description="<?php echo $p_description; ?>"
+                                             data-bs-toggle="modal" data-bs-target="#bookingModal">
+                                             <i class="fa text-primary fa fa-calendar-o" style="font-size:1.1em;"></i>
+                                           </div>
+                                          </div>
+                                          <!-- slot end -->
+                                          <?php
 
-                             <!-- period example start -->
-                             <div class="period_background_default">
-                                <!-- period title -->
-                                <span class="badge bg-success mt-1 period_title_default" >Period 2</span>
-                                <!-- all slots start -->
-                                  <!-- slot start -->
-                                  <div class="slot_background_default m-1 empty_slot">
-                                   <div class="container" data-bs-toggle="modal" data-bs-target="#bookingModal">
-                                     <i class="fa text-primary fa fa-calendar-o" style="font-size:1.1em;"></i>
-                                   </div>
-                                  </div>
-                                  <!-- slot end -->
-
-                                  <!-- slot start -->
-                                  <div class="slot_background_default m-1 used_slot">
-                                   <div class="container">
-                                     <i class="fa fa-calendar-check-o" style="font-size:1.1em;"></i>
-                                   </div>
-                                  </div>
-                                  <!-- slot end -->
-
-                                  <!-- slot start -->
-                                  <div class="slot_background_default m-1">
-                                   <div class="container" data-bs-toggle="modal" data-bs-target="#bookingModal">
-                                     <i class="fa text-primary">&#xf271;</i>
-                                   </div>
-                                  </div>
-                                  <!-- slot end -->
-
-                                <!-- all slots end -->
-                             </div>
-                             <!-- period example end -->
+                                        }
+                                        // end slot
+                                      }
+                                    ?>
+                                    <!-- all slots end -->
+                                 </div>
+                                 <!-- period example end -->
+                                 <?php
+                               }
+                             ?>
 
                            </div>
                            <!-- all periods end -->
@@ -628,6 +690,7 @@ catch( Exception $e ) {
         </div>
       </div>
     </div>
+  </div>
 
 
 <!-- Booking modal start -->
@@ -637,29 +700,40 @@ catch( Exception $e ) {
 
       <!-- Modal Header -->
       <div class="modal-header ">
-        <h5 class="modal-title ">Booking (02/16/2022) <i class="fa fa-calendar"></i></h5>
+        <h5 class="modal-title ">Booking <span id="booking_date_a"></span> <i class="fa fa-calendar"></i></h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
 
+      <form method="POST" action="<?php echo $_SERVER['PHP_SELF']; ?>">
       <!-- Modal body -->
       <div class="modal-body">
-          <h6>Period Notes:</h6>
-          <p>you must come with laptop.</p>
-          <form action="/action_page.php">
-            <div class="mb-3 mt-3">
-              <label for="comment">Comments:</label>
-              <textarea class="form-control" rows="3" id="comment" name="text"></textarea>
+          <div class="container text-center d-flex justify-content-between align-items-center">
+            <p>Period: ( <span id="period_description_a" class="bg-success badge text-white ml-1 mr-1"></span> )</p>
+            <p>Slot: ( <span id="slot_index_a" class="bg-primary badge text-white ml-1 mr-1"></span> )</p>
+          </div>
+            <div class="form-group">
+              <div class="mb-3 mt-3 text-center">
+                <input  maxlength="30"  pattern="[A-Za-z\s]{1,30}" title="Please Enter a valid name: eg Jone" type="text" class="form-control" placeholder="Name.." name="reservation_name" id="reservation_name" />
+                <textarea min="0" maxlength="255" placeholder="Reservation Notes.." class="form-control" rows="3" id="reservation_comment" name="reservation_comment"></textarea>
+              </div>
+                 <input id="supcal_token" name="secuirty_token" type="hidden" value="<?php echo isset($index_controller) ? $index_controller->get_request_secert() : ''; ?>" />
+                 <input type="hidden" value="" name="reservation_slot_id" id="reservation_slot_id" style="display:none;">
+                  <div class="container text-center d-flex justify-content-between m-2 p-2">
+                  <p class="ml-2">Start At: <span id="start_from_slot_a" class="bg-secondary text-white badge p-2">12:00PM</span></p>
+                  <p class="ml-2">end at: <span class="bg-danger text-white badge p-2" id="end_at_slot_a">02:00PM</span></p>
+                  <p>
+                    Period Started at: <span id="period_date_time_a" class="badge bg-warning text-secondary"></span>
+                  </p>
+                </div>
             </div>
-            <p class="alert alert-info text-center">Please click 'Confirm' to confirm your booking start at  <br /> <span id="start_from_slot p-1" class="bg-primary text-white badge">12:00PM</span> and end at <span class="bg-success text-white badge" id="badge end_at_slot">02:00PM</span></p>
-            <button type="submit" class="btn btn-primary">Confirm Booking </button>
-          </form>
-
       </div>
 
       <!-- Modal footer -->
       <div class="modal-footer">
         <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+        <button id="add_reservation" type="submit" class="btn btn-primary">Confirm Booking</button>
       </div>
+      </form>
 
     </div>
   </div>
@@ -748,7 +822,6 @@ catch( Exception $e ) {
 </audio>
 
 <!-- HTML5 sounds -->
-
 <script>
 
 
@@ -869,6 +942,36 @@ monthForms.forEach( (monthForm)=>{
   });
 });
 
+/* open booking modal */
+const startFromSlotA = document.getElementById('start_from_slot_a');
+const endAtSlotA = document.getElementById('end_at_slot_a');
+const bookingDateA = document.getElementById('booking_date_a');
+const periodDescriptionA = document.getElementById('period_description_a');
+const periodDateTimeA = document.getElementById('period_date_time_a');
+const reservationSlotId = document.getElementById('reservation_slot_id');
+const slotIndexA = document.getElementById('slot_index_a');
+
+const allBookingOpenBtns = document.querySelectorAll(".book_open_btn");
+allBookingOpenBtns.forEach( (bookOpen)=>{
+  bookOpen.addEventListener("click", (event)=>{
+    const targetElement = event.currentTarget;
+    if (!targetElement.classList.contains('book_open_btn')){
+      return false;
+    }
+    const SlotEmpty = targetElement.getAttribute("data-slot-empty");
+    if (SlotEmpty != '0'){
+      startFromSlotA.innerText = targetElement.getAttribute("data-slot-start_from");
+      endAtSlotA.innerText = targetElement.getAttribute("data-slot-end_at");
+      bookingDateA.innerText = targetElement.getAttribute("data-period-date");
+      periodDescriptionA.innerText = targetElement.getAttribute("data-period-description");
+      periodDateTimeA.innerText = targetElement.getAttribute("data-period-date");
+      reservationSlotId.value = targetElement.getAttribute("data-slot-id");
+      slotIndexA.innerText = targetElement.getAttribute("data-slot-index");
+    }
+  });
+});
+
+
 /* sound effects not owned by current user */
 const allUsedSlots = document.querySelectorAll(".used_slot");
 allUsedSlots.forEach( (slot)=>{
@@ -876,7 +979,6 @@ allUsedSlots.forEach( (slot)=>{
     playSound("#unable_open_modal");
     return true;
   });
-
 });
 
 const allEmptySlots = document.querySelectorAll(".empty_slot");
@@ -889,6 +991,46 @@ allEmptySlots.forEach( (slot)=>{
 
 const addResAisde = document.querySelector(".aside_add_res");
 addResAisde.addEventListener("click", ()=>{playSound("#open_modal_sound")});
+
+/* ############## AJAX ############## */
+const postData = async function (url="", data={}){
+  const response = await fetch(url, {
+        method: "POST",
+        credentials: "same-origin",
+        headers:{
+         "Content-Type": "application/json"
+       },
+       body: JSON.stringify(data)
+     }
+   );
+   try{
+      const res = await response.json();
+      console.error(res);
+      return res;
+    }catch(err){
+      console.error(err);
+    }
+}
+/*
+const reservationName = document.getElementById('reservation_name');
+const reservationComment = document.getElementById('reservation_comment');
+const supcalToken = document.getElementById('supcal_token');
+
+
+async function bookingFunction(event){
+  const res = await postData('', {
+    reservation_slot_id: reservationSlotId.value,
+    reservation_name: reservationName.value,
+    reservation_comment: reservationComment.value,
+    secuirty_token: supcalToken.value
+  });
+}
+const addReservationBtn = document.querySelector("#add_reservation");
+addReservationBtn.addEventListener("click", bookingFunction );
+*/
+
+
+
 
 
 

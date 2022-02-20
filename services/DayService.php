@@ -150,7 +150,6 @@ class DayService {
 
 
   function get_all_days_where($column, $value, $limit='', $and_column='', $and_val=''){
-
     $limit = $limit && $limit != '' && is_numeric($limit) ? $limit : '';
     $days_list = array();
     $day_rows = $this->day_mapper->get_days_where($column, $value, $limit, $and_column, $and_val);

@@ -16,7 +16,7 @@ class ReservationService {
     $this->reservation_mapper = new ReservationMapper($pdo);
   }
   // Add New reservation
-  function add($name, $notes, $slot_id, $user_id){
+  function add($slot_id, $name, $notes, $user_id){
     $reservation_obj = new Reservation();
     $reservation_obj->init($name, $notes, $slot_id, $user_id);
     return $this->reservation_mapper->insert($reservation_obj);
@@ -26,6 +26,11 @@ class ReservationService {
   function remove($reservation_id){
     return $this->reservation_mapper->delete($reservation_id);
   }
+
+  function get_reservation_by_slot($slot_id){
+    return $this->reservation_mapper->get_reservation_by_slot($slot_id);
+  }
+
 
   // Get reservation Using it's id
   function get_reservation_by_id($reservation_id){
@@ -41,6 +46,7 @@ class ReservationService {
       $reservation_row['user_id']
     );
     $reservation->set_id($reservation_row['id']);
+    $reservation->set_reservation_date($reservation_row['reservation_date']);
     return $reservation;
   }
 
@@ -58,8 +64,10 @@ class ReservationService {
           $reservation_rows[$i]['notes'],
           $reservation_rows[$i]['slot_id'],
           $reservation_rows[$i]['user_id']
+
         );
         $reservation->set_id($reservation_rows[$i]['id']);
+        $reservation->set_reservation_date($reservation_rows[$i]['reservation_date']);
         array_push($reservation_list, $reservation);
     }
     return $reservation_list;

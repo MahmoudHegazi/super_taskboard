@@ -205,7 +205,35 @@ class SlotService {
     return $this->slot_mapper->insert_group_fast($slots_objects);
   }
 
+  function get_period_slots($period_id){
+    if (!isset($period_id) || !is_numeric($period_id)){
+      return array();
+    }
+    $slot_list = array();
+    $slot_rows = $this->slot_mapper->get_slots_by_period($period_id);
+    if (count($slot_rows) == 0){return array();}
+    for ($i=0; $i<count($slot_rows); $i++){
+        $slot = new Slot();
+        $slot->init(
+          $slot_rows[$i]['start_from'],
+          $slot_rows[$i]['end_at'],
+          $slot_rows[$i]['period_id'],
+          $slot_rows[$i]['empty'],
+          $slot_rows[$i]['slot_index']
+
+        );
+        $slot->set_id($slot_rows[$i]['id']);
+        $slot->set_element_id($slot_rows[$i]['element_id']);
+        $slot->set_element_class($slot_rows[$i]['element_class']);
+        array_push($slot_list, $slot);
+    }
+    return $slot_list;
+  }
+
 }
+
+
+
 
 /* ##################### Test #################### */
 /* #####################
