@@ -140,4 +140,19 @@ class YearMapper {
     }
   }
 
+  function get_min_year(){
+    $pdo = $this->getPDO();
+    $stmt = $pdo->prepare("SELECT MIN(year) AS min_year FROM year");
+    $stmt->execute();
+    $data = $stmt->fetch();
+    return $data;
+  }
+
+  function get_max_year(){
+    $pdo = $this->getPDO();
+    $stmt = $pdo->prepare("SELECT MAX(year) AS max_year FROM year");
+    $stmt->execute();
+    $data = $stmt->fetch();
+    return $data;
+  }
 }

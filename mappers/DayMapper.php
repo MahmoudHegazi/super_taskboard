@@ -40,6 +40,16 @@ class DayMapper {
       return $data;
     }
 
+    function get_dayid_by_date($day_date, $cal_id){
+      $pdo = $this->getPDO();
+      $sql = "SELECT day.id FROM day JOIN month ON day.month_id = month.id JOIN year ON month.year_id = year.id WHERE year.cal_id=? AND day.day_date=?";
+      $stmt= $pdo->prepare($sql);
+      $stmt->execute([$cal_id, $day_date]);
+      $data = $stmt->fetch();
+      $data = isset($data) && !empty($data) && isset($data['id']) ? $data['id'] : false;
+      return $data;
+    }
+
     function update($day){
       $pdo = $this->getPDO();
       $statement = $pdo->prepare('UPDATE day (day, day_name, day_date, month_id) VALUES(:day, :day_name, :day_date, :month_id)');
@@ -135,4 +145,6 @@ class DayMapper {
         return array();
       }
     }
+
+
 }

@@ -44,6 +44,15 @@ class DayService {
     return $day;
   }
 
+  function get_dayid_by_date($day_date, $cal_id){
+
+    $day_date = test_input($day_date);
+    $day_id = $this->day_mapper->get_dayid_by_date($day_date, $cal_id);
+    if (!is_numeric($day_id) || $day_id == false){return false;}
+    return $day_id;
+  }
+
+
   // get All days
   function get_all_days(){
 
@@ -77,8 +86,10 @@ class DayService {
       }
     }
     return $result;
-
   }
+
+  // services methods
+
 
 
   // add more than one db row

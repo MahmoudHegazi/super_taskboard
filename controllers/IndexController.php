@@ -51,7 +51,9 @@ class IndexController {
   protected $current_days;
   protected $current_months;
   protected $current_weeks;
-
+  protected $current_min_year;
+  protected $current_max_year;
+  protected $has_years;
 
   /* Date and Time */
   protected $visit_date;
@@ -130,6 +132,15 @@ class IndexController {
       $this->set_request_secert($this->getnerate_request_secert());
       $_SESSION['supcal_token'] = $this->get_request_secert();
     }
+
+    // set start and end year
+    $year_data = $this->return_year_data();
+    $this->set_has_years($year_data ? true : false);
+    if ($this->get_has_years() && isset($year_data['min_year']) && isset($year_data['max_year'])){
+      $this->set_current_min_year($year_data['min_year']);
+      $this->set_current_max_year($year_data['max_year']);
+    }
+
 
     /*
     echo "<pre>";
@@ -249,6 +260,31 @@ class IndexController {
 
   public function get_request_secert(){
     return $this->request_secert;
+  }
+
+  public function set_current_min_year($current_min_year){
+    $this->current_min_year = $current_min_year;
+  }
+
+  public function get_current_min_year(){
+    return $this->current_min_year;
+  }
+
+  public function set_current_max_year($current_max_year){
+    $this->current_max_year = $current_max_year;
+  }
+
+  public function get_current_max_year(){
+    return $this->current_max_year;
+  }
+
+
+  public function set_has_years($has_years){
+    $this->has_years = $has_years;
+  }
+
+  public function get_has_years(){
+    return $this->has_years;
   }
 
 
@@ -534,8 +570,8 @@ echo date("Y");
       return $token;
     }
 
-    public function handle_add_reservation($post_obj, $session_obj, $index_controller_obj, $error){
-      $check_request_data = !$error && isset($index_controller) &&
+    public function handle_add_reservation($post_obj, $session_obj, $index_controller_obj){
+      $check_request_data = isset($index_controller) &&
       isset($_POST['reservation_slot_id']) && !empty($_POST['reservation_slot_id']) &&
       isset($_POST['secuirty_token']) && !empty($_POST['secuirty_token']) &&
       isset($_POST['reservation_name']) && isset($_POST['reservation_comment']);
@@ -565,12 +601,108 @@ echo date("Y");
 
   ###################### Post Handler ############################
   public function postHandler($index_controller, $post_obj, $session_obj, $redirect_url, $error){
+    $ajax_request = false;
+
+    if ($error){
+      $_SESSION['message'] = 'The calendar cannot be executed. The procedure is not set up correctly';
+      $_SESSION['success'] = 'false';
+      header("Location: " . $redirect_url);
+      die();
+    }
     // add new reservation
-    $new_reservation = $index_controller->handle_add_reservation($post_obj, $session_obj, $index_controller, $error);
-    $_SESSION['message'] = $new_reservation['message'];
-    $_SESSION['success'] = $new_reservation['success'];
-    header("Location: " . $redirect_url);
-    die();
+    $is_add_reservation = isset($index_controller) &&
+    isset($post_obj['reservation_slot_id']) && !empty($post_obj['reservation_slot_id']) &&
+    isset($post_obj['secuirty_token']) && !empty($post_obj['secuirty_token']) &&
+    isset($post_obj['reservation_name']) && isset($post_obj['reservation_comment']);
+
+    if ($is_add_reservation){
+      $new_reservation = $index_controller->handle_add_reservation($post_obj, $session_obj, $index_controller);
+      $_SESSION['message'] = $new_reservation['message'];
+      $_SESSION['success'] = $new_reservation['success'];
+      header("Location: " . $redirect_url);
+      die();
+    }
+
+    // this bridge for direct post AJAX requests to AJAX handler
+    try{
+      $data = json_decode(file_get_contents('php://input'), true);
+      $index_controller->ajaxHandler($index_controller, $data);
+    }catch(Exception $ex){
+       $ajax_request = false;
+    }
+
+  }
+
+  public function return_year_data(){
+    if (!isset($this->year_service)){return array();}
+
+    $minyear = $this->year_service->get_min_year();
+    if (!$minyear){return array();}
+    if ($minyear){
+      $maxyear = $this->year_service->get_max_year();
+    }
+    if (
+      !isset($minyear['min_year']) || !isset($maxyear['max_year']) ||
+      empty($minyear['min_year']) || empty($maxyear['max_year'])
+    ){
+      return array();
+    }
+    return array('min_year'=> $minyear['min_year'], 'max_year'=>$maxyear['max_year']);
+  }
+
+  ###################### AJAX Handler ############################
+  public function ajaxHandler($index_controller, $data){
+    /* Map New reservation AJAX start */
+    $is_get_periods_and_slots = isset($index_controller) && isset($data['map_reservation_date']) && isset($data['map_cal_id']);
+    if ($is_get_periods_and_slots){
+      $day_data = array();
+      $day_date = test_input($data['map_reservation_date']);
+      $selected_calid = test_input($data['map_cal_id']);
+      $dayid = $this->day_service->get_dayid_by_date($day_date, $selected_calid);
+      if (!isset($dayid) || empty($dayid) || !is_numeric($dayid)){
+        $data = array('code'=>400, 'data'=>array(), 'message'=>'Day Date selected Not Avail Calendar Id or Day date invalid Please check other calendar');
+        print_r(json_encode($data));
+        die();
+      }
+      $dayperiods = $this->return_day_periods($dayid);
+      for ($i=0; $i<count($dayperiods); $i++){
+        if (isset($dayperiods[$i]) && !empty($dayperiods[$i])){
+          // for secuirty objects data is private and fast for ajax send needed only
+          $period_data = array(
+            'id'=>$dayperiods[$i]->get_id(),
+            'period_title'=>$dayperiods[$i]->get_description(),
+            'period_index'=>$dayperiods[$i]->get_period_index()
+          );
+          $period = array('period'=>$period_data, 'slots'=>array());
+          $slots_data = $this->return_period_slots($dayperiods[$i]->get_id());
+          for ($s=0; $s<count($slots_data); $s++){
+            if (isset($slots_data[$s]) && !empty($slots_data[$s])){
+              $slot_data = array(
+                'id'=>$slots_data[$s]->get_id(),
+                'start_from'=>$slots_data[$s]->get_start_from(),
+                'end_at'=>$slots_data[$s]->get_end_at(),
+                'slot_index'=>$slots_data[$s]->get_slot_index(),
+                'empty'=>$slots_data[$s]->get_empty()
+              );
+              array_push($period['slots'], $slot_data);
+            }
+          }
+          array_push($day_data, $period);
+        }
+      }
+      $data = array('code'=>200, 'data'=>$day_data, 'message'=>'Successfully Found Data');
+      print_r(json_encode($data));
+      die();
+    }
+    /* Map New reservation AJAX end */
+  }
+
+  public function get_dayid_by_date($day_date, $cal_id){
+    $day_date = test_input($day_date);
+    if (!isset($this->day_service) || !empty($day_date)){
+      return false;
+    }
+    return $this->day_service->get_dayid_by_date($day_date, $cal_id);
   }
   ###################### Post Handler End ############################
 

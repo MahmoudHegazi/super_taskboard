@@ -189,6 +189,13 @@ class YearService {
   }
 
 
+  public function get_min_year(){
+    return $this->year_mapper->get_min_year();
+  }
+
+  public function get_max_year(){
+    return $this->year_mapper->get_max_year();
+  }
 }
 
 

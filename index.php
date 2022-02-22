@@ -14,6 +14,9 @@ $current_weeks = null;
 $cal_years = null;
 $current_year = null;
 $cal_id = null;
+$has_years = null;
+$min_year = null;
+$max_year = null;
 
 $error = false;
 
@@ -33,6 +36,9 @@ try {
   define('TITLE', $current_calendar->get_title());
   define('DESCRIPTION', $current_calendar->get_description());
   define('THUMBNAIL', $current_calendar->get_background_image());
+  $has_years = $index_controller->get_has_years();
+  $min_year = $index_controller->get_current_min_year();
+  $max_year = $index_controller->get_current_max_year();
 }
 catch( Exception $e ) {
   $used_calendar_emessage = $e->getMessage();
@@ -132,6 +138,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
       .bg_cornflowerblue{
       background: cornflowerblue;
       }
+      .bg_palevioletred{
+        background: palevioletred;
+      }
+      .fontbold{
+        font-weight: bold;
+      }
       .shadow1{
       text-shadow: 1px 1px 2px black, 8px 0 25px gray, 3px 0 5px darkblue;
       }
@@ -140,6 +152,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
       }
       .text_shadow02 {
       text-shadow: 1px 1px 2px black, 0 0 25px white, 0 0 5px darkblue;
+      }
+
+      .max_width_30{
+        max-width: 30% !important;
       }
       .month_arrow {
       cursor: pointer;
@@ -537,7 +553,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
                 ?>
 
 
-                <div class="flex-fill border border-primary btn btn-light mt-1 mb-1 aside_add_res" data-bs-toggle="modal" data-bs-target="#mapBookingModal">
+                <div id="map_booking_modal_open" class="flex-fill border border-primary btn btn-light mt-1 mb-1 aside_add_res" data-bs-toggle="modal" data-bs-target="#mapBookingModal">
                  <i class="fa fa-plus text-primary"></i>
                 </div>
 
@@ -742,32 +758,98 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
 
 
 
-<!-- Booking modal start -->
+<!-- Map Booking modal start -->
 <div class="modal fade" id="mapBookingModal">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
 
       <!-- Modal Header -->
       <div class="modal-header ">
-        <h5 class="modal-title "> Create new Booking <i class="fa fa-calendar-o"></i></h5>
+        <h5 class="modal-title "> Add new Booking <i class="fa fa-calendar-o"></i></h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
 
       <!-- Modal body -->
       <div class="modal-body">
-          <form action="controllers/index_controller.php">
-            <div class="form-group">
-              <label>Pick a Date</label>
-              <input class="form-control" name="map_reservation_date" id="map_reservation_date" type="date"  min="2022-01-01" max="2024-01-01">
-            </div>
-            <div class="mb-3 mt-3">
-              <label for="comment">Booking Notes:</label>
-              <textarea class="form-control" rows="3" id="comment" name="text" placeholder="Booking Notes.."></textarea>
-            </div>
-            <p class="alert alert-info text-center">Please click 'Confirm' to confirm your booking start at  <br /> <span id="start_from_slot p-1" class="bg-primary text-white badge">12:00PM</span> and end at <span class="bg-success text-white badge" id="badge end_at_slot">02:00PM</span></p>
-            <button type="submit" class="btn btn-primary">Confirm Booking </button>
-          </form>
+          <div id="map_error_cont"></div>
+          <form method="POST" action="<?php echo $_SERVER['PHP_SELF']; ?>">
 
+            <!-- level 1 select day date and get id with ajax -->
+            <div class="form-group"  id="map_day_level1">
+              <?php
+              // if calendar id exist it must exist
+              if (defined('Calid')){
+                  // check if min year and max year and the calendar has years you can has calendar with 0 years easy
+                  if ($has_years && !is_null($min_year) && !is_null($max_year)){
+                  ?>
+                    <label>Pick a Date</label>
+                    <input class="form-control" name="map_reservation_date"
+                    id="map_reservation_date" data-cal-id="<?php echo Calid;?>" type="date"  min="<?php echo $min_year . '-01-01'; ?>" max="<?php echo $max_year . '-12-12'; ?>">
+                  <?php
+                  } else {
+                  ?>
+
+                    <div class="alert alert-warning fade show alert-dismissible">
+                      <span>This Calendar Has No Years</span>
+                      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                  <?php
+                 }
+              } else {
+                ?>
+                <div class="alert alert-warning fade show alert-dismissible">
+                  <span>unexcpted Error Calendar Data Not Loaded</span>
+                  <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                  <!-- all periods data -->
+                </div>
+                <?php
+              }
+              ?>
+            </div>
+            <!-- end level 1 -->
+
+
+<!-- display periods and slots level 2 -->
+<div id="map_day_level2" class="container-fluid d-flex flex-row flex-wrap">
+
+   <div class="container-fluid p-2" id="map_reservation_periods_container">
+     <!-- all periods data -->
+   </div>
+
+</div>
+<!-- end display periods and slots level 2 -->
+
+
+
+
+            <!-- level 3 display add reservation inputs -->
+
+            <div class="form-group"  id="map_day_level3" style="display:none;">
+
+              <div class="container p-2 mt-2 mb-1">
+               <h5 id="reservation_ptitle_map" class="text-center"></h5>
+              </div>
+              <div class="mb-3 mt-3 text-center">
+                <input  maxlength="30"  pattern="[A-Za-z\s]{1,30}" title="Please Enter a valid name: eg Jone" type="text" class="form-control" placeholder="Name.." name="reservation_name" />
+                <textarea min="0" maxlength="255" placeholder="Reservation Notes.." class="form-control" rows="3" name="reservation_comment"></textarea>
+              </div>
+
+
+                   <input name="secuirty_token" type="hidden" value="<?php echo isset($index_controller) ? $index_controller->get_request_secert() : ''; ?>" />
+                   <input type="hidden" value="" name="reservation_slot_id" id="reservation_slot_id_map" style="display:none;">
+
+
+                   <div class="container text-center d-flex justify-content-between m-2 p-2">
+                     <p class="ml-2">Start At: <span id="level3_start_from" class="bg-secondary text-white badge p-2"></span></p>
+                     <p class="ml-2">end at: <span class="bg-danger text-white badge p-2" id="level3_end_at"></span></p>
+                   </div>
+                   <button type="submit" class="btn btn-primary">Confirm Booking </button>
+            </div>
+
+
+
+
+          </form>
       </div>
 
       <!-- Modal footer -->
@@ -778,7 +860,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
     </div>
   </div>
 </div>
-<!-- Booking modal end -->
+<!-- Map Booking modal end -->
 
 
 <!-- Cancel reservation modal start -->
@@ -1005,7 +1087,7 @@ const postData = async function (url="", data={}){
    );
    try{
       const res = await response.json();
-      console.error(res);
+      //console.error(res);
       return res;
     }catch(err){
       console.error(err);
@@ -1030,7 +1112,153 @@ addReservationBtn.addEventListener("click", bookingFunction );
 */
 
 
+/* AJAX Map New Reservation advanced UX */
+window.addEventListener('DOMContentLoaded', (event) => {
 
+const mapDayLevel2 = document.querySelector("#map_day_level2");
+const mapDayLevel3 = document.querySelector("#map_day_level3");
+const level3StartFrom = document.querySelector("#level3_start_from");
+const level3EndAt = document.querySelector("#level3_end_at");
+const reservationSlotIdMap = document.querySelector("#reservation_slot_id_map");
+const reservationPTitleMap = document.querySelector("#reservation_ptitle_map");
+const mapNewPeriodsCont = document.querySelector("#map_reservation_periods_container");
+const mapBookingModalOpen = document.querySelector("#map_booking_modal_open");
+let periodIndex = 0;
+
+function backEveryThingMap(){
+  mapDayLevel3.style.display = "none";
+  mapDayLevel2.style.display = "none";
+  mapNewPeriodsCont.innerHTML = '';
+  periodIndex = 0;
+}
+mapBookingModalOpen.addEventListener("click", backEveryThingMap);
+
+function goTomapLevel2(){
+  mapDayLevel3.style.display = "none";
+  mapDayLevel2.style.display = "block";
+  mapNewPeriodsCont.innerHTML = '';
+}
+
+
+
+function goTomapLevel3(event){
+  mapNewPeriodsCont.innerHTML = '';
+  const slotId = event.target.value;
+  const slotStartFrom = event.target.getAttribute('data-start');
+  const slotEndAt = event.target.getAttribute('data-end');
+  const periodTitle = event.target.getAttribute('data-period-title');
+  displayAddReservationForm(slotId, slotStartFrom,  slotEndAt, periodTitle);
+}
+
+
+function displayAddReservationForm(slot_id, period_title, start_at, end_from){
+  mapDayLevel3.style.display = "block";
+  reservationSlotIdMap.value = slot_id;
+  level3StartFrom.innerText = period_title;
+  level3EndAt.innerText = start_at;
+  reservationPTitleMap.innerText = end_from;
+}
+
+
+const displayErrorAjaxMap = (error_msg)=>{
+  const mapErrorCont = document.querySelector("#map_error_cont");
+  mapErrorCont.innerHTML = `
+  <div class="alert alert-danger alert-dismissible fade show">
+    <p>${error_msg}</p>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>`;
+}
+
+
+function addSlot(slot_id, start_from, end_it, period_title, empty){
+  let slot_input = '';
+  if (empty == '1'){
+    slot_input =  `
+    <div class="container">
+      <input type="radio" value="${slot_id}"  class="map_select_slot_id"
+                         data-start="${start_from}" data-end="${end_it}" data-period-title="${period_title}">
+    </div>`;
+  } else {
+    slot_input = `
+     <div class="container">
+      <div class="badge bg-info">Not Avail</div>
+     </div>
+    `;
+  };
+  const startPMorAM = Number(start_from.slice(0, 2)) > 12 ? 'PM' : 'AM';
+  const endPMorAM = Number(end_it.slice(0, 2)) > 12 ? 'PM' : 'AM';
+
+  const slotHTML =
+  `     <!-- slot start -->
+        <div class="border border-primary">
+         <div class="d-flex text-center flex-fill p-2 mb-1">
+            <div class="d-flex justify-content-center align-items-between text-center flex-fill border border-primary p-2">
+               <div class="badge bg_cornflowerblue flex-fill max_width_30 fontbold">${start_from.slice(0, 5)} ${startPMorAM}</div>
+               <div class="badge bg_palevioletred flex-fill max_width_30 fontbold">${end_it.slice(0, 5)} ${endPMorAM}</div>
+               <div class="badge bg-light flex-fill max_width_30">
+                 ${slot_input}
+               </div>
+            </div>
+         </div>
+        </div>
+        <!-- slot end -->
+  `;
+ return slotHTML;
+}
+
+
+function addPeriod(period_id, period_title){
+  const newPeriod = document.createElement("div");
+  newPeriod.classList.add("d-flex", "flex-wrap", "flex-column", "border", "border-secondary", "mt-2");
+  const periodId = `new_period_${period_id}`;
+  newPeriod.setAttribute("id", periodId);
+  mapNewPeriodsCont.appendChild(newPeriod);
+  newPeriod.innerHTML = "<h5 class='text-center p-2 text-white bg_darkkhaki fontbold'>"+period_title+"</h5>";
+  return periodId;
+}
+async function getDayPeriodsAndSlots(event){
+  // send ajax request to get periods and slots data
+  const selectedDay = event.target.value;
+  const currentCalId = event.target.getAttribute("data-cal-id");
+  if (!selectedDay || !currentCalId){return false;}
+
+  const periodsAndSlotsData = await postData('',{map_reservation_date:selectedDay, map_cal_id:currentCalId});
+  // incase unknown problem like calendar open unavail years that not happend without break db and code but when it handled friendly
+  if (periodsAndSlotsData.code != 200){
+    displayErrorAjaxMap(periodsAndSlotsData.message);
+    backEveryThingMap();
+    return false;
+  }
+  if (periodsAndSlotsData.data.length < 1){
+    displayErrorAjaxMap("No Periods Found For selected Day");
+    backEveryThingMap();
+    return false;
+  }
+  const periodsData = periodsAndSlotsData.data;
+  goTomapLevel2();
+  for (let i=0; i<periodsData.length; i++){
+    const currentPeriod = periodsData[i].period;
+    const currentSlots = periodsData[i].slots;
+
+    const periodId = addPeriod(currentPeriod.id, currentPeriod.period_title);
+    const getPeriod = document.getElementById(periodId);
+    // slots data
+    for (let s=0; s<currentSlots.length; s++){
+      getPeriod.innerHTML += addSlot(currentSlots[s].id, currentSlots[s].start_from, currentSlots[s].end_at, currentPeriod.period_title, currentSlots[s].empty);
+    }
+  }
+
+  const slotmapIdInputs = document.querySelectorAll(".map_select_slot_id");
+  slotmapIdInputs.forEach( (inputElm)=>{
+    inputElm.addEventListener( "change", goTomapLevel3 );
+  });
+}
+const mapRservationDate = document.querySelector("#map_reservation_date");
+mapRservationDate.addEventListener( "change", getDayPeriodsAndSlots );
+
+});
+
+/* AJAX MAP new Reservation end */
 
 
 
