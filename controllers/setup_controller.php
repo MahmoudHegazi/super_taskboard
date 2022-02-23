@@ -579,7 +579,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST')
             $new_cal = add_new_calendar($calendar_title, $start_year, $add_new_year, $period_per_day, $slots_per_period, $calendar_description, $periods_data, $slots_data);
             if ($new_cal['success'] == True)
             {
+                $message = 'Calendar With id: ' . $calendar_id . ' Created successfully';
+                $success = true;
                 $calendar_id = $new_cal['calendar_id'];
+
+                // add the logo and favicon if set
                 if (isset($_FILES) && !empty($_FILES) && isset($_FILES['background_image']) && !empty($_FILES['background_image']))
                 {
                     $target_dir = "../uploads/images/";
@@ -589,36 +593,63 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST')
                         "png",
                         "jpeg",
                         "gif"
-                    ) , 500000, 'image', $calendar_id);
+                    ) , 500000, 'image', $calendar_id, 'cal_background_');
                     if ($uploadOk['success'] == True)
                     {
-                        // update default image if image uploaded
-                        global $pdo;
-                        $calender_service = new CalendarService($pdo);
-                        $updated_image = $calender_service->update_one_column('background_image', $uploadOk['image'], $calendar_id);
-                        $message = $updated_image == 0 ? 'Your image not Uploaded But calendar Created With default image' : 'Calendar With id: ' . $calendar_id . ' Created successfully';
-                        $success = $uploadOk['success'] == True ? 'true' : 'false';
-
-                        $redirect_url = addOrReplaceQueryParm($redirect_url, 'success', $success);
-                        $redirect_url = addOrReplaceQueryParm($redirect_url, 'message', $message);
-                        header("Location: " . $redirect_url);
-                        return False;
-                        die();
+                      // background image uploaded
+                      global $pdo;
+                      $calender_service = new CalendarService($pdo);
+                      $updated_image = $calender_service->update_one_column('background_image', $uploadOk['image'], $calendar_id);
+                      $message = $updated_image == 0 ? 'Warning: Your image not Uploaded due to this issue: '.$uploadOk['reason'].' But calendar Created With default image try to edit the image' : $message;
+                      $success = $uploadOk['success'] == True ? 'true' : 'false';
                     }
                     else
                     {
-                        $redirect_url = replace_query_paremeters($redirect_url, array(
-                            'success',
-                            'message'
-                        ) , array(
-                            'false',
-                            $uploadOk['reason']
-                        ));
-                        header("Location: " . $redirect_url);
-                        return False;
-                        die();
+                      $message = "No background image has been uploaded for the website background, note that this is the website's logo and icon feel free to change the default selected image later";
+                      $success = 'true';
                     }
                 }
+                /* end add logo and favicon */
+
+
+                // add the sign_background if set
+                if (isset($_FILES) && !empty($_FILES) && isset($_FILES['sign_background']) && !empty($_FILES['sign_background']))
+                {
+                    $target_dir = "../uploads/images/";
+
+                    $uploadOk = upload_image($_FILES, $target_dir, 'sign_background', array(
+                        "jpg",
+                        "png",
+                        "jpeg",
+                        "gif"
+                    ) , 500000, 'image', $calendar_id, 'sign_background_');
+                    if ($uploadOk['success'] == True)
+                    {
+                      // background image uploaded
+                      global $pdo;
+                      $calender_service = new CalendarService($pdo);
+                      $updated_image = $calender_service->update_one_column('sign_background', $uploadOk['image'], $calendar_id);
+                      $message .= empty($message) ? '' : ', ';
+                      $message .= $updated_image == 0 ? ' Warning: Your sign background image not Uploaded due to this issue: '.$uploadOk['reason'].' But calendar Created With default sign image  try to edit the sign image' : $message;
+                      $success = $uploadOk['success'] == True ? 'true' : 'false';
+                    }
+                    else
+                    {
+                      $message .= empty($message) ? '' : ', ';
+                      $message .= " No registration image uploaded for website, note that this is a background image for website login and registration, so use your custom image to suit your customers needs as per website customization for better user experience";
+                      $success = 'true';
+                    }
+                }
+                /* end add sign_background */
+
+
+                // add the calendar
+                $redirect_url = addOrReplaceQueryParm($redirect_url, 'success', $success);
+                $redirect_url = addOrReplaceQueryParm($redirect_url, 'message', $message);
+                header("Location: " . $redirect_url);
+                return False;
+                die();
+
             }
             else
             {
@@ -633,6 +664,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST')
                 return False;
                 die();
             }
+
+
+
         }
         else
         {
@@ -728,9 +762,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST')
 /* Add User */
 if ($_SERVER['REQUEST_METHOD'] == 'POST')
 {
-    if (isset($_POST['fullname']) && !empty($_POST['fullname']) && isset($_POST['email']) && !empty($_POST['email']) && isset($_POST['username']) && !empty($_POST['username']) && isset($_POST['password']) && !empty($_POST['password']))
+    if (
+        isset($_POST['fullname']) && !empty($_POST['fullname']) &&
+        isset($_POST['email']) && !empty($_POST['email']) &&
+        isset($_POST['username']) && !empty($_POST['username']) &&
+        isset($_POST['password']) && !empty($_POST['password']) &&
+        isset($_POST['role']) && !empty($_POST['role']) &&
+        isset($_POST['active']) && !empty($_POST['active'])
+        )
     {
         global $pdo;
+        $role = test_input($_POST['role']) == 'admin' ? 'admin' : 'user';
+        $active = test_input($_POST['active']) == 'yes' ? 1 : 0;
 
         $fullname = test_input($_POST['fullname']);
         $email = test_input($_POST['email']);
@@ -739,12 +782,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST')
         $password_hash = password_hash($password, PASSWORD_DEFAULT, array(
             'cost' => 9
         ));
-
         //password_verify('anna', $expensiveHash); //Also returns true
 
 
         $user_service = new UserService($pdo);
-        $new_user = $user_service->add($fullname, $username, $password_hash, $email);
+        $exist_username = $user_service->get_user_where('username', $username);
+        $exist_email = $user_service->get_user_where('email', $email);
+
+        if (!empty($exist_username)){
+          setup_redirect($redirect_url, 'false', 'User can not added There other User With Same username: ' . $username);
+        }
+        if (!empty($exist_email)){
+          setup_redirect($redirect_url, 'false', 'User can not added There other User With Same email: ' . $email);
+        }
+
+        $new_user = $user_service->add($fullname, $username, $password_hash, $email, $role, $active);
         if ($new_user)
         {
             setup_redirect($redirect_url, 'true', "Successfully Add user with ID:" . $new_user . " and Name:" . $fullname);
@@ -753,14 +805,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST')
         {
             setup_redirect($redirect_url, 'false', 'User ' . $fullname . ' can not added');
         }
+
+
     }
+
 }
 /* add User end */
 
 /* update user */
 if ($_SERVER['REQUEST_METHOD'] == 'POST')
 {
-    if (isset($_POST['fullname_edit']) && !empty($_POST['fullname_edit']) && isset($_POST['email_edit']) && !empty($_POST['email_edit']) && isset($_POST['username_edit']) && !empty($_POST['username_edit']) && isset($_POST['userid_edit']) && !empty($_POST['userid_edit']))
+    if (
+        isset($_POST['fullname_edit']) && !empty($_POST['fullname_edit']) &&
+        isset($_POST['email_edit']) && !empty($_POST['email_edit']) &&
+        isset($_POST['username_edit']) && !empty($_POST['username_edit']) &&
+        isset($_POST['userid_edit']) && !empty($_POST['userid_edit']) &&
+        isset($_POST['role_edit']) && !empty($_POST['role_edit']) &&
+        isset($_POST['active_edit']) && !empty($_POST['active_edit'])
+      )
     {
 
         global $pdo;
@@ -773,6 +835,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST')
             $req_email = test_input($_POST['email_edit']);
             $req_username = test_input($_POST['username_edit']);
             $req_name = test_input($_POST['fullname_edit']);
+
+            $req_role = test_input($_POST['role_edit']) == 'admin' ? 'admin' : 'user';
+            $req_active = test_input($_POST['active_edit']) == 'yes' ? 1 : 0;
+
             $update_string = '';
 
             if ($selected_user->get_name() != $req_name)
@@ -789,6 +855,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST')
             {
                 $user_service->update_one_column('email', $req_email, $selected_user->get_id());
                 $update_string .= 'email,';
+            }
+
+            if ($selected_user->get_role() != $req_role)
+            {
+                $user_service->update_one_column('role', $req_role, $selected_user->get_id());
+                $update_string .= 'role,';
+            }
+
+            if ($selected_user->get_active() != $req_active)
+            {
+                $user_service->update_one_column('active', $req_active, $selected_user->get_id());
+                $update_string .= 'active,';
             }
 
             if (isset($_POST['password_edit']) && !empty($_POST['password_edit']))
@@ -909,6 +987,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST')
                 }
             }
         }
+        // logo image and favicon background main
         if (isset($_FILES) && !empty($_FILES) && isset($_FILES['background_image_edit']) && !empty($_FILES['background_image_edit']))
         {
             $image_edit = $_FILES['background_image_edit']['size'] > 0 ? True : False;
@@ -920,7 +999,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST')
                     "png",
                     "jpeg",
                     "gif"
-                ) , 500000, 'image', $cal_edit_id);
+                ) , 500000, 'image', $cal_edit_id, 'cal_background_');
 
                 if (!$replaceImage)
                 {
@@ -942,6 +1021,43 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST')
                 }
             }
         }
+
+        // sign background
+        if (isset($_FILES) && !empty($_FILES) && isset($_FILES['sign_background_edit']) && !empty($_FILES['sign_background_edit']))
+        {
+            $image_edit = $_FILES['sign_background_edit']['size'] > 0 ? True : False;
+            if ($image_edit)
+            {
+                $target_dir = "../uploads/images/";
+                $replace_sign_image = upload_image($_FILES, $target_dir, 'sign_background_edit', array(
+                    "jpg",
+                    "png",
+                    "jpeg",
+                    "gif"
+                ) , 500000, 'image', $cal_edit_id, 'sign_background_');
+
+                if (!$replace_sign_image)
+                {
+                    $success = False;
+                    $reason = 'Could not update the sign background';
+                }
+                else
+                {
+                    $update_cal = $calendar_service->update_one_column('sign_background', $replace_sign_image['image'], $cal_edit_id);
+                    if (!$update_cal)
+                    {
+                        $success = False;
+                        $reason = 'Could not save new sign background URL';
+                    }
+                    else
+                    {
+                        $update_string .= 'signbackground_image,';
+                    }
+                }
+            }
+        }
+
+
 
         if ($success == True)
         {

@@ -6,6 +6,9 @@ class User {
   private $username;
   private $hashed_password;
   private $email;
+  private $role;
+  private $active;
+
 
   function init($name, $username, $hashed_password, $email){
     $this->name = $name;
@@ -48,4 +51,19 @@ class User {
   function get_email() {
     return $this->email;
   }
+
+  function set_role($role) {
+    $this->role = $role;
+  }
+  function get_role() {
+    return $this->role;
+  }
+
+  function set_active($active) {
+    $this->active = $active;
+  }
+  function get_active() {
+    return $this->active;
+  }
+
 }

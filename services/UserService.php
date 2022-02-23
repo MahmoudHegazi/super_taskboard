@@ -15,9 +15,13 @@ class UserService {
     $this->user_mapper = new UserMapper($pdo);
   }
   // Add New user
-  function add($name, $username, $hashed_password, $email){
+  function add($name, $username, $hashed_password, $email, $role='user', $active=1){
+    $role = $role == 'admin' ? 'admin' : 'user';
+    $active = $active == 1 ? 1 : 0;
     $user_obj = new User();
     $user_obj->init($name, $username, $hashed_password, $email);
+    $user_obj->set_role($role);
+    $user_obj->set_active($active);
     return $this->user_mapper->insert($user_obj);
   }
 
@@ -40,6 +44,15 @@ class UserService {
       $user_row['email']
     );
     $user->set_id($user_row['id']);
+    $user->set_role($user_row['role']);
+    $user->set_active($user_row['active']);
+    return $user;
+  }
+
+  function convertDataToUser($username, $password, $email, $name){
+    $user = new User();
+    $user->init($username, $password, $email, $name);
+    $user->set_id(null);
     return $user;
   }
 
@@ -59,6 +72,8 @@ class UserService {
           $user_rows[$i]['email']
         );
         $user->set_id($user_rows[$i]['id']);
+        $user->set_role($user_rows[$i]['role']);
+        $user->set_active($user_rows[$i]['active']);
         array_push($user_list, $user);
     }
     return $user_list;
@@ -92,7 +107,7 @@ class UserService {
     $user = new User();
 
     for ($i=0; $i<count($user_data_list); $i++){
-      if (is_array($user_data_list[$i]) && count($user_data_list[$i]) == 4){
+      if (is_array($user_data_list[$i]) && count($user_data_list[$i]) == 6){
 
          $user->init(
            $user_data_list[$i][0],
@@ -100,6 +115,8 @@ class UserService {
            $user_data_list[$i][2],
            $user_data_list[$i][3]
          );
+         $user->set_role($user_data_list[$i][4]);
+         $user->set_active($user_data_list[$i][5]);
          $user_id = $this->user_mapper->insert($user);
          array($users_ids, $user_id);
       }
@@ -125,6 +142,30 @@ class UserService {
   function get_total_users(){
     return $this->user_mapper->get_total_users();
   }
+
+  // used for get user by email or username
+  function get_user_where($column, $value){
+    $data = $this->user_mapper->get_user_where($column, $value);
+    return $data;
+  }
+
+  // used for get user by email or username
+  function get_user_data_where($column, $value){
+    $user_data = $this->user_mapper->get_user_data_where($column, $value);
+    if (!isset($user_data) || empty($user_data)){return array();}
+    $user = new User();
+    $user->init(
+      $user_data['name'],
+      $user_data['username'],
+      $user_data['hashed_password'],
+      $user_data['email']
+    );
+    $user->set_id($user_data['email']);
+    $user->set_role($user_data['role']);
+    $user->set_active($user_data['active']);
+    return $user;
+  }
+
 
 }
 

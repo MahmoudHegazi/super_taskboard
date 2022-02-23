@@ -429,7 +429,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
     <?php die();} ?>
 
     <!-- in case no used were calendar found -->
-    <?php if(isset($_SESSION['message']) && isset($_SESSION['success']) && !empty($_SESSION['message']) && !empty($_SESSION['success'])){ ?>
+    <?php if(isset($_SESSION['message']) && isset($_SESSION['success']) && !empty($_SESSION['message'])){ ?>
       <div class="alert alert-<?php echo $_SESSION['success'] ? 'success' : 'danger'; ?> alert-dismissible fade show">
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         <p class="text-center">

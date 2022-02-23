@@ -36,6 +36,7 @@ class CalendarService {
     $calendar->set_id($calendar_row['id']);
     $calendar->set_used($calendar_row['used']);
     $calendar->set_background_image($calendar_row['background_image']);
+    $calendar->set_sign_background($calendar_row['sign_background']);
     return $calendar;
   }
 
@@ -53,10 +54,12 @@ class CalendarService {
         $calendar_rows[$i]['added_years'],
         $calendar_rows[$i]['periods_per_day'],
         $calendar_rows[$i]['slots_per_period'],
-        $calendar_rows[$i]['description']
+        $calendar_rows[$i]['description'],
+        $calendar_rows[$i]['sign_background']
       );
       $calendar->set_id($calendar_rows[$i]['id']);
       $calendar->set_background_image($calendar_rows[$i]['background_image']);
+      $calendar->set_sign_background($calendar_rows[$i]['sign_background']);
       $calendar->set_used($calendar_rows[$i]['used']);
       array_push($calendars_list, $calendar);
 

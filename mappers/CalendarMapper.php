@@ -43,7 +43,7 @@ class CalendarMapper {
     }
 
     function update($calendar){
-      $statement = $pdo->prepare('UPDATE calendar (title, start_year, added_years, periods_per_day, slots_per_period, description) VALUES(:title, :start_year, :added_years, :periods_per_day, :slots_per_period, :description)');
+      $statement = $pdo->prepare('UPDATE calendar (title, start_year, added_years, periods_per_day, slots_per_period, description, sign_background) VALUES(:title, :start_year, :added_years, :periods_per_day, :slots_per_period, :description, :sign_background)');
       $statement->execute(array(
         'title' => $calendar->get_title(),
         'start_year' => $calendar->get_start_year(),
@@ -51,7 +51,8 @@ class CalendarMapper {
         'periods_per_day' => $calendar->get_periods_per_day(),
         'slots_per_period' => $calendar->get_slots_per_period(),
         'description' => $calendar->get_description(),
-        'background' => $calendar->get_description()
+        'background' => $calendar->get_description(),
+        'sign_background' => $calendar->get_sign_background()
       ));
     }
 

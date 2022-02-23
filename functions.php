@@ -117,14 +117,14 @@ function implode_column_names($spreator=', ', $colnames){
   }
 }
 
-function upload_image($FILES, $target_dir, $input_name, $allowed_extensions, $max_size, $type, $calendar_id){
+function upload_image($FILES, $target_dir, $input_name, $allowed_extensions, $max_size, $type, $calendar_id, $name_start='cal_background_'){
   $result = array('success'=>False, 'reason'=> '');
   $uploadOk = 1;
 
   $target_file = $target_dir . basename($FILES[$input_name]["name"]);
   $imageFileType = strtolower(pathinfo($target_file,PATHINFO_EXTENSION));
 
-  $system_file_name = test_input('cal_background_'.$calendar_id.'.'.strtolower($imageFileType));
+  $system_file_name = test_input($name_start . $calendar_id.'.'.strtolower($imageFileType));
   $system_file = $target_dir . basename($system_file_name);
 
 

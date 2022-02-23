@@ -4,18 +4,33 @@ require_once('config.php');
 require_once('functions.php');
 require_once('services/UserService.php');
 require_once('services/CalendarService.php');
+require_once('controllers/IndexController.php');
 global $pdo;
 
+$index_controller = null;
+try {
+  $index_controller = new IndexController($pdo);
+  $used_calendar = $index_controller->get_used_calendar();
+  if (isset($used_calendar) && $used_calendar && !empty($used_calendar)){
+    define('Calid', $used_calendar->get_id());
+    define('TITLE', $used_calendar->get_title());
+    define('DESCRIPTION', $used_calendar->get_description());
+    define('THUMBNAIL', $used_calendar->get_background_image());
+  }
+  } catch( Exception $e ) {
+    $used_calendar_emessage = $e->getMessage();
+    $error = true;
+  }
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <title>My Calendar</title>
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-
+  <title><?php echo defined('TITLE') ? TITLE : 'Super Calendar'; ?></title>
+  <link rel="icon" href="<?php echo defined('THUMBNAIL') ? 'uploads/images/' . THUMBNAIL : 'uploads/images/default_logo.png'; ?>">
   <link rel="stylesheet" href="assets/css/style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
@@ -30,8 +45,8 @@ global $pdo;
   <!-- Control the column width, and how they should appear on different devices -->
 <div class="row header_row text-white" style="height:150px;">
 <div class="bg-primary text-center p-4 text-white rounded">
-  <h1>Jumbotron Example</h1>
-  <p>Lorem ipsum...</p>
+  <h1><?php echo defined('TITLE') ? TITLE : 'Super Calendar'; ?></h1>
+  <p><?php echo defined('DESCRIPTION') ? DESCRIPTION : 'Just Another Calendar...'; ?></p>
 </div>
 </div>
   <div class="row" style="height:100%;">
@@ -221,6 +236,8 @@ global $pdo;
         <th>Firstname</th>
         <th>username</th>
         <th>Email</th>
+        <th>Role</th>
+        <th>Active</th>
         <th>Actions</th>
       </tr>
     </thead>
@@ -235,12 +252,16 @@ global $pdo;
         <td><?php echo $all_users[$u]->get_name(); ?></td>
         <td><?php echo $all_users[$u]->get_username(); ?></td>
         <td><?php echo $all_users[$u]->get_email(); ?></td>
+        <td><?php echo $all_users[$u]->get_role(); ?></td>
+        <td><?php echo $all_users[$u]->get_active() == 1 ? 'Yes' : 'No'; ?></td>
         <td>
           <button
           data-user="<?php echo $all_users[$u]->get_id(); ?>"
           data-name="<?php echo $all_users[$u]->get_name(); ?>"
           data-username="<?php echo $all_users[$u]->get_username(); ?>"
           data-email="<?php echo $all_users[$u]->get_email(); ?>"
+          data-role="<?php echo $all_users[$u]->get_role(); ?>"
+          data-active="<?php echo $all_users[$u]->get_active() == 1 ? 'yes' : 'no'; ?>"
 
           data-bs-toggle="modal"
           data-bs-target="#editUser"
@@ -552,7 +573,7 @@ global $pdo;
         <div class="modal-body">
         <div class="form-group">
           <label for="fullname">Full Name: </label>
-          <input maxlength="30" size="30" type="text" name="fullname" id="fullname" class="form-control" placeholder="Enter User Full Name">
+          <input maxlength="30" size="30" type="text" name="fullname" id="fullname" class="form-control" placeholder="Enter User Full Name" required>
         </div>
 
         <div class="form-group">
@@ -562,13 +583,35 @@ global $pdo;
 
         <div class="form-group">
           <label for="username">Username: </label>
-          <input maxlength="34" size="34" type="text" name="username" id="username" class="form-control" placeholder="Enter Username">
+          <input maxlength="34" size="34" type="text" name="username" id="username" class="form-control" placeholder="Enter Username" required>
         </div>
 
         <div class="form-group">
           <label for="password">Password: </label>
-          <input type="password" name="password" id="password" auto-complete="new-password"  class="form-control" placeholder="Enter User Password">
+          <input type="password" name="password" id="password" auto-complete="new-password"  class="form-control"
+          placeholder="Enter User Password"
+          pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*_=+-]).{8,}$" title="(Password must contains 8 characters and contains at least 1 number, 1 small letter, 1 capital letter, and symobol [!@#$%^*_=+-]) EG: 1aaqQ@dd"
+          required>
         </div>
+
+
+        <div class="form-group mt-2">
+          <h5 class="text-center">System Data</h5>
+          <label for="username">Role:</label>
+            <select class="form-control" id="role" name="role" required>
+              <option name="role" value="user" selected>User</option>
+              <option name="role" value="admin">Admin</option>
+            </select>
+          <label  for="username"
+            title="if you set this to No the user will not able to login also this used for protected user from invalid passwords accessed limits">
+            Active:
+          </label>
+          <select class="form-control" id="active" name="active" required>
+            <option name="active" value="yes" selected>Yes</option>
+            <option name="active" value="no">No</option>
+          </select>
+        </div>
+
 
         </div>
 
@@ -613,8 +656,29 @@ global $pdo;
 
         <div class="form-group">
           <label for="password_edit">Change Password: </label> <input type="checkbox" id="toggle_edit_pass">
-          <input type="password" name="password_edit" value="" id="password_edit"  class="form-control" placeholder="Enter User Password" disabled>
+          <input type="password" name="password_edit" value="" id="password_edit"  class="form-control"
+          placeholder="Enter User Password"
+          pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*_=+-]).{8,}$" title="(Password must contains 8 characters and contains at least 1 number, 1 small letter, 1 capital letter, and symobol [!@#$%^*_=+-]) EG: 1aaqQ@dd"
+          disabled>
         </div>
+
+        <div class="form-group mt-2">
+          <h5 class="text-center">System Data</h5>
+          <label for="username">Role:</label>
+            <select class="form-control" id="role_edit" name="role_edit" required>
+              <option name="role_edit" value="user" selected>User</option>
+              <option name="role_edit" value="admin">Admin</option>
+            </select>
+          <label  for="username"
+            title="if you set this to No the user will not able to login also this used for protected user from invalid passwords accessed limits">
+            Active:
+          </label>
+          <select class="form-control" id="active_edit" name="active_edit" required>
+            <option name="active_edit" value="yes" selected>Yes</option>
+            <option name="active_edit" value="no">No</option>
+          </select>
+        </div>
+
 
         <input type="hidden" name="userid_edit" id="userid_edit" class="form-control" style="display:none;" required>
 
@@ -624,7 +688,7 @@ global $pdo;
 
         <!-- Modal footer -->
         <div class="modal-footer">
-          <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+          <button id="close_edit_user" type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
           <button type="submit" class="btn btn-primary">Submit</button>
         </div>
 
@@ -1100,6 +1164,15 @@ removeUserBtns.forEach((removeBtn) => {
 });
 
 
+function returnSelectedIndex(options, value){
+  let index = -1;
+  options.forEach( (opt, i)=>{
+    if (opt.value.toLowerCase() == value.toLowerCase()){
+      index = i;
+    }
+  });
+  return index;
+}
 
 /* edit user */
 const editUserBtns = document.querySelectorAll(".edit_user");
@@ -1108,12 +1181,45 @@ const usernameEdit = document.querySelector("#username_edit");
 const emailEdit = document.querySelector("#email_edit");
 const useridEdit = document.querySelector("#userid_edit");
 const passwordInputEdit = document.querySelector("#password_edit");
+
+const roleEdit = document.querySelector("#role_edit");
+const activeEdit = document.querySelector("#active_edit");
+const closeEditUser = document.querySelector("#close_edit_user");
+
+const editRoleOptions = Array.from(roleEdit.options);
+const editActiveOptions = Array.from(activeEdit.options);
+
 editUserBtns.forEach((editBtn) => {
     editBtn.addEventListener("click", (event) => {
+        const userRole = event.target.getAttribute("data-role");
+        const userActive = event.target.getAttribute("data-active");
+        const selectedRoleIndex = returnSelectedIndex(editRoleOptions, userRole);
+        const selectedActiveIndex = returnSelectedIndex(editActiveOptions, userActive);
+
+        // incase php not laod data for some reason
+        if (editRoleOptions == -1 || editActiveOptions == -1){
+          closeEditUser.click();
+          alert("Unkown Error User Data Can not loaded");
+          return false;
+        }
+
         fullnameEdit.value = event.target.getAttribute("data-name");
         usernameEdit.value = event.target.getAttribute("data-username");
         emailEdit.value = event.target.getAttribute("data-email");
         useridEdit.value = event.target.getAttribute("data-user");
+
+        editRoleOptions.forEach((roleOpt)=>{
+          if (roleOpt.hasAttribute('selected')){
+            roleOpt.removeAttribute("selected");
+          }
+        });
+        editActiveOptions.forEach((activeOpt)=>{
+          if (activeOpt.hasAttribute('selected')){
+            activeOpt.removeAttribute("selected");
+          }
+        });
+        roleEdit.options[selectedRoleIndex].setAttribute("selected", true);
+        activeEdit.options[selectedActiveIndex].setAttribute("selected", true);
         passwordInputEdit.value = "";
     });
 });

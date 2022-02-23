@@ -161,8 +161,8 @@ div.aside_container .nav_item:hover {
   white-space: nowrap;
   /* top left corner */
   position: absolute;
-  left: -25px;
-  top: -15px;
+  left: -31px;
+  top: -55px;
   /* for 45 deg rotation */
   -webkit-transform: rotate(-45deg);
      -moz-transform: rotate(-45deg);

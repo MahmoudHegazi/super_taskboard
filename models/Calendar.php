@@ -10,6 +10,7 @@ class Calendar {
   private $description;
   private $used;
   private $background_image;
+  private $sign_background;
 
   function init($title, $start_year, $added_years, $periods_per_day, $slots_per_period, $description){
     $this->title = $title;
@@ -81,6 +82,13 @@ class Calendar {
   }
   function get_background_image() {
     return $this->background_image;
+  }
+
+  function set_sign_background($sign_background) {
+    $this->sign_background = $sign_background;
+  }
+  function get_sign_background() {
+    return $this->sign_background;
   }
 
 }

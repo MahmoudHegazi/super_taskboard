@@ -19,12 +19,14 @@ class UserMapper {
 
   public function insert($user) {
       $pdo = $this->getPDO();
-      $statement = $pdo->prepare('INSERT INTO user(name, username, hashed_password, email) VALUES(:name, :username, :hashed_password, :email)');
+      $statement = $pdo->prepare('INSERT INTO user(name, username, hashed_password, email, role, active) VALUES(:name, :username, :hashed_password, :email, :role, :active)');
       $statement->execute(array(
         'name' => $user->get_name(),
         'username' => $user->get_username(),
         'hashed_password' => $user->get_hashed_password(),
-        'email' => $user->get_email()
+        'email' => $user->get_email(),
+        'role' => $user->get_role(),
+        'active' => $user->get_active()
       ));
       return $pdo->lastInsertId();
   }
@@ -44,12 +46,14 @@ class UserMapper {
 
   function update($user){
     $pdo = $this->getPDO();
-    $statement = $pdo->prepare('UPDATE user (name, username, hashed_password, email) VALUES(:name, :username, :hashed_password, :email)');
+    $statement = $pdo->prepare('UPDATE user (name, username, hashed_password, email, role, active) VALUES(:name, :username, :hashed_password, :email, :role, :active)');
     $statement->execute(array(
       'name' => $user->get_name(),
       'username' => $user->get_username(),
       'hashed_password' => $user->get_hashed_password(),
-      'email' => $user->get_email()
+      'email' => $user->get_email(),
+      'role' => $user->get_role(),
+      'active' => $user->get_active()
     ));
   }
 
@@ -93,4 +97,23 @@ class UserMapper {
     $pdo = $this->getPDO();
     return $pdo->query('select count(id) from user')->fetchColumn();
   }
+
+  function get_user_where($column, $value){
+    $pdo = $this->getPDO();
+    $sql = 'SELECT id FROM user WHERE '.test_input($column).' = :value LIMIT 1';
+    $statement = $pdo->prepare($sql);
+    $statement->bindParam(':value', $value, PDO::PARAM_STR);
+    $statement->execute();
+    return $statement->fetch();
+  }
+
+  function get_user_data_where($column, $value){
+    $pdo = $this->getPDO();
+    $sql = 'SELECT * FROM user WHERE '.test_input($column).' = :value LIMIT 1';
+    $statement = $pdo->prepare($sql);
+    $statement->bindParam(':value', $value, PDO::PARAM_STR);
+    $statement->execute();
+    return $statement->fetch();
+  }
+
 }
