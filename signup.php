@@ -134,12 +134,12 @@
                      <!-- notice maxlenth not for the length of user selected password as it will at end have limited size encyption but this for request fast -->
                      <input type="password" autocomplete="new-password" class="form-control" id="pwd_signup"
                      placeholder="Enter password" name="pwd_signup" maxlength="320"
-                     pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*_=+-]).{8,}$" title="(Password must contains 8 characters and contains at least 1 number, 1 small letter, 1 capital letter, and symobol [!@#$%^*_=+-]) EG: 1aaqQ@dd"
+                     pattern="{8,255}" title="(Password must contains 8 characters up to 255 must and 3 of characters must be unqiue )"
                      required>
                   </div>
                   <div class="mb-3 mt-3">
                      <label for="email_signup">Email:</label>
-                     <input type="email" maxlength="50" title="maxLength is 50 letters" autocomplete="new-email"
+                     <input type="email" maxlength="80" title="maxLength is 80 letters" autocomplete="new-email"
                       class="form-control" id="email_signup" placeholder="Enter email" name="email"
                       required>
                   </div>

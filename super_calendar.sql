@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Feb 23, 2022 at 09:12 AM
+-- Generation Time: Feb 28, 2022 at 06:46 PM
 -- Server version: 5.7.36
 -- PHP Version: 7.2.19
 
@@ -45,8 +45,8 @@ CREATE TABLE `calendar` (
 --
 
 INSERT INTO `calendar` (`id`, `title`, `start_year`, `added_years`, `periods_per_day`, `slots_per_period`, `description`, `used`, `background_image`, `sign_background`) VALUES
-(262, 'Super Calendar', '2022', 1, 2, 3, 'Just New Calendar...', 1, 'cal_background_262.png', 'sign_background_262.jpg'),
-(263, 'new', '2022', 1, 0, 0, 'test', 0, 'cal_background_263.jpg', 'sign_background_263.png'),
+(262, 'Super Calendar', '2022', 1, 2, 3, 'Just New Calendar...', 0, 'cal_background_262.png', 'sign_background_262.jpg'),
+(263, 'new', '2022', 1, 0, 0, 'test', 1, 'cal_background_263.jpg', 'sign_background_263.png'),
 (269, 'tt', '2022', 1, 0, 0, 'tt', 0, 'cal.jpg', 'signup_background.jpg');
 
 -- --------------------------------------------------------
@@ -1163,6 +1163,55 @@ INSERT INTO `day` (`id`, `day`, `day_name`, `day_date`, `month_id`) VALUES
 (254432, 29, 'Thursday', '2022-12-29', 2397),
 (254433, 30, 'Friday', '2022-12-30', 2397),
 (254434, 31, 'Saturday', '2022-12-31', 2397);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `logs`
+--
+
+CREATE TABLE `logs` (
+  `id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `user_email` varchar(80) NOT NULL,
+  `valid` tinyint(1) NOT NULL,
+  `cookies_enabled` tinyint(1) DEFAULT '0',
+  `admin_user` tinyint(1) DEFAULT '0',
+  `log_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `hash_password` varchar(255) NOT NULL,
+  `ip` varchar(255) DEFAULT NULL,
+  `loc` varchar(32) DEFAULT NULL,
+  `os_type` varchar(32) DEFAULT NULL,
+  `browser_type` varchar(32) DEFAULT NULL,
+  `browser_language` varchar(32) DEFAULT 'en',
+  `blocked` tinyint(1) DEFAULT NULL,
+  `block_end` datetime DEFAULT NULL,
+  `banned` tinyint(1) DEFAULT '0',
+  `remember_me` tinyint(1) NOT NULL DEFAULT '0',
+  `cal_id` int(11) DEFAULT NULL,
+  `form_token` varchar(255) NOT NULL,
+  `notes` varchar(255) DEFAULT NULL,
+  `completed` tinyint(1) NOT NULL DEFAULT '1',
+  `class_token` varchar(255) NOT NULL,
+  `remember_me_token` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `logs`
+--
+
+INSERT INTO `logs` (`id`, `user_id`, `user_email`, `valid`, `cookies_enabled`, `admin_user`, `log_time`, `hash_password`, `ip`, `loc`, `os_type`, `browser_type`, `browser_language`, `blocked`, `block_end`, `banned`, `remember_me`, `cal_id`, `form_token`, `notes`, `completed`, `class_token`, `remember_me_token`) VALUES
+(1, 42, 'new@gmail.com', 1, 1, 0, '2022-02-28 19:06:20', '$2y$09$5WJ.9Gnyo/JVLS248gxqyOn3wH7VbM7fza6zL3V6gBX3sQsb61wEC', '156.215.92.157', 'EG', 'Windows OS', 'Chrome', 'en-US', NULL, NULL, 0, 1, NULL, '2638c4fcbc88f0020cf919b28778180d', '', 1, '2638c4fcbc88f0020cf919b28778180d', 'gswyFlhV3wkskgFhCXBOpYcBfL8I1i316Z0ELP/4sAbYfUSjxD3W3WXyWSnTlTcA'),
+(2, 42, 'new@gmail.com', 1, 1, 0, '2022-02-28 19:07:22', '$2y$09$5WJ.9Gnyo/JVLS248gxqyOn3wH7VbM7fza6zL3V6gBX3sQsb61wEC', '156.215.92.157', 'EG', 'Windows OS', 'Chrome', 'en-US', NULL, NULL, 0, 0, NULL, 'b01695fef1d69d3b36fb0cb8bddad284', '', 1, 'b01695fef1d69d3b36fb0cb8bddad284', NULL),
+(3, 40, 'nice@gmail.com', 1, 1, 0, '2022-02-28 19:12:00', '$2y$09$TSwiiRneB7fm10ENGgOeJu1pvAGSRtFW5S7c.2NPCfiE9M9EQ4nfO', '156.215.92.157', 'EG', 'Windows OS', 'Chrome', 'en-US', NULL, NULL, 0, 0, NULL, 'ccab985ef35e57b9c8df81c53130b4f4', '', 1, 'ccab985ef35e57b9c8df81c53130b4f4', NULL),
+(4, 40, 'nice@gmail.com', 1, 1, 0, '2022-02-28 19:12:05', '$2y$09$TSwiiRneB7fm10ENGgOeJu1pvAGSRtFW5S7c.2NPCfiE9M9EQ4nfO', '156.215.92.157', 'EG', 'Windows OS', 'Chrome', 'en-US', NULL, NULL, 0, 1, NULL, 'e993cfc42518f275c8c3f1860ea2bf2e', '', 1, 'e993cfc42518f275c8c3f1860ea2bf2e', 'NiAQZsViuKSXB2MZZykGxXFZDzbWkuQEcVqE0z9OvZwoQRjChgFjAFPyofPF2iAT'),
+(5, 40, 'nice@gmail.com', 1, 1, 0, '2022-02-28 19:12:17', '$2y$09$TSwiiRneB7fm10ENGgOeJu1pvAGSRtFW5S7c.2NPCfiE9M9EQ4nfO', '156.215.92.157', 'EG', 'Windows OS', 'Chrome', 'en-US', NULL, NULL, 0, 0, NULL, '7fee442220676dc94912ee6cfaf97555', '', 1, '7fee442220676dc94912ee6cfaf97555', NULL),
+(6, 40, 'nice@gmail.com', 1, 1, 0, '2022-02-28 19:12:43', '$2y$09$TSwiiRneB7fm10ENGgOeJu1pvAGSRtFW5S7c.2NPCfiE9M9EQ4nfO', '156.215.92.157', 'EG', 'Windows OS', 'Chrome', 'en-US', NULL, NULL, 0, 1, NULL, '4ed8bda34f5b84da59c0601244ea94be', '', 1, '4ed8bda34f5b84da59c0601244ea94be', 'Sbat55vG7ZvzByIy9wcvcNcfRFuAecnFEosH9AnOeMra8uxZmSyXXm5PdsLjvIwF'),
+(7, 40, 'nice@gmail.com', 1, 1, 0, '2022-02-28 19:12:45', '$2y$09$TSwiiRneB7fm10ENGgOeJu1pvAGSRtFW5S7c.2NPCfiE9M9EQ4nfO', '156.215.92.157', 'EG', 'Windows OS', 'Chrome', 'en-US', NULL, NULL, 0, 0, NULL, 'c1bdadea8a2224262a58d9664b83345c', '', 1, 'c1bdadea8a2224262a58d9664b83345c', NULL),
+(8, 40, 'nice@gmail.com', 1, 1, 0, '2022-02-28 19:13:43', '$2y$09$TSwiiRneB7fm10ENGgOeJu1pvAGSRtFW5S7c.2NPCfiE9M9EQ4nfO', '156.215.92.157', 'EG', 'Windows OS', 'Chrome', 'en-US', NULL, NULL, 0, 1, NULL, 'ee198169e3ca3131c4f34d7bc0e3f627', '', 1, 'ee198169e3ca3131c4f34d7bc0e3f627', '8UcuIuuaH+L6feCOOEqM7zCk0v/I+y12JLdxLZsTQo7C3cE64v6e482IMBdsANke'),
+(9, 40, 'nice@gmail.com', 0, 1, 0, '2022-02-28 19:30:12', '$2y$09$TSwiiRneB7fm10ENGgOeJu1pvAGSRtFW5S7c.2NPCfiE9M9EQ4nfO', '156.215.92.157', 'EG', 'Windows OS', 'Chrome', 'en-US', NULL, NULL, 0, 0, NULL, '29efe07760544263fa4148d4801db1ab', 'invalid login', 1, '29efe07760544263fa4148d4801db1ab', NULL),
+(10, 40, 'nice@gmail.com', 1, 1, 0, '2022-02-28 19:30:17', '$2y$09$TSwiiRneB7fm10ENGgOeJu1pvAGSRtFW5S7c.2NPCfiE9M9EQ4nfO', '156.215.92.157', 'EG', 'Windows OS', 'Chrome', 'en-US', NULL, NULL, 0, 0, NULL, 'f25f45fb2bf8ae6f54c187fd6f205981', '', 1, 'f25f45fb2bf8ae6f54c187fd6f205981', NULL),
+(11, 40, 'nice@gmail.com', 1, 1, 0, '2022-02-28 19:30:24', '$2y$09$TSwiiRneB7fm10ENGgOeJu1pvAGSRtFW5S7c.2NPCfiE9M9EQ4nfO', '156.215.92.157', 'EG', 'Windows OS', 'Chrome', 'en-US', NULL, NULL, 0, 1, NULL, 'c95bf0cb9c95bc1c934e29ab2f304c98', '', 1, 'c95bf0cb9c95bc1c934e29ab2f304c98', 'k65NtVxvWMLvkZcHMwdexw7excoiu8VDjjq1oK/LakOTT+RpG1VuCtyjGc+6WjWB');
 
 -- --------------------------------------------------------
 
@@ -21877,7 +21926,7 @@ CREATE TABLE `user` (
   `name` varchar(30) NOT NULL,
   `username` varchar(34) NOT NULL,
   `hashed_password` varchar(255) NOT NULL,
-  `email` varchar(50) NOT NULL,
+  `email` varchar(80) NOT NULL,
   `role` enum('user','admin') NOT NULL DEFAULT 'user',
   `active` tinyint(1) NOT NULL DEFAULT '1'
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
@@ -21887,9 +21936,9 @@ CREATE TABLE `user` (
 --
 
 INSERT INTO `user` (`id`, `name`, `username`, `hashed_password`, `email`, `role`, `active`) VALUES
-(2, 'New User', 'admin112', '$2y$09$hCaQbg.YBJ74DLvmUZU3Qe.DodZu72TpBNfUFHE3aiGBfT7VDiJpC', 'nice@gmail.com', 'user', 1),
-(11, 'nice', 'admin122121', '$2y$09$wbEqZvXrArGZ0MA6CA4s..Egv.w81xzVVJXtejYwu2OyhSCKbi67S', 'mvc@gmail.com', 'user', 1),
-(38, 'test', 'admin', '$2y$09$X.vB5DYOn1wD3FUrn/hj6.nTZwv8BlybaXN.bbNtd1KAHxK.IywO6', 'n111ice@gmail.com', 'admin', 0);
+(40, 'pythonking', 'user', '$2y$09$TSwiiRneB7fm10ENGgOeJu1pvAGSRtFW5S7c.2NPCfiE9M9EQ4nfO', 'nice@gmail.com', 'user', 1),
+(41, 'saddsasaddsadsa', 'sadasdsadasdadsasd', '$2y$09$pOjRQ8dETX7vyVC46jw.juNuvfAHnddo0z5lQtNEzMZXcIWXeT0C2', 'dadssadadssad@sadadsdsasadadssadsda', 'user', 1),
+(42, 'hi', 'new', '$2y$09$5WJ.9Gnyo/JVLS248gxqyOn3wH7VbM7fza6zL3V6gBX3sQsb61wEC', 'new@gmail.com', 'user', 1);
 
 -- --------------------------------------------------------
 
@@ -21928,6 +21977,15 @@ ALTER TABLE `calendar`
 ALTER TABLE `day`
   ADD PRIMARY KEY (`id`),
   ADD KEY `month_day` (`month_id`);
+
+--
+-- Indexes for table `logs`
+--
+ALTER TABLE `logs`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `user_log` (`user_id`),
+  ADD KEY `mail_log` (`user_email`),
+  ADD KEY `cal_log` (`cal_id`);
 
 --
 -- Indexes for table `month`
@@ -21998,6 +22056,12 @@ ALTER TABLE `day`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=254435;
 
 --
+-- AUTO_INCREMENT for table `logs`
+--
+ALTER TABLE `logs`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+
+--
 -- AUTO_INCREMENT for table `month`
 --
 ALTER TABLE `month`
@@ -22031,7 +22095,7 @@ ALTER TABLE `style`
 -- AUTO_INCREMENT for table `user`
 --
 ALTER TABLE `user`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=39;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=43;
 
 --
 -- AUTO_INCREMENT for table `year`
@@ -22048,6 +22112,14 @@ ALTER TABLE `year`
 --
 ALTER TABLE `day`
   ADD CONSTRAINT `month_day` FOREIGN KEY (`month_id`) REFERENCES `month` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `logs`
+--
+ALTER TABLE `logs`
+  ADD CONSTRAINT `cal_log` FOREIGN KEY (`cal_id`) REFERENCES `calendar` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  ADD CONSTRAINT `mail_log` FOREIGN KEY (`user_email`) REFERENCES `user` (`email`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `user_log` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `month`

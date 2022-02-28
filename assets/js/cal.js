@@ -18,7 +18,6 @@ async function postData (url = '', data = {}) {
   } catch (error) {
     console.log("error", error);
   }
-
 };
 
 function formatDate(adate){
@@ -35,5 +34,7 @@ function formatDate(adate){
     return formattedDate;
   }
 }
+
+
 
 });

@@ -112,23 +112,6 @@ class SignupController {
     header("Location: " . $redirect_url);
   }
 
-  public function secure_pass($pass, $username, $email){
-    $message = 'Secure Password';
-    $secure = true;
-
-    $pattern = "/^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*_=+-]).{8,}$/i";
-    $secure = preg_match($pattern, $pass) ? true : false;
-    $message = $secure ? $message : 'Invalid Password format, password must contains 8 characters and contains at least 1 number, 1 small letter, 1 capital letter, and symobol [!@#$%^*_=+-]) EG: 1aaqQ@dd';
-
-    $secure = strtolower($pass) != strtolower($username) ? true : false;
-    $message = $secure ? $message : 'The password cannot be the same as the username';
-
-    $secure = strtolower($pass) != strtolower($email) ? true : false;
-    $message = $secure ? $message : 'The password cannot be the same as the Email';
-
-    return array('secure'=> $secure, 'message'=>$message);
-
-  }
 
   ###################### Post Handler ############################
   public function postHandler($signup_controler, $post_obj, $session_obj, $redirect_url, $error){
@@ -181,7 +164,7 @@ class SignupController {
       }
 
       // validate pass
-      $secure_pass_check = $this->secure_pass($password, $username, $email);
+      $secure_pass_check = $this->user_service->secure_pass_array($password, $username, $email);
       if (!isset($secure_pass_check['secure']) || !$secure_pass_check['secure']){
         //return error 03;
         $issecure = $secure_pass_check['secure'] ? true : false;

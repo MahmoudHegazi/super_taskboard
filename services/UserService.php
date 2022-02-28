@@ -25,6 +25,40 @@ class UserService {
     return $this->user_mapper->insert($user_obj);
   }
 
+  public function secure_pass_boolean($pass, $username, $email){
+    $secure = true;
+    $passs_checke = str_replace(" ", "", $pass);
+    $secure = !empty($passs_checke) ? true : false;
+    $unique_check = count(array_unique(str_split($pass))) >= 3;
+    $secure = $unique_check  ? true : false;
+    $secure = strtolower($pass) != strtolower($username) ? true : false;
+    $secure = strtolower($pass) != strtolower($email) ? true : false;
+    return $secure;
+  }
+
+  public function secure_pass_array($pass, $username, $email){
+    $message = 'Secure Password';
+    $secure = true;
+    $passs_checke = str_replace(" ", "", $pass);
+    $secure = !empty($passs_checke) ? true : false;
+    $message = $secure ? $message : 'Password Can not be empty or spaces';
+
+    $unique_check = count(array_unique(str_split($pass))) >= 3;
+    $secure = $unique_check  ? true : false;
+    $message = $secure ? $message : 'Password Must contains at least 3 unqiue characters';
+
+    $secure = strtolower($pass) != strtolower($username) ? true : false;
+    $message = $secure ? $message : 'The password cannot be the same as the username';
+
+    $secure = strtolower($pass) != strtolower($email) ? true : false;
+    $message = $secure ? $message : 'The password cannot be the same as the Email';
+
+    return array('secure'=> $secure, 'message'=>$message);
+
+  }
+
+
+
   // Remove  user
   function remove($user_id){
     return $this->user_mapper->delete($user_id);
@@ -43,6 +77,7 @@ class UserService {
       $user_row['hashed_password'],
       $user_row['email']
     );
+
     $user->set_id($user_row['id']);
     $user->set_role($user_row['role']);
     $user->set_active($user_row['active']);
@@ -160,7 +195,7 @@ class UserService {
       $user_data['hashed_password'],
       $user_data['email']
     );
-    $user->set_id($user_data['email']);
+    $user->set_id($user_data['id']);
     $user->set_role($user_data['role']);
     $user->set_active($user_data['active']);
     return $user;

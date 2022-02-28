@@ -779,22 +779,33 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST')
         $email = test_input($_POST['email']);
         $username = test_input($_POST['username']);
         $password = test_input($_POST['password']);
-        $password_hash = password_hash($password, PASSWORD_DEFAULT, array(
-            'cost' => 9
-        ));
         //password_verify('anna', $expensiveHash); //Also returns true
+
 
 
         $user_service = new UserService($pdo);
         $exist_username = $user_service->get_user_where('username', $username);
         $exist_email = $user_service->get_user_where('email', $email);
 
+        // password check no need db
+        $password_check = $user_service->secure_pass_array($password, $username, $email);
+        if (!isset($password_check['secure']) || $password_check['secure']){
+          setup_redirect($redirect_url, 'false', $password_check['message']);
+          die();
+        }
+
         if (!empty($exist_username)){
           setup_redirect($redirect_url, 'false', 'User can not added There other User With Same username: ' . $username);
+          die();
         }
         if (!empty($exist_email)){
           setup_redirect($redirect_url, 'false', 'User can not added There other User With Same email: ' . $email);
+          die();
         }
+
+        $password_hash = password_hash($password, PASSWORD_DEFAULT, array(
+            'cost' => 9
+        ));
 
         $new_user = $user_service->add($fullname, $username, $password_hash, $email, $role, $active);
         if ($new_user)
@@ -871,9 +882,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST')
 
             if (isset($_POST['password_edit']) && !empty($_POST['password_edit']))
             {
-                $update_string .= 'password,';
+
                 // password not enabled by default so when he come it need change pass
                 $req_password = test_input($_POST['password_edit']);
+
+                // check password
+                $password_check_edit = $user_service->secure_pass_array($req_password, $username, $email);
+                if (!isset($password_check_edit['secure']) || $password_check_edit['secure']){
+                  setup_redirect($redirect_url, 'false', $password_check_edit['message']);
+                  die();
+                }
+
+                $update_string .= 'password,';
                 $password_hash = password_hash($req_password, PASSWORD_DEFAULT, array(
                     'cost' => 9
                 ));

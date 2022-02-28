@@ -590,7 +590,7 @@ try {
           <label for="password">Password: </label>
           <input type="password" name="password" id="password" auto-complete="new-password"  class="form-control"
           placeholder="Enter User Password"
-          pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*_=+-]).{8,}$" title="(Password must contains 8 characters and contains at least 1 number, 1 small letter, 1 capital letter, and symobol [!@#$%^*_=+-]) EG: 1aaqQ@dd"
+          pattern="{8,12}" title="(Password must contains 8 characters up to 255 must and 3 of characters must be unqiue )"
           required>
         </div>
 
@@ -658,7 +658,7 @@ try {
           <label for="password_edit">Change Password: </label> <input type="checkbox" id="toggle_edit_pass">
           <input type="password" name="password_edit" value="" id="password_edit"  class="form-control"
           placeholder="Enter User Password"
-          pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*_=+-]).{8,}$" title="(Password must contains 8 characters and contains at least 1 number, 1 small letter, 1 capital letter, and symobol [!@#$%^*_=+-]) EG: 1aaqQ@dd"
+          pattern="{8,255}" title="(Password must contains 8 characters up to 255 must and 3 of characters must be unqiue )"
           disabled>
         </div>
 

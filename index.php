@@ -2,7 +2,15 @@
 ob_start();
 require_once('config.php');
 require_once('controllers/IndexController.php');
-
+if (!isset($_SESSION['logged']) && empty($_SESSION['logged'])){
+  if ($_SESSION['logged'] == False){
+    $_SESSION['message_login'] = 'Please Login To acces this page';
+    $_SESSION['success_login'] = False;
+    header("Location: ./login.php");
+    die();
+    return False;
+  }
+}
 $request_type = $_SERVER['REQUEST_METHOD'] === 'POST' ? 'POST' : 'GET';
 
 /* Handle Used Calendar part and get all data needed from controller like the MVC but modifed by include controller instead of get the request */
@@ -413,6 +421,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
       <p class="description_p bg_azure  text-black border border-secondary p-2 default_shadow">
         <?php echo defined('DESCRIPTION') ? DESCRIPTION : 'Booking Calendar'; ?>
       </p>
+
+      <div class="container d-flex justify-content-end border border-succcess p-2">
+        <a href="./logout.php" class="btn btn-danger">Log Out</a>
+        <!-- fake margin for flex -->
+        <span style="width:10px;"></span>
+        <button class="btn btn-primary">Setup</button>
+        <span style="width:10px;"></span>
+        <button class="btn btn-success">Profile</button>
+      </div>
+
     </div>
 
 
