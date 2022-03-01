@@ -685,7 +685,7 @@ echo date("Y");
     }
 
 
-    // cancel reservation
+    // cancel reservation (Delete By Admin Only remove from db)
     $is_cencel_reservation = isset($index_controller) &&
     isset($post_obj['cancel_reservation_id']) && !empty($post_obj['cancel_reservation_id']) &&
     isset($post_obj['cancel_reservation_slotid']) && !empty($post_obj['cancel_reservation_slotid']);
@@ -698,7 +698,20 @@ echo date("Y");
       die();
     }
 
+    // pause, cancel, open the reservation change status
+    $is_status_change_reservation = isset($index_controller) &&
+    isset($post_obj['cp_reservation_id']) && !empty($post_obj['cp_reservation_id']) &&
+    isset($post_obj['cp_reservation_slotid']) && !empty($post_obj['cp_reservation_slotid']) &&
+    isset($post_obj['cp_reservation_status']) && !empty($post_obj['cp_reservation_status']);
 
+    if ($is_status_change_reservation){
+
+      $status_change_reservation_data = $this->user_pause_cancel_reservation($index_controller, $post_obj, $session_obj);
+      $_SESSION['message'] = $status_change_reservation_data['message'];
+      $_SESSION['success'] = $status_change_reservation_data['success'];
+      header("Location: " . $redirect_url);
+      die();
+    }
 
     // this bridge for direct post AJAX requests to AJAX handler
     try{
@@ -818,6 +831,43 @@ echo date("Y");
       }
     return $result;
   }
+
+  public function user_pause_cancel_reservation($index_controller, $post_obj, $session_obj){
+
+      $result = array('success'=>False, 'message'=>'');
+      if (!isset($index_controller->reservation_service) || !isset($index_controller->slot_service)){
+        return $result;
+      }
+      $target_reservation_id = test_input($post_obj['cp_reservation_id']);
+      $target_slot_id = test_input($post_obj['cp_reservation_slotid']);
+      $new_reservation_status = test_input($post_obj['cp_reservation_status']);
+      $new_reservation_status = $new_reservation_status === 'cancel_forever' ? 'canceled' : 'paused';
+      $logged_id = $session_obj['logged_id'];
+      $is_admin_user = $index_controller->return_current_logged_role($logged_id) === 'admin';
+
+      $reservation = $index_controller->reservation_service->get_reservation_by_id($target_reservation_id);
+      if (!isset($reservation) || empty($reservation)){
+        $result = array('success'=>False, 'message'=>'Reservation Not Found Or Deleted.');
+        return $result;
+      }
+      $is_owned_reserv = $logged_id === $reservation->get_user_id();
+      if ($is_owned_reserv || $is_admin_user){
+        $update_slot = $index_controller->slot_service->update_one_column('empty', 1, $target_slot_id);
+        $update_reservation = $index_controller->reservation_service->update_one_column('status', $new_reservation_status, $target_reservation_id);
+        if ($update_slot && $update_reservation){
+          $result = array('success'=>True, 'message'=>'Reservation '.$new_reservation_status.' Successfully');
+          return $result;
+        } else {
+          $result = array('success'=>False, 'message'=>'Can not '.$new_reservation_status.' Reservation');
+          return $result;
+        }
+      } else {
+        $result = array('success'=>False, 'message'=>'You Have No Premssions To Remove this Reservation');
+      }
+    return $result;
+  }
+
+
 
 
   public function edit_reservation_handle($index_controller, $post_obj, $session_obj){

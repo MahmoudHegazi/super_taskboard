@@ -1154,15 +1154,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
 
       <!-- Modal body -->
       <div class="modal-body">
-        Sei sicuro di voler cancellare la prenotazione
+        <?php
+         if (isset($index_controller) && !empty($index_controller) && $user_role === 'admin'){
+           ?>
+           <form action="./index.php" method="POST">
+             <label for="cancel_reservation_slotid">Sei sicuro di voler cancellare la prenotazione</label>
+             <input type="hidden" style="display:none !important;" id="cancel_reservation_slotid" name="cancel_reservation_slotid" required />
+             <input type="hidden" style="display:none !important;" id="cancel_reservation_id" name="cancel_reservation_id" required />
+             <button  type="submit" class="btn btn-danger" >Cancel Booking</button>
+           </form>
+           <?php
+         }
+        ?>
+        <form action="./index.php" method="POST">
+          <label for="cp_reservation_slotid">Cancel/Pause Reservation</label>
+          <input type="hidden" style="display:none !important;" id="cp_reservation_slotid" name="cp_reservation_slotid" required />
+          <input type="hidden" style="display:none !important;" id="cp_reservation_id" name="cp_reservation_id" required />
+
+          <select class="form-control" id="cp_reservation_status" name="cp_reservation_status">
+            <option value="pause">Pause</option>
+            <option value="cancel_forever">Cancel Forver</option>
+          </select>
+          <button  type="submit" class="btn btn-danger" >Update Status</button>
+        </form>
+
       </div>
       <!-- Modal footer -->
       <div class="modal-footer">
-        <form action="./index.php" method="POST">
-          <input type="hidden" style="display:none !important;" id="cancel_reservation_slotid" name="cancel_reservation_slotid" required />
-          <input type="hidden" style="display:none !important;" id="cancel_reservation_id" name="cancel_reservation_id" required />
-          <button  type="submit" class="btn btn-danger" >Cancel Booking</button>
-        </form>
+
         <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Back</button>
       </div>
 
@@ -1543,11 +1562,22 @@ mapRservationDate.addEventListener( "change", getDayPeriodsAndSlots );
 // effects for owned
 const reservationIdInp = document.querySelector("#cancel_reservation_id");
 const reservationSlotIdInp = document.querySelector("#cancel_reservation_slotid");
+
+const changeStatusReservId = document.querySelector("#cp_reservation_id");
+const changeStatusReservSlotId = document.querySelector("#cp_reservation_slotid");
+const changeStatusReservStatusSelect = document.querySelector("#cp_reservation_status");
+const changeStatusOptios = Array.from(changeStatusReservStatusSelect.options);
+
+
+
 function openCancelReservation(event){
   event.preventDefault();
 
   reservationSlotIdInp.value = event.target.getAttribute("data-slot-id");
   reservationIdInp.value = event.target.getAttribute("data-id");
+
+  changeStatusReservSlotId.value = event.target.getAttribute("data-slot-id");
+  changeStatusReservId.value = event.target.getAttribute("data-id");
 }
 function showOwnedEffect(event){
   if (event.target.classList.contains("fa fa-envelope-o")){
