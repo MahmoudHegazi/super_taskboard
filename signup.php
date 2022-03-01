@@ -10,6 +10,8 @@
    $signup_error = false;
    $used_calendar = null;
    $error = false;
+   $default_logo = 'uploads/images/default_logo.png';
+   $default_signupbg = 'uploads/images/signup_background.jpg';
 
 
    try {
@@ -18,12 +20,11 @@
      $index_controller = new IndexController($pdo);
      $used_calendar = $index_controller->get_used_calendar();
      if (isset($used_calendar) && $used_calendar && !empty($used_calendar)){
-       define('Calid', $used_calendar->get_id());
        define('TITLE', $used_calendar->get_title());
        define('DESCRIPTION', $used_calendar->get_description());
-       define('THUMBNAIL', $used_calendar->get_background_image());
-       define('SIGNBACKGROUND', $used_calendar->get_sign_background());
        define('REQUESTTOKEN', $signup_controler->get_request_token());
+       $default_logo = 'uploads/images/' . $used_calendar->get_background_image();
+       $default_signupbg = 'uploads/images/' . $used_calendar->get_sign_background();
        // save the token in session
        if ($request_type == 'GET'){
          $_SESSION['request_token'] = $signup_controler->get_request_token();
@@ -51,7 +52,7 @@
    <head>
       <meta charset="utf-8">
       <title><?php echo defined('TITLE') ? TITLE : 'Super Calendar'; ?></title>
-      <link rel="icon" href="<?php echo defined('THUMBNAIL') ? 'uploads/images/' . THUMBNAIL : 'uploads/images/default_logo.png'; ?>">
+      <link rel="icon" href="<?php echo $default_logo; ?>">
       <meta name="viewport" content="width=device-width, initial-scale=1">
       <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
       <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
@@ -91,7 +92,7 @@
 
       <div class="row main_page" style="margin-left:auto; margin-right:auto;">
          <!-- aside start -->
-         <div class="d-flex justify-content-center align-items-center aside_bg col-sm-9 bg-primary text-white aside_menu_class" style="background-image: url('<?php echo defined('SIGNBACKGROUND') ? 'uploads/images/' . SIGNBACKGROUND : 'uploads/images/signup_background.jpg'; ?>');">
+         <div class="d-flex justify-content-center align-items-center aside_bg col-sm-9 bg-primary text-white aside_menu_class" style="background-image: url('<?php echo $default_signupbg; ?>');">
            <h3 class="mt-2 mb-3 badge bg-dark p-2 shadow_sign_title1">
               <!-- calendar title -->
               <span class="display-6 p-3"><?php echo defined('TITLE') ? TITLE : 'Super Calendar'; ?></span>
@@ -107,7 +108,7 @@
                   <h3 class="mt-2 mb-3">Sign Up</h3>
                   <div class="border border-light rounded">
                      <img class="aside_bg max_width_200"
-                     src="<?php echo defined('SIGNBACKGROUND') ? 'uploads/images/' . SIGNBACKGROUND : 'uploads/images/signup_background.jpg'; ?>"
+                     src="<?php echo $default_signupbg; ?>"
                      height="200" width="100%"
                      >
                   </div>
@@ -123,7 +124,7 @@
                   <?php unset($_SESSION['message_signup']);unset($_SESSION['success_signup']);} ?>
                </div>
                <!-- note is this JPHPMVC sent the data to controller interninaly so it sent the requests to it self and pass to controller instead of let controller get request and then redirect to view-->
-               <form method="POST" action="<?php echo $_SERVER['PHP_SELF']; ?>" autocomplete="false">
+               <form method="POST" action="signup.php" autocomplete="false">
                   <div class="mb-3 mt-3">
                      <label for="uname_signup">Username:</label>
                      <input type="text" autocomplete="new-username" class="form-control" id="uname_signup"

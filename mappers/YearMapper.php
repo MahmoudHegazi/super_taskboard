@@ -38,7 +38,15 @@ class YearMapper {
     return $data;
   }
 
-
+  function read_by_year($year, $cal_id){
+    $pdo = $this->getPDO();
+    $stmt = $pdo->prepare("SELECT * FROM year WHERE year=:year AND cal_id=:cal_id");
+    $stmt->bindParam(':year', $year, PDO::PARAM_INT);
+    $stmt->bindParam(':cal_id', $cal_id, PDO::PARAM_INT);
+    $stmt->execute();
+    $data = $stmt->fetch();
+    return $data;
+  }
 
 
   function update($year){

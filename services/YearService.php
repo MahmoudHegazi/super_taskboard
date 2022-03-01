@@ -41,6 +41,22 @@ class YearService {
     return $year;
   }
 
+  function get_year_by_year($year, $cal_id){
+    $year = intval($year);
+    $cal_id = intval($cal_id);
+    $year_row = $this->year_mapper->read_by_year($year, $cal_id);
+    // if element not found
+    if (!isset($year_row['id']) || empty($year_row['id'])){return array();}
+    $year = new Year();
+    $year->init(
+      $year_row['year'],
+      $year_row['cal_id']
+    );
+    $year->set_id($year_row['id']);
+    return $year;
+  }
+
+
   function get_year_object($year_row){
     if (!isset($year_row['id']) || empty($year_row['id'])){return array();}
     $year = new Year();

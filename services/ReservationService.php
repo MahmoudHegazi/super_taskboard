@@ -50,6 +50,24 @@ class ReservationService {
     return $reservation;
   }
 
+
+  function get_reservation_data_byslot($slot_id){
+
+    $reservation_row = $this->reservation_mapper->get_reservation_by_slot($slot_id);
+    // if element not found
+    if (!isset($reservation_row['id']) || empty($reservation_row['id'])){return array();}
+    $reservation = new Reservation();
+    $reservation->init(
+      $reservation_row['name'],
+      $reservation_row['notes'],
+      $reservation_row['slot_id'],
+      $reservation_row['user_id']
+    );
+    $reservation->set_id($reservation_row['id']);
+    $reservation->set_reservation_date($reservation_row['reservation_date']);
+    return $reservation;
+  }
+
   // get All reservation
   function get_all_reservations(){
 
@@ -128,7 +146,7 @@ class ReservationService {
 
   // update signle column  reservation
   function update_one_column($column, $value, $id){
-    return $this->reservation_mapper->reservation_mapper($column, $value, $id);
+    return $this->reservation_mapper->update_column($column, $value, $id);
   }
 
   function get_total_reservations(){

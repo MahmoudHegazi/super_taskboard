@@ -41,12 +41,13 @@ class ReservationMapper {
 
   function get_reservation_by_slot($slot_id){
     $pdo = $this->getPDO();
-    $stmt = $pdo->prepare("SELECT * FROM reservation WHERE slot_id=:slot_id");
+    $stmt = $pdo->prepare("SELECT * FROM reservation WHERE slot_id=:slot_id LIMIT 1");
     $stmt->bindParam(':slot_id', $slot_id, PDO::PARAM_INT);
     $data = $stmt->execute();
     if ($data){
       return $stmt->fetch();
     } else {
+      echo 'yes';
       return array();
     }
   }
@@ -91,6 +92,13 @@ class ReservationMapper {
   }
 
   function update_column($column, $value, $id){
+    $pdo = $this->getPDO();
+    $sql = "UPDATE reservation SET ".$column."=? WHERE id=?";
+    $stmt= $pdo->prepare($sql);
+    return $stmt->execute([$value, $id]);
+  }
+
+  function update_column_int($column, $value, $id){
     $pdo = $this->getPDO();
     $sql = "UPDATE reservation ".$column."=? WHERE id=?";
     $stmt= $pdo->prepare($sql);

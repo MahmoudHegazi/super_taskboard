@@ -15,6 +15,12 @@ if (isset($_SESSION['logged']) && !empty($_SESSION['logged'])){
   if (isset($_SESSION['login_date']) && !empty($_SESSION['login_date'])){
     unset($_SESSION['login_date']);
   }
+
+  // remember me forget
+  if (isset($_COOKIE['uid']) && !empty($_COOKIE['uid'])){
+    $cooke_ready = setcookie('uid', NULL, -1, $httponly=True);
+  }
+
   $_SESSION['message_login'] = 'You Logged out successfully';
   $_SESSION['success_login'] = True;
   header("Location: ./login.php");

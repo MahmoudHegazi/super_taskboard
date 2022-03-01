@@ -52,30 +52,30 @@ try {
   <div class="row" style="height:100%;">
     <div class="col-sm-2 bg-light text-black text-center aside_container">
 
-     <div class="nav_cont">
-       <div class="nav_item border border-light p-2 text-black" >
-         <a class="menu__item" href="#" >
+     <div class="nav_cont d-flex flex-column flex-nowrap">
+       <div class="nav_item border border-light p-2 text-black d-flex flex-row flex-nowrap justify-content-center align-items-center" >
+         <a class="menu__item flex-fill" href="./index.php" >
            <i class="menu__icon fa fa-home"></i>
            <span class="menu__text">Home</span>
          </a>
        </div>
 
-       <div class="nav_item border border-light p-2 text-black">
-         <a class="menu__item" href="#">
+       <div class="nav_item border border-light p-2 text-black d-flex flex-row flex-nowrap justify-content-center align-items-center">
+         <a class="menu__item flex-fill" href="./setup.php">
            <i class="menu__icon fa fa-calendar"></i>
            <span class="menu__text">Setup</span>
          </a>
        </div>
-       <div class="nav_item border border-light p-2 text-black">
-         <a class="menu__item" href="#">
+       <div class="nav_item border border-light p-2 text-black d-flex flex-row flex-nowrap justify-content-center align-items-center">
+         <a class="menu__item flex-fill" href="./reports.php" style="width:100%;">
            <i class="menu__icon fa fa-bar-chart"></i>
            <span class="menu__text">Reports</span>
          </a>
        </div>
 
 
-       <div class="nav_item border border-light p-2 text-black">
-         <a class="menu__item" href="#">
+       <div class="nav_item border border-light p-2 text-black d-flex flex-row flex-nowrap justify-content-center align-items-center">
+         <a class="menu__item flex-fill" href="./logout.php">
            <i class="menu__icon fa fa-sign-out"></i>
            <span class="menu__text">Logout</span>
          </a>

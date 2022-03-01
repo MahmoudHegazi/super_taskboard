@@ -44,6 +44,7 @@ class IndexController {
   // current used cal id usefull
   protected $cal_id;
   protected $used_calendar;
+  protected $current_role;
 
   protected $years;
   protected $current_year;
@@ -70,8 +71,11 @@ class IndexController {
 
   //$calendarMapper = new CalendarMapper($this->pdo);
   // build the pdo for global use in object only
-  public function __construct(PDO $pdo, $selected_month=null, $type='GET')
+  public function __construct(PDO $pdo, $selected_month=null, $type='GET', $current_year=NULL, $logged_userid=NULL)
   {
+    if (is_null($logged_userid)){
+      throw new Exception( "You Have No Premssion To access This Page" );
+    }
     // incase no used calendar which mean no calendars in app or deleted by DB (IMP), so will raise error
     $this->pdo = $pdo;
     $this->calendar_service = new CalendarService($pdo);
@@ -83,6 +87,7 @@ class IndexController {
     $this->user_service = new UserService($pdo);
     $this->style_service = new StyleService($pdo);
     $this->reservation_service = new ReservationService($pdo);
+
 
     $used_cal = $this->assign_used_calendar();
     if (!$used_cal || empty($used_cal) || !isset($used_cal)){
@@ -96,11 +101,18 @@ class IndexController {
     $this->set_time_zone($time_zone='Europe/Rome');
 
     // current year
-    $current_year = $this->return_current_year($used_cal->get_id());
+
+    if (!isset($current_year) || empty($current_year) || is_null($current_year)){
+     $current_year = $this->return_current_year($used_cal->get_id());
+    } else {
+      $current_year  = $this->year_service->get_year_by_year($current_year, $used_cal->get_id());
+    }
+
     if (empty($current_year) || is_null($current_year)){
       throw new Exception( "No years were found for the specified calendar If u can not solve this add years to calendar or delete the calendar and add new one" );
     }
     $this->set_current_year($current_year);
+
 
     // current month
     $target_month = !is_null($selected_month) ? $selected_month : $this->get_today_month();
@@ -342,6 +354,16 @@ class IndexController {
     return $this->today_time;
   }
 
+  public function return_current_logged_role($loged_uid){
+    if (!isset($this->user_service) || empty($this->user_service)){return 'user';}
+
+    $currentuser = $this->user_service->get_user_by_id($loged_uid);
+    if (isset($loged_uid) && !empty($loged_uid)){
+      return $currentuser->get_role();
+    } else {
+      return 'user';
+    }
+  }
 
 
   public function return_all_years($cal_id){
@@ -498,9 +520,10 @@ echo date("Y");
     return $projectData;
   }
 
-
-
-
+  public function get_reservation_data_byslot($slot_id){
+    if (!isset($this->reservation_service) || empty($this->reservation_service)){return false;}
+    return $this->reservation_service->get_reservation_data_byslot($slot_id);
+  }
 
   // ajax method for load slot data when add new reservation
   public function return_slot_data_ajax($slot_id){
@@ -521,7 +544,8 @@ echo date("Y");
   }
 
   // insert reservation It return data for used in AJAX
-  public function add_reservation($slot_id, $name='', $notes=''){
+  public function add_reservation($slot_id, $logged_uid, $name='', $notes=''){
+    $logged_uid = test_input($logged_uid);
     $slot_id = test_input($slot_id);
     $name = test_input($name);
     $notes = test_input($notes);
@@ -543,7 +567,7 @@ echo date("Y");
       return array('success'=>false, 'message'=>'Reservation Can not Added There are a reservation in that slot The System Has recover and fix the problem.');
     }
 
-    $reservation_id = $this->reservation_service->add($slot_id, $name, $notes, 2);
+    $reservation_id = $this->reservation_service->add($slot_id, $name, $notes, $logged_uid);
     if ($reservation_id != false){
         $update_slot = $this->slot_service->update_one_column('empty', 0, $slot_id);
         if (!$update_slot){
@@ -572,9 +596,10 @@ echo date("Y");
 
     public function handle_add_reservation($post_obj, $session_obj, $index_controller_obj){
       $check_request_data = isset($index_controller) &&
-      isset($_POST['reservation_slot_id']) && !empty($_POST['reservation_slot_id']) &&
-      isset($_POST['secuirty_token']) && !empty($_POST['secuirty_token']) &&
-      isset($_POST['reservation_name']) && isset($_POST['reservation_comment']);
+      isset($post_obj['reservation_slot_id']) && !empty($post_obj['reservation_slot_id']) &&
+      isset($post_obj['secuirty_token']) && !empty($post_obj['secuirty_token']) &&
+      isset($post_obj['reservation_name']) && isset($post_obj['reservation_comment']) &&
+      isset($post_obj['loggeduid']) && isset($post_obj['loggeduid']);
 
       if ($check_request_data){
         return array('success'=>false, 'Can not Add reservation missing required data.');
@@ -589,12 +614,16 @@ echo date("Y");
       if ($session_token != $request_token){
         return array('success'=>false, 'You have no premssions to Make this request');
       }
+      if (!is_numeric($post_obj['loggeduid']) || $post_obj['loggeduid'] < 1){
+        return array('success'=>false, 'Invalid user id please make sure you logged still logged in refresh page');
+      }
       /* secuirty end */
+      $logged_userid = test_input($post_obj['loggeduid']);
       $reservation_slot_id = test_input($post_obj['reservation_slot_id']);
       $reservation_name = !empty($post_obj['reservation_name']) ? test_input($post_obj['reservation_name']) : '';
       $reservation_notes = !empty($post_obj['reservation_comment']) ? test_input($post_obj['reservation_comment']) : '';
 
-      $new_reservation = $index_controller_obj->add_reservation($reservation_slot_id, $reservation_name, $reservation_notes);
+      $new_reservation = $index_controller_obj->add_reservation($reservation_slot_id, $logged_userid, $reservation_name, $reservation_notes);
       return $new_reservation;
 
   }
@@ -603,15 +632,22 @@ echo date("Y");
   public function postHandler($index_controller, $post_obj, $session_obj, $redirect_url, $error){
     $ajax_request = false;
 
-    if ($error){
+    if ($error || !isset($index_controller)){
       $_SESSION['message'] = 'The calendar cannot be executed. The procedure is not set up correctly';
       $_SESSION['success'] = 'false';
       header("Location: " . $redirect_url);
       die();
     }
+    if (!isset($session_obj['logged_id']) || empty($session_obj['logged_id'])){
+      // if not logged for some reasone eg session end back
+      $_SESSION['message'] = 'You Have no access to perform action';
+      $_SESSION['success'] = False;
+      header("Location: " . $redirect_url);
+      die();
+    }
+
     // add new reservation
-    $is_add_reservation = isset($index_controller) &&
-    isset($post_obj['reservation_slot_id']) && !empty($post_obj['reservation_slot_id']) &&
+    $is_add_reservation = isset($post_obj['reservation_slot_id']) && !empty($post_obj['reservation_slot_id']) &&
     isset($post_obj['secuirty_token']) && !empty($post_obj['secuirty_token']) &&
     isset($post_obj['reservation_name']) && isset($post_obj['reservation_comment']);
 
@@ -622,6 +658,34 @@ echo date("Y");
       header("Location: " . $redirect_url);
       die();
     }
+    // edit reservation
+    $is_edit_reservation = isset($post_obj['edit_reservation_id']) && !empty($post_obj['edit_reservation_id']) &&
+    isset($post_obj['edit_reservation_name']) && !empty($post_obj['edit_reservation_name']) &&
+    isset($post_obj['edit_reservation_comment']) && isset($post_obj['edit_reservation_comment']);
+    if ($is_edit_reservation){
+
+      $edit_reservation_data = $this->edit_reservation_handle($index_controller, $post_obj, $session_obj);
+      $_SESSION['message'] = $edit_reservation_data['message'];
+      $_SESSION['success'] = $edit_reservation_data['success'];
+      header("Location: " . $redirect_url);
+      die();
+    }
+
+
+    // cancel reservation
+    $is_cencel_reservation = isset($index_controller) &&
+    isset($post_obj['cancel_reservation_id']) && !empty($post_obj['cancel_reservation_id']) &&
+    isset($post_obj['cancel_reservation_slotid']) && !empty($post_obj['cancel_reservation_slotid']);
+
+    if ($is_cencel_reservation){
+      $cancel_reservation_data = $this->cancel_reservation_handle($index_controller, $post_obj, $session_obj);
+      $_SESSION['message'] = $cancel_reservation_data['message'];
+      $_SESSION['success'] = $cancel_reservation_data['success'];
+      header("Location: " . $redirect_url);
+      die();
+    }
+
+
 
     // this bridge for direct post AJAX requests to AJAX handler
     try{
@@ -705,6 +769,87 @@ echo date("Y");
     return $this->day_service->get_dayid_by_date($day_date, $cal_id);
   }
   ###################### Post Handler End ############################
+
+  // Cancel reservation handle
+
+
+  public function cancel_reservation_handle($index_controller, $post_obj, $session_obj){
+
+      $result = array('success'=>False, 'message'=>'');
+      if (!isset($index_controller->reservation_service) || !isset($index_controller->slot_service)){
+        return $result;
+      }
+      $cancel_reservation_id = test_input($post_obj['cancel_reservation_id']);
+      $cancel_slot_id = test_input($post_obj['cancel_reservation_slotid']);
+      $logged_id = $session_obj['logged_id'];
+      $is_admin_user = $index_controller->return_current_logged_role($logged_id) === 'admin';
+
+      $reservation = $index_controller->reservation_service->get_reservation_by_id($cancel_reservation_id);
+      if (!isset($reservation) || empty($reservation)){
+        $result = array('success'=>False, 'message'=>'Reservation Not Found Or Deleted.');
+        return $result;
+      }
+      $is_owned_reserv = $logged_id === $reservation->get_user_id();
+      if ($is_owned_reserv || $is_admin_user){
+        $update_slot = $index_controller->slot_service->update_one_column('empty', 1, $cancel_slot_id);
+        $remove_reservation = $index_controller->reservation_service->remove($cancel_reservation_id);
+        if ($update_slot && $remove_reservation){
+          $result = array('success'=>True, 'message'=>'Reservation Canceled Successfully');
+          return $result;
+        } else {
+          $result = array('success'=>False, 'message'=>'Can not Cancel Reservation');
+          return $result;
+        }
+      } else {
+        $result = array('success'=>False, 'message'=>'You Have No Premssions To Remove this Reservation');
+      }
+    return $result;
+  }
+
+
+  public function edit_reservation_handle($index_controller, $post_obj, $session_obj){
+
+      $result = array('success'=>False, 'message'=>'');
+      if (!isset($index_controller->reservation_service) || !isset($index_controller->slot_service)){
+        return $result;
+      }
+      $edit_reservation_id = test_input($post_obj['edit_reservation_id']);
+      $req_reservation_name = test_input($post_obj['edit_reservation_name']);
+      $req_reservation_notes = test_input($post_obj['edit_reservation_comment']);
+      $logged_id = $session_obj['logged_id'];
+      $is_admin_user = $index_controller->return_current_logged_role($logged_id) === 'admin';
+
+
+      $reservation = $index_controller->reservation_service->get_reservation_by_id($edit_reservation_id);
+      if (!isset($reservation) || empty($reservation)){
+        $result = array('success'=>False, 'message'=>'Reservation Not Found Or Deleted.');
+        return $result;
+      }
+
+      $is_owned_reserv = $logged_id === $reservation->get_user_id();
+      if ($is_owned_reserv || $is_admin_user){
+        if ($reservation->get_name() != $req_reservation_name){
+          $update_reservation_name = $index_controller->reservation_service->update_one_column('name', $req_reservation_name, $edit_reservation_id);
+          $result['message'] = 'Name';
+          $result['success'] = True;
+        }
+        if ($reservation->get_notes() != $req_reservation_notes){
+          $update_reservation_name = $index_controller->reservation_service->update_one_column('notes', $req_reservation_notes, $edit_reservation_id);
+          $result['message'] .= empty($updated_text) ? 'notes' : $result['message'] . ', notes';
+          $result['success'] = True;
+        }
+
+        if (!empty($result['message'])){
+          $result['message'] = 'Updates Successfully ' . $result['message'];
+        } else {
+          $result['message'] = 'No Changes detected';
+        }
+      } else{
+        $result = array('success'=>False, 'message'=>'You Have no access To edit this reservation');
+      }
+    return $result;
+
+  }
 
   // load the ajax data for display periods and slots in selected day when user click + <
   // this will return data to used in add_reservation and add normal reservation

@@ -20,10 +20,9 @@
      $index_controller = new IndexController($pdo);
      $used_calendar = $index_controller->get_used_calendar();
 
-    $login_controller = new LoginController($pdo, $request_type, (defined('Calid') ? Calid : NULL), $redirect_url);
+    $login_controller = new LoginController($pdo, $request_type, $used_calendar->get_id(), $redirect_url);
 
      if (isset($used_calendar) && $used_calendar && !empty($used_calendar)){
-       define('Calid', $used_calendar->get_id());
        define('TITLE', $used_calendar->get_title());
        define('DESCRIPTION', $used_calendar->get_description());
        define('THUMBNAIL', $used_calendar->get_background_image());
@@ -89,14 +88,7 @@
       .sign_up_btn{width:100% !important;margin-bottom:10px !important;}
       .login_btn{width:100% !important;}
       }
-      .aside_bg{
-          /* Full height */
-          height: 100%;
-          /* Center and scale the image nicely */
-          background-position: center;
-          background-repeat: no-repeat;
-          background-size: cover;
-      }
+      .aside_bg{height: 100%;background-position: center;background-repeat: no-repeat;background-size: cover;}
       .max_width_200{
         max-height:200px !important;
       }
@@ -123,10 +115,7 @@
                <div class="text-center">
                   <h3 class="mt-2 mb-3">Login</h3>
                   <div class="border border-light rounded">
-                     <img class="aside_bg max_width_200"
-                     src="<?php echo defined('SIGNBACKGROUND') ? 'uploads/images/' . SIGNBACKGROUND : 'uploads/images/signup_background.jpg'; ?>"
-                     height="200" width="100%"
-                     >
+                     <img class="aside_bg max_width_200" src="<?php echo defined('SIGNBACKGROUND') ? 'uploads/images/' . SIGNBACKGROUND : 'uploads/images/signup_background.jpg'; ?>" height="200" width="100%">
                   </div>
                   <!-- display system error messages -->
                   <?php if($login_error){ ?>
@@ -152,7 +141,7 @@
                </div>
 
                <!-- note is this JPHPMVC sent the data to controller interninaly so it sent the requests to it self and pass to controller instead of let controller get request and then redirect to view-->
-               <form id="login_form" method="POST" action="<?php echo $_SERVER['PHP_SELF']; ?>" autocomplete="true">
+               <form id="login_form" method="POST" action="login.php" autocomplete="true">
                   <div class="mb-3 mt-3">
                      <label for="email">Username:</label>
                      <input type="text" autocomplete="current-username" class="form-control" id="login_username"
@@ -197,10 +186,9 @@
        if (
            isset($remember_medata['remember_me']) && !empty($remember_medata['remember_me'])  &&
            isset($remember_medata['username']) && !empty($remember_medata['username'])  &&
-           isset($remember_medata['password']) && !empty($remember_medata['password'])
+           isset($remember_medata['password']) && !empty($remember_medata['password']) &&
+           $remember_medata['remember_me'] === True
          ){
-           if ($remember_medata['remember_me'] === True){
-
              echo '<script>
              if ('.json_encode($remember_medata['remember_me']).' === true){
                const loginForm = document.getElementById("login_form");
@@ -216,7 +204,6 @@
                loginForm.submit();
              }
              </script>';
-           }
 
        }
      }

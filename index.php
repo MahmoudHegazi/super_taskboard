@@ -2,15 +2,16 @@
 ob_start();
 require_once('config.php');
 require_once('controllers/IndexController.php');
-if (!isset($_SESSION['logged']) && empty($_SESSION['logged'])){
-  if ($_SESSION['logged'] == False){
-    $_SESSION['message_login'] = 'Please Login To acces this page';
-    $_SESSION['success_login'] = False;
-    header("Location: ./login.php");
-    die();
-    return False;
-  }
+if (!isset($_SESSION['logged']) || empty($_SESSION['logged']) || !isset($_SESSION['logged_id']) || empty($_SESSION['logged_id'])){
+  $_SESSION['message_login'] = 'Please Login To acces this page';
+  $_SESSION['success_login'] = False;
+  header("Location: ./login.php");
+  die();
+  return False;
 }
+
+$logged_userid = $_SESSION['logged_id'];
+$user_role = 'user';
 $request_type = $_SERVER['REQUEST_METHOD'] === 'POST' ? 'POST' : 'GET';
 
 /* Handle Used Calendar part and get all data needed from controller like the MVC but modifed by include controller instead of get the request */
@@ -33,8 +34,20 @@ try {
   // Index Controller and view setup
   // if you get here, all is fine and you can use $object
   $current_month = isset($_GET['month']) && !empty($_GET['month']) ? test_input($_GET['month']) : null;
+  $current_year = isset($_GET['year']) && !empty($_GET['year']) ? test_input($_GET['year']) : null;
+  $input = (int)$current_year;
+  if($input>1000 && $input<2100)
+  {
+    $current_year = test_input($_GET['year']);
+  } else {
+    $current_year = NULL;
+  }
   global $pdo;
-  $index_controller = new IndexController($pdo, $current_month, $request_type);
+  $index_controller = new IndexController($pdo, $current_month, $request_type, $current_year, $logged_userid);
+  $get_role = $index_controller->return_current_logged_role($logged_userid);
+  if (isset($get_role) && !empty($get_role)){
+    $user_role = $get_role == 'admin' ? 'admin' : 'user';
+  }
   $current_calendar = $index_controller->get_used_calendar();
   $current_months = $index_controller->get_current_months();
   $cal_years = $index_controller->get_years();
@@ -161,6 +174,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
       .text_shadow02 {
       text-shadow: 1px 1px 2px black, 0 0 25px white, 0 0 5px darkblue;
       }
+      .cursor_pointer{
+        cursor:pointer;
+      }
 
       .max_width_30{
         max-width: 30% !important;
@@ -198,6 +214,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
       min-height: fit-content;
       cursor: default;
       }
+
+      .owned_byLoged,.owned_byLoged_remove,.owned_byLoged_reserv {
+        cursor: pointer;
+      }
+      .owned_byLoged_remove:hover{
+        background: darkred !important;
+        color: white !important;
+      }
+
 
       .period_title_default{
 
@@ -423,12 +448,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
       </p>
 
       <div class="container d-flex justify-content-end border border-succcess p-2">
-        <a href="./logout.php" class="btn btn-danger">Log Out</a>
+
+        <?php
+          if (isset($_SESSION['logged_id']) && !empty($_SESSION['logged_id'])){
+            ?>
+            <a href="./logout.php" class="btn btn-danger">Log Out</a>
+            <span style="width:10px;"></span>
+            <a href="./profile?uid=<?php echo $_SESSION['logged_id'];  ?>" class="btn btn-success">Profile</a>
+            <?php
+          }
+         ?>
         <!-- fake margin for flex -->
         <span style="width:10px;"></span>
-        <button class="btn btn-primary">Setup</button>
-        <span style="width:10px;"></span>
-        <button class="btn btn-success">Profile</button>
+        <?php if ($user_role == 'admin'){
+          ?>
+            <a href="./setup.php" class="btn btn-primary">Setup</a>
+          <?php
+        } ?>
       </div>
 
     </div>
@@ -469,7 +505,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
               <div id="month_controler_container" class="col-sm-6">
                 <!-- month switcher start -->
                 <div  class="container month_row d-flex flex-wrap align-items-start justify-content-between p-2  text-black border border-light">
-                  <i class="display-6 flex-fill fa fa-arrow-circle-left text-white month_arrow"></i>
+                  <i class="display-6 flex-fill fa fa-arrow-circle-left text-white month_arrow"
+                  data-month="<?php
+                  if (is_numeric($index_controller->get_current_month()->get_month())){
+                    echo $index_controller->get_current_month()->get_month() >= 2 ? $index_controller->get_current_month()->get_month() - 1 : 1;
+                  }
+                  ?>"
+                  ></i>
                   <h3 id="selected_month_name" class="flex-fill month_name text_shadow01 text-white">
                     <?php if (!is_null($index_controller->get_current_month())){
                       $dateObj = DateTime::createFromFormat('!m', $index_controller->get_current_month()->get_month());
@@ -477,17 +519,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
                       echo $monthName;
                     } ?>
                   </h3>
-                  <i class="display-6 flex-fill fa fa-arrow-circle-right text-white month_arrow"></i>
+                  <i class="display-6 flex-fill fa fa-arrow-circle-right text-white month_arrow"
+                  data-month="<?php
+                  if (is_numeric($index_controller->get_current_month()->get_month())){
+                    echo $index_controller->get_current_month()->get_month() <= 12 ? $index_controller->get_current_month()->get_month() + 1 : 12;
+                  }
+                  ?>"></i>
                 </div>
                 <!-- month switcher end -->
               </div>
               <!-- month controller end -->
               <div class="col-sm-5 d-flex justify-content-center align-items-start rounded p-2">
                 <!-- year display start -->
-                <form class="flex-fill">
-                  <select class="form-control" name="selected_year" id="selected_year">
+                <form class="flex-fill" action="./index.php" method="GET" id="year_form">
+                  <select class="form-control" name="year" id="year">
                     <!-- years selector -->
-
                     <?php if (!empty($cal_years) && is_array($cal_years)) {
                       for ($y=0; $y<count($cal_years); $y++){
                     ?>
@@ -509,7 +555,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
                       for ($m=0; $m<count($current_months); $m++){
                         ?>
                         <!-- change month by number better UX option for old man -->
-                        <form method="GET" action="./" class="month_form bg-light p-1 m-1 rounded-circle d-flex justify-content-center align-items-center month_toggle_btn">
+                        <form method="GET" action="./" class="month_form bg-light p-1 m-1 rounded-circle d-flex justify-content-center align-items-center month_toggle_btn" data-month="<?php echo $current_months[$m]->get_month(); ?>">
                           <span class="p-1 text-center"><?php echo $current_months[$m]->get_month(); ?></span>
                           <input type="hidden" style="display:none;" name="month" value="<?php echo $current_months[$m]->get_month(); ?>" required>
                         </form>
@@ -523,8 +569,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
             </div>
           </div>
           <div class="col-sm-12 d-flex justify-content-center align-items-center bg_dimgray">
+
             <!-- Calendar display start -->
             <div class="calendar border border-dark p-2 mt-3 mb-5 container-fluid bg-white">
+              <div class="text-black"><h5><?php
+              $smonth = intval($index_controller->get_current_month()->get_month()) > 9 ? $index_controller->get_current_month()->get_month() : '0' . $index_controller->get_current_month()->get_month();
+
+              echo $index_controller->get_current_year()->get_year() . '-' . $smonth . '-01'; ?></h5></div>
               <!-- week Titles row start -->
               <div class="d-flex p-2 cal_days_titles">
                 <div class="flex-fill border border-light cal_card_cell">
@@ -636,6 +687,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
                                  $period_index = $selected_period->get_period_index();
                                  $p_element_id = $selected_period->get_element_id();
                                  $p_element_class = $selected_period->get_element_class();
+
+
                                  /* ##################### display periods   ############################ */
                                  ?>
                                  <!-- period example start -->
@@ -659,15 +712,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
                                         $s_slot_index = $slot_obj->get_slot_index();
                                         $s_element_id = $slot_obj->get_element_id();
                                         $s_element_class = $slot_obj->get_element_class();
+
+                                        $current_reservation = $index_controller->get_reservation_data_byslot($s_id);
+                                        $owned_reservation = isset($current_reservation) && !empty($current_reservation) && (intval($current_reservation->get_user_id()) === intval($logged_userid)) ? 1 : 0;
+
+
+
                                         // used slot
                                         if ($s_empty == 0){
                                           // display used slot
                                           ?>
                                           <!-- slot start booked already -->
-                                          <div class="slot_background_default m-1 used_slot <?php echo $s_element_class; ?>"
+                                          <div class="slot_background_default p-1 m-1 used_slot <?php echo $s_element_class; ?>"
                                             id="<?php echo $s_element_id; ?>">
-                                           <div class="container">
-                                             <i class="fa fa-calendar-check-o" style="font-size:1.1em;"></i>
+                                           <div class="container d-flex justify-content-between align-items-between">
+
+                                             <!-- if this slot owned by logged display controls else nope -->
+                                             <?php
+
+
+                                             if ($owned_reservation || (isset($current_reservation) && !empty($current_reservation) && $user_role === 'admin')){
+                                               echo '<i  data-id="'. $current_reservation->get_id().'" data-start="'.$s_start_from.'" data-end="'.$s_end_at.'"  data-name="'.$current_reservation->get_name().'" data-notes="'.$current_reservation->get_notes().'" data-bs-toggle="modal" data-bs-target="#editReservationModal" class="cursor_pointer text-success fa fa-calendar-check-o  edit_owned_slot" style="font-size:17px;"></i>';
+
+                                               echo'<i data-slot-id="'.$s_id.'" data-id="'. $current_reservation->get_id().'" class="fa text-white fa fa-close border border-light bg-danger rounded owned_byLoged_remove" style="font-size:1.1em;"  data-bs-toggle="modal" data-bs-target="#cancelReservationModal" ></i>';
+                                               echo '<i data-show="show_'.$current_reservation->get_id().'"  data-id="'. $current_reservation->get_id().'" data-start="'.$s_start_from.'" data-end="'.$s_end_at.'"  data-name="'.$current_reservation->get_name().'" data-notes="'.$current_reservation->get_notes().'" class="text-success fa fa-envelope-o owned_byLoged view_reservation" style="font-size:18px;"></i>';
+                                               echo '<button style="display:none !important;" data-bs-toggle="modal" data-bs-target="#viewReservationModal" id="show_'.$current_reservation->get_id().'"></button>';
+                                             } else {
+                                               // not owned reservation
+                                               if ($user_role === 'admin' && !empty($current_reservation)){
+                                                 echo'<i title="Admin Remove Reservation" data-slot-id="'.$current_reservation->get_id().'" data-id="x" class="fa text-white fa fa-close border border-light bg-danger rounded owned_byLoged_remove" style="font-size:1.1em;"  data-bs-toggle="modal" data-bs-target="#cancelReservationModal" ></i>';
+                                               }
+                                               echo '<i title="This Slot Not available" class="fa fa-calendar-check-o not_ownedbyloged_resev" style="font-size:17px;"></i>';
+                                               echo '<i title="This Slot Not available" class="fa fa-envelope not_ownedbyloged"></i>';
+                                             }
+                                             ?>
+
                                            </div>
                                           </div>
                                           <!-- slot end -->
@@ -675,17 +754,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
                                         } else {
                                           ?>
                                           <!-- slot start with booking -->
-                                          <div class="slot_background_default m-1 empty_slot <?php echo $s_element_class; ?>" id="<?php echo $s_element_id; ?>">
-                                           <div class="container book_open_btn"
-                                             data-slot-id="<?php echo $s_id; ?>"
+                                          <div class="slot_background_default p-1 m-1 empty_slot <?php echo $s_element_class; ?>" id="<?php echo $s_element_id; ?>">
+                                           <div class="d-flex justify-content-between container d-flex justify-content-center align-items-between">
+                                             <i class="fa text-primary fa fa-calendar-o book_open_btn" style="font-size:1.1em;" data-slot-id="<?php echo $s_id; ?>"
                                              data-slot-start_from="<?php echo $s_start_from; ?>"
                                              data-slot-end_at="<?php echo $s_end_at; ?>"
                                              data-slot-empty="<?php echo $s_empty; ?>"
                                              data-slot-index="<?php echo $s_slot_index; ?>"
                                              data-period-date="<?php echo $p_date; ?>"
                                              data-period-description="<?php echo $p_description; ?>"
-                                             data-bs-toggle="modal" data-bs-target="#bookingModal">
-                                             <i class="fa text-primary fa fa-calendar-o" style="font-size:1.1em;"></i>
+                                             data-uid="<?php echo $logged_userid; ?>"
+                                             data-bs-toggle="modal" data-bs-target="#bookingModal" ></i>
+
+
+                                             <i data-slot-id="<?php echo $s_id; ?>"
+                                                data-show-view="<?php echo 'show_view_' . $s_id; ?>"
+                                                data-id="<?php echo $s_id; ?>"
+                                                data-start="<?php echo $s_start_from; ?>"
+                                                data-end="<?php echo $s_end_at; ?>"
+                                                data-period-date="<?php echo $p_date; ?>"
+                                                data-slot-index="<?php echo $s_slot_index; ?>"
+                                                data-period-description="<?php echo $p_description; ?>"
+                                               class="fa text-primary fa fa-envelope-o view_empty_slot"
+                                                style="font-size:1.1em;"></i>
+                                               <button style="display:none !important;" data-bs-toggle="modal"
+                                               data-bs-target="#viewSlotModal" id="<?php echo 'show_view_' . $s_id;?>" style="display:none;"></button>
                                            </div>
                                           </div>
                                           <!-- slot end -->
@@ -750,7 +843,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
                 <input  maxlength="30"  pattern="[A-Za-z\s]{1,30}" title="Please Enter a valid name: eg Jone" type="text" class="form-control" placeholder="Name.." name="reservation_name" id="reservation_name" />
                 <textarea min="0" maxlength="255" placeholder="Reservation Notes.." class="form-control" rows="3" id="reservation_comment" name="reservation_comment"></textarea>
               </div>
-                 <input id="supcal_token" name="secuirty_token" type="hidden" value="<?php echo isset($index_controller) ? $index_controller->get_request_secert() : ''; ?>" />
+
+              <input id="loggeduid" name="loggeduid" type="hidden" value="<?php echo isset($logged_userid) ? $logged_userid : ''; ?>" required />
+
+                 <input id="supcal_token" name="secuirty_token" type="hidden" value="<?php echo isset($index_controller) ? $index_controller->get_request_secert() : ''; ?>" required />
                  <input type="hidden" value="" name="reservation_slot_id" id="reservation_slot_id" style="display:none;">
                   <div class="container text-center d-flex justify-content-between m-2 p-2">
                   <p class="ml-2">Start At: <span id="start_from_slot_a" class="bg-secondary text-white badge p-2">12:00PM</span></p>
@@ -881,30 +977,138 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
 <!-- Map Booking modal end -->
 
 
-<!-- Cancel reservation modal start -->
-<div class="modal" id="myModal">
-  <div class="modal-dialog modal-sm">
+<!-- view empty slot modal start -->
+<div class="modal fade" aria-modal="true" role="dialog" id="viewSlotModal">
+  <div class="modal-dialog">
     <div class="modal-content">
-
       <!-- Modal Header -->
       <div class="modal-header">
-        <h5 class="modal-title">Cancel the reservation</h5>
+        <h4 class="modal-title">View Slot</h4>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
 
       <!-- Modal body -->
       <div class="modal-body">
-        <div class="alert alert-danger text-black text-center">Are you sure you want to cancel the reservation</div>
-
-        <div class="d-grid">
-          <button type="submit" class="btn btn-block btn-dark text-white" data-bs-dismiss="modal">
-           Cancel Reservation</button>
+        <div class="mb-4 mt-3">
+          <h5 class="text-center" id="period_description_viewslot"></h5>
+          <p><span>Period Date: </span><span id="period_dateslot_view"></span></p>
+          <p>Slot Index: <span id="slot_indexview"></span></p>
+        </div>
+        <div class="mb-3 mt-3">
+            <div class="d-flex justify-content-between align-items-center">
+              <div class="badge bg-success p-2">start: <span id="view_slotstart_at"></span></div>
+              <div class="badge bg-danger p-2">end: <span id="view_slotend_at"></span></div>
+            </div>
         </div>
       </div>
-
       <!-- Modal footer -->
       <div class="modal-footer">
-        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Back</button>
+          <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Back</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- view empty slot modal end -->
+
+<!-- view reservation modal start -->
+<div class="modal fade" aria-modal="true" role="dialog" id="viewReservationModal">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <!-- Modal Header -->
+      <div class="modal-header">
+        <h4 class="modal-title">View Reservation</h4>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <!-- Modal body -->
+      <div class="modal-body">
+        <div class="d-flex justify-content-between align-items-center">
+          <div class="badge bg-success p-2">start: <span id="view_viewstart_at"></span></div>
+          <div class="badge bg-danger p-2">end: <span id="view_viewend_at"></span></div>
+        </div>
+        <div class="mb-3 mt-3">
+          <div class="text-left">
+            <h6>Name: <span id="view_reservation_name"></span></h6>
+
+            <div class="text-center text-center">
+              <h6 class="mb-3">Notes</h6>
+              <p id="view_reservation_notes"></p>
+            </div>
+
+          </div>
+        </div>
+      </div>
+      <!-- Modal footer -->
+      <div class="modal-footer">
+          <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Back</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- view reservation modal end -->
+
+
+<!-- edit reservation modal start -->
+<div class="modal fade" aria-modal="true" role="dialog" id="editReservationModal">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form action="./index.php" method="POST">
+
+      <!-- Modal Header -->
+      <div class="modal-header">
+        <h4 class="modal-title">Edit Reservation</h4>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <!-- Modal body -->
+      <div class="modal-body">
+        <div class="d-flex justify-content-between align-items-center">
+          <div class="badge bg-success p-2">start: <span id="edit_viewstart_at"></span></div>
+          <div class="badge bg-danger p-2">end: <span id="edit_viewend_at"></span></div>
+        </div>
+        <div class="mb-3 mt-3 text-center">
+          <label for="edit_reservation_name">Name: </label>
+          <input  maxlength="30"  pattern="[A-Za-z\s]{1,30}" title="Please Enter a valid name: eg Jone" type="text" class="form-control" placeholder="Name.." name="edit_reservation_name" id="edit_reservation_name" />
+          <label for="edit_reservation_comment">Description: </label>
+          <textarea min="0" maxlength="255" placeholder="Reservation Notes.." class="form-control" rows="3" name="edit_reservation_comment" id="edit_reservation_comment"></textarea>
+        </div>
+      </div>
+      <!-- Modal footer -->
+      <div class="modal-footer">
+          <input type="hidden" style="display:none !important;" id="edit_reservation_id" name="edit_reservation_id" required />
+          <button  type="submit" class="btn btn-danger" >Edit Reservation</button>
+          <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Back</button>
+      </div>
+      </form>
+    </div>
+  </div>
+</div>
+<!-- edit reservation modal end -->
+
+
+<!-- Cancel reservation modal start -->
+<div class="modal fade" aria-modal="true" role="dialog" id="cancelReservationModal">
+  <div class="modal-dialog">
+    <div class="modal-content">
+
+      <!-- Modal Header -->
+      <div class="modal-header">
+        <h4 class="modal-title">cancellazione della prenotazione</h4>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <!-- Modal body -->
+      <div class="modal-body">
+        Sei sicuro di voler cancellare la prenotazione
+      </div>
+      <!-- Modal footer -->
+      <div class="modal-footer">
+        <form action="./index.php" method="POST">
+          <input type="hidden" style="display:none !important;" id="cancel_reservation_slotid" name="cancel_reservation_slotid" required />
+          <input type="hidden" style="display:none !important;" id="cancel_reservation_id" name="cancel_reservation_id" required />
+          <button  type="submit" class="btn btn-danger" >Cancel Booking</button>
+        </form>
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Back</button>
       </div>
 
     </div>
@@ -1042,6 +1246,9 @@ monthForms.forEach( (monthForm)=>{
   });
 });
 
+
+
+
 /* open booking modal */
 const startFromSlotA = document.getElementById('start_from_slot_a');
 const endAtSlotA = document.getElementById('end_at_slot_a');
@@ -1050,6 +1257,7 @@ const periodDescriptionA = document.getElementById('period_description_a');
 const periodDateTimeA = document.getElementById('period_date_time_a');
 const reservationSlotId = document.getElementById('reservation_slot_id');
 const slotIndexA = document.getElementById('slot_index_a');
+const loggedUId = document.getElementById('loggeduid');
 
 const allBookingOpenBtns = document.querySelectorAll(".book_open_btn");
 allBookingOpenBtns.forEach( (bookOpen)=>{
@@ -1066,6 +1274,7 @@ allBookingOpenBtns.forEach( (bookOpen)=>{
       periodDescriptionA.innerText = targetElement.getAttribute("data-period-description");
       periodDateTimeA.innerText = targetElement.getAttribute("data-period-date");
       reservationSlotId.value = targetElement.getAttribute("data-slot-id");
+      loggedUId.value = targetElement.getAttribute("data-uid");
       slotIndexA.innerText = targetElement.getAttribute("data-slot-index");
     }
   });
@@ -1275,6 +1484,203 @@ const mapRservationDate = document.querySelector("#map_reservation_date");
 mapRservationDate.addEventListener( "change", getDayPeriodsAndSlots );
 
 });
+
+// effects for owned
+const reservationIdInp = document.querySelector("#cancel_reservation_id");
+const reservationSlotIdInp = document.querySelector("#cancel_reservation_slotid");
+function openCancelReservation(event){
+  event.preventDefault();
+
+  reservationSlotIdInp.value = event.target.getAttribute("data-slot-id");
+  reservationIdInp.value = event.target.getAttribute("data-id");
+}
+function showOwnedEffect(event){
+  if (event.target.classList.contains("fa fa-envelope-o")){
+    event.target.classList.add("fa-envelope-open-o");
+    event.target.classList.remove("fa fa-envelope-o");
+    return true;
+  }
+}
+tooltip = null;
+let tooltips = [];
+function clearthem(){
+  tooltips.forEach( (tolTip)=>{
+    tolTip.hide();
+  });
+}
+function showOwnedEffectOpen(event, selector='i.owned_byLoged', title='View Your Reservation Data', placement='bottom'){
+  event.preventDefault();
+  if (event.target.classList.contains("fa-envelope-o")){
+    event.target.classList.remove("fa-envelope-o");
+    event.target.classList.add("fa-envelope-open-o");
+  }
+  event.target.setAttribute("data-bs-toggle", "tooltip");
+  event.target.setAttribute("data-bs-placement", placement);
+  event.target.setAttribute("title", title);
+
+  var tooltipTriggerList = [].slice.call(document.querySelectorAll(`${selector}[data-bs-toggle="tooltip"]`));
+  var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+    tooltip = new bootstrap.Tooltip(tooltipTriggerEl);
+    tooltip.show();
+    tooltips.push(tooltip);
+    return tooltip;
+  });
+}
+
+function showOwnedEffectClose(event, selector='i.owned_byLoged'){
+  if (event.target.classList.contains("fa-envelope-open-o")){
+    event.target.classList.add("fa-envelope-o");
+    event.target.classList.remove("fa-envelope-open-o");
+  }
+  clearthem();
+  const allTooltips = document.querySelectorAll(`${selector}[data-bs-toggle="tooltip"]`);
+  allTooltips.forEach( (toolTip)=>{
+    if (toolTip.hasAttribute("data-bs-toggle")){
+      toolTip.removeAttribute("data-bs-toggle")
+    }
+    if (toolTip.hasAttribute("data-bs-placement")){
+      toolTip.removeAttribute("data-bs-placement")
+    }
+    if (toolTip.hasAttribute("title")){
+      toolTip.removeAttribute("title")
+    }
+  });
+}
+
+// effect for open owned reservation
+const allOwnedRes = document.querySelectorAll(".owned_byLoged");
+
+allOwnedRes.forEach( (resBtn)=>{
+  resBtn.addEventListener("mouseenter", (event)=>{showOwnedEffectOpen(event, 'i.owned_byLoged', 'View Your Reservation Data', 'right')});
+  resBtn.addEventListener("mouseout", (event)=>{showOwnedEffectClose(event, 'i.owned_byLoged')});
+});
+
+const emptyViewSlots = document.querySelectorAll(".view_empty_slot");
+emptyViewSlots.forEach( (emptySlot)=>{
+  emptySlot.addEventListener("mouseenter", (event)=>{showOwnedEffectOpen(event, 'i.view_empty_slot', 'View Empter Slot Data', 'right')});
+  emptySlot.addEventListener("mouseout", (event)=>{showOwnedEffectClose(event, 'i.view_empty_slot')});
+});
+
+
+const removeOwnedReservations = document.querySelectorAll(".owned_byLoged_remove");
+removeOwnedReservations.forEach( (removeResrv)=>{
+  removeResrv.addEventListener("click", openCancelReservation);
+});
+
+
+
+
+
+
+
+const allEditReservations = document.querySelectorAll(".edit_owned_slot");
+
+allEditReservations.forEach( (editResrv)=>{
+  editResrv.addEventListener("click",editHandler);
+});
+
+
+const editReservIDInput = document.querySelector("#edit_reservation_id");
+const editReservNameInput = document.querySelector("#edit_reservation_name");
+const editReservCommentInput = document.querySelector("#edit_reservation_comment");
+const editViewStartAt = document.querySelector("#edit_viewstart_at");
+const editViewEndAt = document.querySelector("#edit_viewend_at");
+function editHandler(event){
+  event.preventDefault();
+  editReservIDInput.value = event.target.getAttribute("data-id");
+  editReservNameInput.value = event.target.getAttribute("data-name");
+  editReservCommentInput.value = event.target.getAttribute("data-notes");
+  editViewStartAt.innerText = event.target.getAttribute("data-start");
+  editViewEndAt.innerText = event.target.getAttribute("data-end");
+}
+
+
+const allViewReservations = document.querySelectorAll(".view_reservation");
+
+allViewReservations.forEach( (viewReserv)=>{
+  viewReserv.addEventListener("click",viewHandler);
+});
+
+const viewReservName = document.querySelector("#view_reservation_name");
+const viewViewComment = document.querySelector("#view_reservation_notes");
+const viewReservStart = document.querySelector("#view_viewstart_at");
+const viewReservEnd = document.querySelector("#view_viewend_at");
+function viewHandler(event){
+  event.preventDefault();
+  const btnId = event.target.getAttribute("data-show");
+  const btn = document.getElementById(btnId);
+  if (btn){
+    viewReservName.innerText = event.target.getAttribute("data-name");
+    viewViewComment.innerText = event.target.getAttribute("data-notes");
+    viewReservStart.innerText = event.target.getAttribute("data-start");
+    viewReservEnd.innerText = event.target.getAttribute("data-end");
+    btn.click();
+  }
+}
+
+// month arrow toggle
+const allMonthArrows = Array.from(document.querySelectorAll(".month_arrow"));
+function handleMonthArrowJs(event){
+  // handle arrow smoth with same buttons to keep the results easy and less query parameters
+  const targetMonth = event.target.getAttribute("data-month");
+  if (targetMonth){
+    const targetForm = document.querySelector(`.month_form[data-month='${targetMonth}']`);
+    if (targetForm){
+      targetForm.submit();
+    }
+  }
+}
+allMonthArrows.forEach( (monthArrow)=>{
+  monthArrow.addEventListener("click", handleMonthArrowJs);
+});
+
+// submit year form
+
+const yearSelector = document.getElementById("year");
+const yearForm = document.getElementById("year_form");
+yearSelector.addEventListener("change", (event)=>{
+  if (event.target.value){
+    yearForm.submit();
+    return false;
+  }
+})
+
+
+
+
+
+
+const allViewEmptySlots = document.querySelectorAll(".view_empty_slot");
+
+allViewEmptySlots.forEach( (viewEmptySlot)=>{
+  viewEmptySlot.addEventListener("click",viewSlotHandler);
+});
+
+const viewSlotStartAt = document.querySelector("#view_slotstart_at");
+const viewSlotendAt = document.querySelector("#view_slotend_at");
+const slotIndexView = document.querySelector("#slot_indexview");
+const periodDateslotView = document.querySelector("#period_dateslot_view");
+const periodDescriptionViewslot = document.querySelector("#period_description_viewslot");
+function viewSlotHandler(event){
+  event.preventDefault();
+  const slotBtnId = event.target.getAttribute("data-show-view");
+  const slotBtn = document.getElementById(slotBtnId);
+  if (slotBtn){
+    viewSlotStartAt.innerText = event.target.getAttribute("data-start");
+    viewSlotendAt.innerText = event.target.getAttribute("data-end");
+    periodDateslotView.innerText = event.target.getAttribute("data-period-date");
+    slotIndexView.innerText = event.target.getAttribute("data-slot-index");
+    periodDescriptionViewslot.innerText = event.target.getAttribute("data-period-description");
+    slotBtn.click();
+  }
+}
+
+
+
+
+
+
+
 
 /* AJAX MAP new Reservation end */
 

@@ -33,18 +33,9 @@ class LoginController {
     $this->set_cal_id($cal_id);
     $this->set_redirect_url(!is_null($redirect_url) ? $redirect_url : isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '');
 
-    //$this->set_wrong_logins($this->return_user_wrong_logins($username));
     if ($request_type == 'GET'){
       $this->set_request_token($this->getnerate_request_secert());
-
     }
-/*
-          $added_log = $this->logs_service->add(2, 'nice@gmail.com', 1, 0, $this->get_cal_id(), $this->get_request_token(), $this->get_request_token(), 'nice pass',
-          $cookies_enabled=0, $ip=NULL, $loc=NULL, $os_type=NULL, $browser_type=NULL, $browser_language=NULL,
-          $blocked=NULL, $block_end=NULL, $banned=0, $completed=1, $remember_me=0, $notes='');
-          echo $added_log;
-die();
-*/
 
   }
 
@@ -143,10 +134,6 @@ die();
     return array('exist'=>$exist, 'message'=>$message, 'type'=>$type);
   }
 
-  public function generate_user_obj($username, $pass){
-
-  }
-
   public function return_user($username){
     return array();
   }
@@ -240,11 +227,7 @@ die();
         /* valiate pass and user  */
         $valid_login = $this->is_valid_credentials($user_obj, $username, $password, $type, $rememberme);
 
-        // if not valid login for 10 times block user
-/*        if (!$valid_login){
-          echo 'here';
-          die();
-        }*/
+
 
         $encrypted_userid =  $this->encrypt_remeber_me_token($user_obj->get_id(), $remember_me_token);
 
@@ -357,23 +340,11 @@ die();
           $cooke_ready = False;
           $completed = 1;
           if ($cookies_enabled == 1 && $rememberme_input == 1){
-            //echo 'Create Cookie Contains encrypted userid and remember this user for 7 days';
-            //header('Location: login.php');
-            //create_this_link($login_controler->get_app_name(), $suburl = 'login.php');
-            // now user open  cookies and he need remeber me so remeber his encrypted id for security encrypt id
 
-            //$this->logs_service->(get_possible_tokens());
-            //die();
             if ($rememberme == False){
-              $cooke_ready = setcookie('uid', $encrypted_userid, time() + 1000, $httponly=True);
+              $cooke_ready = setcookie('uid', $encrypted_userid, time() + (86400 * 30), $httponly=True);
             }
 
-            /*
-            if (isset($_COOKIE['uid']) && !empty($_COOKIE['uid'])){
-              echo $this->decrypt_remeber_me_token($_COOKIE['uid'], $remember_me_token);
-            }
-            die();
-            */
           }
           // if no remember me make token null if remember me make completed 0 and keep token
           if (!$cooke_ready){
