@@ -1,5 +1,5 @@
 # super_taskboard
-MVC PHP task board
+MVC PHP task board (This not normal taskbaord) This full system to create full customize taskboard or booking system that fit any use with full control to app style and texts
 
 ![image](https://user-images.githubusercontent.com/55125302/156213051-fd597b3f-d41c-4a30-a490-0af232eb3835.png)
 
