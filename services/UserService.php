@@ -114,6 +114,45 @@ class UserService {
     return $user_list;
   }
 
+
+  // get All user
+  function read_all_public(){
+
+    $user_list = array();
+    $user_rows = $this->user_mapper->read_all_public();
+    if (count($user_rows) == 0){return array();}
+    for ($i=0; $i<count($user_rows); $i++){
+        $user = new User();
+        $user->init(
+          $user_rows[$i]['name'],
+          NULL,
+          NULL,
+          NULL
+        );
+        $user->set_id($user_rows[$i]['id']);
+        array_push($user_list, $user);
+    }
+    return $user_list;
+  }
+
+  function read_one_public($user_id){
+    $user_row = $this->user_mapper->read_one_public($user_id);
+    if (!isset($user_row) || empty($user_row)){return array();}
+    $user = new User();
+    $user->init(
+      $user_row['name'],
+      $user_row['username'],
+      NULL,
+      $user_row['email']
+    );
+    $user->set_id($user_row['id']);
+    $user->set_role($user_row['role']);
+    return $user;
+  }
+
+
+
+
   // services methods
   function get_users_by_id($list_of_ids){
 

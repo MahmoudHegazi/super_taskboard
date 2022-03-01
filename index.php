@@ -2,7 +2,7 @@
 ob_start();
 require_once('config.php');
 require_once('controllers/IndexController.php');
-if (!isset($_SESSION['logged']) || empty($_SESSION['logged']) || !isset($_SESSION['logged_id']) || empty($_SESSION['logged_id'])){
+if (!isset($_SESSION['logged']) || empty($_SESSION['logged']) || !isset($_SESSION['logged_id']) || empty($_SESSION['logged_id']) || !isset($_SESSION['name'])){
   $_SESSION['message_login'] = 'Please Login To acces this page';
   $_SESSION['success_login'] = False;
   header("Location: ./login.php");
@@ -10,7 +10,9 @@ if (!isset($_SESSION['logged']) || empty($_SESSION['logged']) || !isset($_SESSIO
   return False;
 }
 
-$logged_userid = $_SESSION['logged_id'];
+$logged_userid = test_input($_SESSION['logged_id']);
+$logged_uname = test_input($_SESSION['name']);
+
 $user_role = 'user';
 $request_type = $_SERVER['REQUEST_METHOD'] === 'POST' ? 'POST' : 'GET';
 
@@ -732,10 +734,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
 
 
                                              if ($owned_reservation || (isset($current_reservation) && !empty($current_reservation) && $user_role === 'admin')){
-                                               echo '<i  data-id="'. $current_reservation->get_id().'" data-start="'.$s_start_from.'" data-end="'.$s_end_at.'"  data-name="'.$current_reservation->get_name().'" data-notes="'.$current_reservation->get_notes().'" data-bs-toggle="modal" data-bs-target="#editReservationModal" class="cursor_pointer text-success fa fa-calendar-check-o  edit_owned_slot" style="font-size:17px;"></i>';
+                                               $user_public_data = $index_controller->return_public_user_data($current_reservation->get_user_id());
 
+                                               $u_name = isset($user_public_data) && !empty($user_public_data) ? $user_public_data->get_name() : '';
+                                               $u_email = isset($user_public_data) && !empty($user_public_data) ? $user_public_data->get_email() : '';
+                                               $u_role = isset($user_public_data) && !empty($user_public_data) ? $user_public_data->get_role() : '';
+                                               $u_username = isset($user_public_data) && !empty($user_public_data) ? $user_public_data->get_username() : '';
+
+                                               echo '<i  data-id="'. $current_reservation->get_id().'" data-start="'.$s_start_from.'" data-end="'.$s_end_at.'"  data-name="'.$current_reservation->get_name().'" data-notes="'.$current_reservation->get_notes().'" data-bs-toggle="modal" data-bs-target="#editReservationModal" class="cursor_pointer text-success fa fa-calendar-check-o  edit_owned_slot" style="font-size:17px;"></i>';
                                                echo'<i data-slot-id="'.$s_id.'" data-id="'. $current_reservation->get_id().'" class="fa text-white fa fa-close border border-light bg-danger rounded owned_byLoged_remove" style="font-size:1.1em;"  data-bs-toggle="modal" data-bs-target="#cancelReservationModal" ></i>';
-                                               echo '<i data-show="show_'.$current_reservation->get_id().'"  data-id="'. $current_reservation->get_id().'" data-start="'.$s_start_from.'" data-end="'.$s_end_at.'"  data-name="'.$current_reservation->get_name().'" data-notes="'.$current_reservation->get_notes().'" class="text-success fa fa-envelope-o owned_byLoged view_reservation" style="font-size:18px;"></i>';
+                                               echo '<i data-show="show_'.$current_reservation->get_id().'"  data-id="'. $current_reservation->get_id().'" data-start="'.$s_start_from.'" data-end="'.$s_end_at.'"  data-name="'.$current_reservation->get_name().'" data-notes="'.$current_reservation->get_notes().'"
+                                               data-user-name="'.$u_name.'" data-user-email="'.$u_email.'" data-user-role="'.$u_role.'" data-username="'.$u_username.'" class="text-success fa fa-envelope-o owned_byLoged view_reservation" style="font-size:18px;"></i>';
                                                echo '<button style="display:none !important;" data-bs-toggle="modal" data-bs-target="#viewReservationModal" id="show_'.$current_reservation->get_id().'"></button>';
                                              } else {
                                                // not owned reservation
@@ -843,6 +852,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
                 <input  maxlength="30"  pattern="[A-Za-z\s]{1,30}" title="Please Enter a valid name: eg Jone" type="text" class="form-control" placeholder="Name.." name="reservation_name" id="reservation_name" />
                 <textarea min="0" maxlength="255" placeholder="Reservation Notes.." class="form-control" rows="3" id="reservation_comment" name="reservation_comment"></textarea>
               </div>
+
+              <!-- addmin select user id -->
+              <?php
+               if (isset($index_controller) && !empty($index_controller) && $user_role === 'admin'){
+                 ?>
+                 <label for="admin_select_userid_add">Select the owner of the reservation</label>
+                 <select title="You See this Becuase You Are an admin select the user"
+                   class="form-control" id="admin_select_userid_add" name="admin_select_userid_add" required>
+                     <?php
+                     $public_users_data = $index_controller->return_users_public_data();
+                     for ($pu=0; $pu<count($public_users_data); $pu++){
+                       $user_id = $public_users_data[$pu]->get_id();
+                       $uname = ($user_id === $logged_userid) ? 'You: ' . $public_users_data[$pu]->get_name() : $public_users_data[$pu]->get_name();
+                     ?>
+                       <option value="<?php echo $user_id; ?>" checked><?php echo $uname; ?></option>
+                     <?php
+                     }?>
+                 </select>
+                 <?php
+               }
+              ?>
+
 
               <input id="loggeduid" name="loggeduid" type="hidden" value="<?php echo isset($logged_userid) ? $logged_userid : ''; ?>" required />
 
@@ -989,8 +1020,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
 
       <!-- Modal body -->
       <div class="modal-body">
+        <div class="mt-2 mb-2">
+           <h5 class="text-center" id="period_description_viewslot"></h5>
+        </div>
         <div class="mb-4 mt-3">
-          <h5 class="text-center" id="period_description_viewslot"></h5>
           <p><span>Period Date: </span><span id="period_dateslot_view"></span></p>
           <p>Slot Index: <span id="slot_indexview"></span></p>
         </div>
@@ -1033,6 +1066,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
             <div class="text-center text-center">
               <h6 class="mb-3">Notes</h6>
               <p id="view_reservation_notes"></p>
+            </div>
+
+            <div class="container mt-3">
+              <caption class="caption bg-primary">Reservation Owner Data</caption>
+              <table class="table table-dark table-hover">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td id="view_reservation_uname">Mary</td>
+                    <td id="view_reservation_uusername">Moe</td>
+                    <td id="view_reservation_urole">mary@example.com</td>
+                    <td id="view_reservation_email">mary@example.com</td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
 
           </div>
@@ -1594,7 +1649,6 @@ function editHandler(event){
   editViewEndAt.innerText = event.target.getAttribute("data-end");
 }
 
-
 const allViewReservations = document.querySelectorAll(".view_reservation");
 
 allViewReservations.forEach( (viewReserv)=>{
@@ -1605,6 +1659,11 @@ const viewReservName = document.querySelector("#view_reservation_name");
 const viewViewComment = document.querySelector("#view_reservation_notes");
 const viewReservStart = document.querySelector("#view_viewstart_at");
 const viewReservEnd = document.querySelector("#view_viewend_at");
+
+const viewReservationUname = document.querySelector("#view_reservation_uname");
+const viewReservationUusername = document.querySelector("#view_reservation_uusername");
+const viewReservationUrole = document.querySelector("#view_reservation_urole");
+const viewReservationEmail = document.querySelector("#view_reservation_email");
 function viewHandler(event){
   event.preventDefault();
   const btnId = event.target.getAttribute("data-show");
@@ -1614,6 +1673,12 @@ function viewHandler(event){
     viewViewComment.innerText = event.target.getAttribute("data-notes");
     viewReservStart.innerText = event.target.getAttribute("data-start");
     viewReservEnd.innerText = event.target.getAttribute("data-end");
+
+    /* user */
+    viewReservationUname.innerText = event.target.getAttribute("data-user-name");
+    viewReservationUusername.innerText = event.target.getAttribute("data-username");
+    viewReservationUrole.innerText = event.target.getAttribute("data-user-role");
+    viewReservationEmail.innerText = event.target.getAttribute("data-user-email");
     btn.click();
   }
 }

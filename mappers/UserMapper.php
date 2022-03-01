@@ -41,6 +41,17 @@ class UserMapper {
     return $data;
   }
 
+  function read_one_public($user_id){
+    $pdo = $this->getPDO();
+    $stmt = $pdo->prepare("SELECT id, name, email, username, role FROM user WHERE id=:id");
+    $stmt->bindParam(':id', $user_id, PDO::PARAM_INT);
+    $stmt->execute();
+    $data = $stmt->fetch();
+    return $data;
+  }
+
+
+
 
 
 
@@ -78,6 +89,16 @@ class UserMapper {
     $data = $stmt->fetchAll();
     return $data;
   }
+
+  function read_all_public(){
+    //$stmt = $pdo->prepare("SELECT * FROM users LIMIT :limit, :offset");
+    $pdo = $this->getPDO();
+    $stmt = $pdo->prepare("SELECT id, name FROM user");
+    $stmt->execute();
+    $data = $stmt->fetchAll();
+    return $data;
+  }
+
 
   function delete_all(){
     $pdo = $this->getPDO();

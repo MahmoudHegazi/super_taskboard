@@ -3,7 +3,6 @@
    $redirect_url = isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '';
    require_once('config.php');
    require_once('controllers/LoginController.php');
-   require_once('controllers/IndexController.php');
    $request_type = $_SERVER['REQUEST_METHOD'] === 'POST' ? 'POST' : 'GET';
 
    $login_controller = null;
@@ -16,12 +15,8 @@
 
    try {
      global $pdo;
-
-     $index_controller = new IndexController($pdo);
-     $used_calendar = $index_controller->get_used_calendar();
-
-    $login_controller = new LoginController($pdo, $request_type, $used_calendar->get_id(), $redirect_url);
-
+     $login_controller = new LoginController($pdo, $request_type, $redirect_url);
+     $used_calendar = $login_controller->get_used_calendar();
      if (isset($used_calendar) && $used_calendar && !empty($used_calendar)){
        define('TITLE', $used_calendar->get_title());
        define('DESCRIPTION', $used_calendar->get_description());
@@ -43,14 +38,12 @@
 
    }
 
-
-
    // send internal post request to signup Controller class
    if ($_SERVER['REQUEST_METHOD'] === 'POST'){
      // This How The SuperMVC handle all view with all needed given post requests
      $login_controller->postHandler($login_controller, $_POST, $_SESSION, $redirect_url, $error);
      die();
-   } else if ($_SERVER['REQUEST_METHOD'] === 'GET'){
+   } else if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($login_controller)){
      $_SESSION['ajax_token'] = $login_controller->get_request_token();
    } else {
      die();

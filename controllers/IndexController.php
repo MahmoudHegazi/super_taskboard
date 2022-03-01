@@ -88,7 +88,6 @@ class IndexController {
     $this->style_service = new StyleService($pdo);
     $this->reservation_service = new ReservationService($pdo);
 
-
     $used_cal = $this->assign_used_calendar();
     if (!$used_cal || empty($used_cal) || !isset($used_cal)){
       // this error in case no used calendar, make sure not to use DB to delete calendars and if u did np but with next add/remove will solved
@@ -614,14 +613,28 @@ echo date("Y");
       if ($session_token != $request_token){
         return array('success'=>false, 'You have no premssions to Make this request');
       }
-      if (!is_numeric($post_obj['loggeduid']) || $post_obj['loggeduid'] < 1){
-        return array('success'=>false, 'Invalid user id please make sure you logged still logged in refresh page');
-      }
-      /* secuirty end */
+
+
+      $admin_select_user = isset($post_obj['admin_select_userid_add']) && !empty($post_obj['admin_select_userid_add']);
+
+      $logged_id = $session_obj['logged_id'];
       $logged_userid = test_input($post_obj['loggeduid']);
+      $is_admin_user = $index_controller_obj->return_current_logged_role($logged_id) === 'admin';
+      if ($is_admin_user){
+        $logged_userid = test_input($post_obj['admin_select_userid_add']);
+      } else if ($is_admin_user == False && (!is_numeric($post_obj['loggeduid']) || $post_obj['loggeduid'] < 1)) {
+        return array('success'=>false, 'Invalid user id please make sure you logged still logged in refresh page');
+      } else {
+        $logged_userid = $logged_userid === $logged_id ? $logged_userid : $logged_id;
+      }
+
+      /* secuirty end */
+
       $reservation_slot_id = test_input($post_obj['reservation_slot_id']);
       $reservation_name = !empty($post_obj['reservation_name']) ? test_input($post_obj['reservation_name']) : '';
       $reservation_notes = !empty($post_obj['reservation_comment']) ? test_input($post_obj['reservation_comment']) : '';
+
+      /* this for admin ads if rule is admin let him select user without effect anything */
 
       $new_reservation = $index_controller_obj->add_reservation($reservation_slot_id, $logged_userid, $reservation_name, $reservation_notes);
       return $new_reservation;
@@ -849,6 +862,26 @@ echo date("Y");
       }
     return $result;
 
+  }
+
+  public function return_users_public_data(){
+    if (!isset($this->user_service) || empty($this->user_service)) {return array();}
+    $all_users = $this->user_service->read_all_public();
+    if (isset($all_users) && !empty($all_users) && is_array($all_users)){
+      return $all_users;
+    } else {
+      return array();
+    }
+  }
+
+  public function return_public_user_data($user_id){
+    if (!isset($this->user_service) || empty($this->user_service)) {return array();}
+    $user = $this->user_service->read_one_public($user_id);
+    if (isset($user) && !empty($user)){
+      return $user;
+    } else {
+      return array();
+    }
   }
 
   // load the ajax data for display periods and slots in selected day when user click + <

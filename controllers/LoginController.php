@@ -4,10 +4,12 @@ require_once (dirname(__FILE__, 2) . '\config.php');
 require_once (dirname(__FILE__, 2) . '\functions.php');
 require_once (dirname(__FILE__, 2) . '\services\UserService.php');
 require_once (dirname(__FILE__, 2) . '\services\LogsService.php');
+require_once (dirname(__FILE__, 2) . '\services\CalendarService.php');
 require_once (dirname(__FILE__, 2) . '\models\User.php');
 
 class LoginController {
   protected $pdo;
+  protected $calendar_service;
   protected $user_service;
   protected $request_type;
   protected $login_success;
@@ -16,6 +18,8 @@ class LoginController {
   private $request_token;
   protected $redirect_url;
   protected $appname;
+  protected $used_calendar;
+
 
 
   public function __construct(PDO $pdo, $request_type='GET', $cal_id=NULL, $redirect_url=NULL)
@@ -24,6 +28,19 @@ class LoginController {
     $this->pdo = $pdo;
     $this->user_service = new UserService($pdo);
     $this->logs_service = new LogsService($pdo);
+    $this->calendar_service = new CalendarService($pdo);
+
+
+
+    $used_cal = $this->set_used_calendar($this->assign_used_calendar());
+    $used_cal = $this->get_used_calendar();
+
+    if (!isset($used_cal) || empty($used_cal)){
+      throw new Exception( "No Calendars Created Please Create Calendar First and it will marked as used automatic" );
+    }
+
+
+    $cal_id= $used_cal->get_id();
 
     $appname = defined('APPNAME') ? APPNAME : 'supercalendar';
     $this->set_app_name($appname);
@@ -54,6 +71,15 @@ class LoginController {
   public function get_cal_id(){
     return $this->cal_id;
   }
+
+  public function set_used_calendar($used_calendar){
+    $this->used_calendar = $used_calendar;
+  }
+
+  public function get_used_calendar(){
+    return $this->used_calendar;
+  }
+
 
   public function set_redirect_url($redirect_url){
     $this->redirect_url = $redirect_url;
@@ -515,6 +541,7 @@ class LoginController {
     $login_date = $time->format("Y-m-d H:i:s");
     $_SESSION['logged'] = True;
     $_SESSION['logged_id'] = $user_obj->get_id();
+    $_SESSION['name'] = $user_obj->get_name();
     $_SESSION['log_id'] = $log_id;
     $_SESSION['login_message'] = 'Welcome Back: ' . $user_obj->get_name();
     $_SESSION['login_date'] = $login_date;
@@ -563,6 +590,14 @@ class LoginController {
     $encrypted_string=openssl_encrypt($token,"AES-128-ECB",$salt);
     return $encrypted_string;
   }
+
+  public function assign_used_calendar(){
+    //if (!isset($this->calendar_service)){echo 'hi'; return array();}
+    // used has 2 values 1 or 0  , 0 for any calendar not used 1 added automatic to the first added cal when all unused or when remove used cal
+    $cal = $this->calendar_service->get_used_calendar("used", 1);
+    return $cal;
+  }
+
 
   public function pick_selected_remember_meuid($uid){
     $result = array();
@@ -625,6 +660,7 @@ class LoginController {
     }
     return $data;
   }
+
 
 }
 
