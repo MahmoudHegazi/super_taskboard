@@ -8,6 +8,10 @@ This is a CMS for creating fully customized task boards and calendars to suit yo
 ![image](https://user-images.githubusercontent.com/55125302/156524747-6c68cd2a-6ff9-4983-b7dd-208d7dc9ff72.png)
 ![image](https://user-images.githubusercontent.com/55125302/156524783-af4d9413-af7b-4b25-a8e8-16c298956d16.png)
 ![image](https://user-images.githubusercontent.com/55125302/156524859-5e3b5324-4d8d-4e35-ae31-51599f2c26ba.png)
+![image](https://user-images.githubusercontent.com/55125302/156525066-0f7d8a31-e257-4410-b7f2-dc76d20b8eda.png)
+![image](https://user-images.githubusercontent.com/55125302/156525107-acc11015-8f64-4c96-81d7-44f3f992b53f.png)
+![image](https://user-images.githubusercontent.com/55125302/156525130-1700f032-325c-45be-8a95-28794bb9c4cd.png)
+
 
 
 
