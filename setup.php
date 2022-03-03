@@ -357,9 +357,15 @@ try {
 
 
           <div class="form-group mt-2">
-            <label for="calendar_title">Calendar Background</label>
+            <label for="calendar_title">Calendar Logo And Icon</label>
             <input type="file" name="background_image" id="background_image" value="0" class="form-control">
           </div>
+
+          <div class="form-group mt-2">
+            <label for="background_image_edit mb-1">Login and Signup background-image (Optional)</label>
+            <input type="file" name="sign_background" id="sign_background" class="form-control">
+          </div>
+
         </div>
 
         <!-- Modal footer -->
@@ -420,9 +426,16 @@ try {
               </div>
 
               <div class="form-group mt-2">
-                <label for="background_image_edit mb-1">Calendar Background (Optional)</label>
-                <input type="file" name="background_image_edit" id="background_image_edit" min="0" value="0" class="form-control">
+                <label for="background_image_edit mb-1">Calendar Logo And Icon (Optional)</label>
+                <input type="file" name="background_image_edit" id="background_image_edit" class="form-control">
               </div>
+
+              <div class="form-group mt-2">
+                <label for="background_image_edit mb-1">Login and Signup background-image (Optional)</label>
+                <input type="file" name="sign_background_edit" id="sign_background_edit" class="form-control">
+              </div>
+
+
               <div class="form-group text-center">
                 <input type="hidden" value="" name="calendar_userid_edit" id="calendar_userid_edit" style="display:none;" />
 

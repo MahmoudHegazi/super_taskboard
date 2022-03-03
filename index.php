@@ -28,29 +28,47 @@ $cal_id = null;
 $has_years = null;
 $min_year = null;
 $max_year = null;
+$styles_string = '';
 
 $error = false;
+
+$current_month = null;
+if (isset($_GET['month']) && !empty($_GET['month'])){
+  $current_month = intval(test_input($_GET['month']));
+  $_SESSION['month'] =  $current_month;
+}
+
+if (is_null($current_month) && isset($_SESSION['month'])){
+  $current_month = $_SESSION['month'];
+}
+
+
+$current_year = null;
+if (isset($_GET['year']) && !empty($_GET['year'])){
+  $current_year = intval(test_input($_GET['year']));
+  $_SESSION['year'] =  $current_year;
+}
+
+if (is_null($current_year) && isset($_SESSION['year'])){
+  $current_year = $_SESSION['year'];
+}
 
 // this important it handle all exception from indexController
 try {
   // Index Controller and view setup
   // if you get here, all is fine and you can use $object
-  $current_month = isset($_GET['month']) && !empty($_GET['month']) ? test_input($_GET['month']) : null;
-  $current_year = isset($_GET['year']) && !empty($_GET['year']) ? test_input($_GET['year']) : null;
-  $input = (int)$current_year;
-  if($input>1000 && $input<2100)
-  {
-    $current_year = test_input($_GET['year']);
-  } else {
-    $current_year = NULL;
-  }
-  global $pdo;
+
+  // system has default start year and month always we need keep everything can work year or month so when first load it load normal will nulls user can change months when change months he not change loaded year so ok after that when he change year he will set the cookie for year and before he set cookie of month so he will be in the target year and month
+
   $index_controller = new IndexController($pdo, $current_month, $request_type, $current_year, $logged_userid);
+
   $get_role = $index_controller->return_current_logged_role($logged_userid);
   if (isset($get_role) && !empty($get_role)){
     $user_role = $get_role == 'admin' ? 'admin' : 'user';
   }
+
   $current_calendar = $index_controller->get_used_calendar();
+
   $current_months = $index_controller->get_current_months();
   $cal_years = $index_controller->get_years();
   $current_year = $index_controller->get_current_year();
@@ -62,6 +80,8 @@ try {
   $has_years = $index_controller->get_has_years();
   $min_year = $index_controller->get_current_min_year();
   $max_year = $index_controller->get_current_max_year();
+  $styles_string = $index_controller->get_current_styles();
+
 }
 catch( Exception $e ) {
   $used_calendar_emessage = $e->getMessage();
@@ -88,8 +108,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-
-
     <style>
       body, html {
       margin: 0;
@@ -406,6 +424,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
       padding: 0;
       margin: 0;
       }
+
+
       .month_small_btns form {
       width: 30px;
       font-size: 1rem !important;
@@ -432,6 +452,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
       .month_arrow {
       font-size: 1.5rem;
       }
+      }
+      form.active_small_button {
+          background: #41e15c85 !important;
+          box-shadow: 0px 4px 0 4px rgba(50, 50, 50, .4), 2px 2px 2px 1px rgba(255, 255, 255, .8);
       }
     </style>
   </head>
@@ -553,12 +577,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
                 <!-- months numbers switch month -->
                 <div class="btn-group btn-sm d-flex flex-wrap justify-content-center align-items-center month_small_btns">
                   <?php
+
                     if ($current_months && is_array($current_months) && !empty($current_months)){
                       for ($m=0; $m<count($current_months); $m++){
+                        $is_active_class = ($current_months[$m]->get_month() == $current_month) ? 'active_small_button' : '';
+
                         ?>
                         <!-- change month by number better UX option for old man -->
-                        <form method="GET" action="./" class="month_form bg-light p-1 m-1 rounded-circle d-flex justify-content-center align-items-center month_toggle_btn" data-month="<?php echo $current_months[$m]->get_month(); ?>">
-                          <span class="p-1 text-center"><?php echo $current_months[$m]->get_month(); ?></span>
+                        <form method="GET" action="./" class="<?php echo $is_active_class; ?> month_form bg-light p-1 m-1 rounded-circle d-flex justify-content-center align-items-center month_toggle_btn" data-month="<?php echo $current_months[$m]->get_month(); ?>">
+                          <span class="p-1 text-center"> <?php echo $current_months[$m]->get_month(); ?></span>
                           <input type="hidden" style="display:none;" name="month" value="<?php echo $current_months[$m]->get_month(); ?>" required>
                         </form>
                         <?php
@@ -1780,8 +1807,20 @@ function viewSlotHandler(event){
 /* AJAX MAP new Reservation end */
 
 
-
+function add_required(event){
+  alert(event.target.selected);
+}
 
     </script>
+    <!-- this question in udacity 2 years ago why add the style in the end to override the default style in top if any -->
+    <?php
+      // like wordpress get app custom styles it has alot of ways edit for example u have id and class and have style for each element u can change each period or slot
+      // for fast and get what u use I only load the styles of current calendar and current month and current year so it small but everything here
+      if (isset($styles_string) && !empty($styles_string) ){
+        ?>
+          <style><?php echo $styles_string; ?></style>
+        <?php
+      }
+    ?>
   </body>
 </html>

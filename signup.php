@@ -8,7 +8,8 @@
    $index_controller = null;
    $signup_success = false;
    $signup_error = false;
-   $used_calendar = null;
+   $used_calendar = false;
+   $error_message = '';
    $error = false;
    $default_logo = 'uploads/images/default_logo.png';
    $default_signupbg = 'uploads/images/signup_background.jpg';
@@ -17,8 +18,7 @@
    try {
      global $pdo;
      $signup_controler = new SignupController($pdo, $request_type);
-     $index_controller = new IndexController($pdo);
-     $used_calendar = $index_controller->get_used_calendar();
+     $used_calendar = $signup_controler->get_used_calendar();
      if (isset($used_calendar) && $used_calendar && !empty($used_calendar)){
        define('TITLE', $used_calendar->get_title());
        define('DESCRIPTION', $used_calendar->get_description());
@@ -32,9 +32,10 @@
      }
    }
    catch( Exception $e ) {
-     $used_calendar_emessage = $e->getMessage();
+     $error_message = $e->getMessage();
      $error = true;
    }
+
    // send internal post request to signup Controller class
    if ($_SERVER['REQUEST_METHOD'] === 'POST'){
      // This How The SuperMVC handle all view with all needed given post requests
@@ -42,6 +43,8 @@
      $signup_controler->postHandler($signup_controler, $_POST, $_SESSION, $redirect_url, $error);
      die();
    }
+
+
 
 
 

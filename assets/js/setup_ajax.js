@@ -35,6 +35,28 @@ window.addEventListener('DOMContentLoaded', (event) => {
     }
   }
 
+  function add_required(event){
+    const isoneNo = event.target.value;
+    const allRequireds = document.querySelectorAll(".add_required_select");
+    allRequireds.forEach( (reqSelect, index)=>{
+      if (!isoneNo){
+        if (index == 0){
+          reqSelect.setAttribute('selected', true);
+        }
+        if (reqSelect.hasAttribute('required')){
+          reqSelect.removeAttribute('required');
+        }
+      } else {
+        if (!reqSelect.hasAttribute('required')){
+          reqSelect.setAttribute('required', true);
+        }
+      }
+    });
+    alert(event.target.value);
+  }
+
+
+
   function get_last_index_dynamic(titles){
    if (titles.length < 1){
      return 1;
@@ -279,16 +301,15 @@ function getMainCSS(main_styles, elm_index, type='periods'){
     main_css_calid_value = mainStyle.cal_id ? mainStyle.cal_id : main_css_calid_value;
     main_css_classname_value = mainStyle.classname ? mainStyle.classname : main_css_classname_value;
 
-});
+   });
 
 
     /* border size */
     const currentBSizes = ['border:1px', 'border:2px', 'border:3px', 'border:4px', 'border:5px'];
+    borderSizeOptions = '<option value="" selected>No Border</option>';
     currentBSizes.forEach( (sizeOption, index)=>{
 
-        if (index == 0  && sizeOption != borderSize){
-          borderSizeOptions = '<option value="" selected>No Border</option>';
-        } else if (index > 0 && sizeOption == borderSize){
+        if (index > 0 && sizeOption == borderSize){
           borderSizeOptions += `<option value="${sizeOption}" selected>${sizeOption.split(":")[1]}</option>`;
         } else {
           borderSizeOptions += `<option value="${sizeOption}" >${sizeOption.split(":")[1]}</option>`;
@@ -297,12 +318,12 @@ function getMainCSS(main_styles, elm_index, type='periods'){
 
     /* border type */
     const currentBTypes = ['solid', 'dotted', 'dashed', 'double', 'groove', 'ridge', 'inset', 'outset', 'mix'];
-    currentBTypes.forEach( (typeOption, index)=>{
-      if (index == 0 && typeOption != borderType){
-        borderTypeOptions = '<option value="" selected>No Border</option>';
-      } else if (index > 0 && typeOption == borderType){
+    borderTypeOptions = '<option value="" selected>No Border</option>';
+    currentBTypes.forEach( (typeOption, bindex)=>{
+      if (bindex > 0 && typeOption == borderType){
         borderTypeOptions += `<option value="${typeOption}" selected>${typeOption}</option>`;
       } else {
+        console.log();
         borderTypeOptions += `<option value="${typeOption}" >${typeOption}</option>`;
       }
     });
@@ -310,10 +331,9 @@ function getMainCSS(main_styles, elm_index, type='periods'){
 
     /* border color */
     const currentBColors = ['black;', 'white;', 'red;', 'green;', 'gold;', 'blue;', 'lightblue;'];
+    borderColorOptions = '<option value="" selected>No Border</option>';
     currentBColors.forEach( (colorOption, index)=>{
-      if (index == 0 && colorOption != borderColor){
-        borderColorOptions = '<option value="" selected>No Border</option>';
-      } else if (index > 0 && colorOption == borderColor){
+      if (index > 0 && colorOption == borderColor){
         borderColorOptions += `<option value="${colorOption}" selected>${colorOption.slice(0,colorOption.length-1)}</option>`;
       } else {
         borderColorOptions += `<option value="${colorOption}" >${colorOption.slice(0,colorOption.length-1)}</option>`;
@@ -386,7 +406,7 @@ function getMainCSS(main_styles, elm_index, type='periods'){
          <div class="col-sm-3">
           <label for="${currentNames.bordersize_name}">Border Size</label>
           <select id="${currentNames.bordersize_name}" name="${currentNames.bordersize_name}" data-index="1"
-          class="form-control period_border_part1_1 period_border1 main_css"
+          class="form-control period_border_part1_1 period_border1 main_css add_required_select"
           data-i="4">
                ${borderSizeOptions}
           </select>
@@ -394,7 +414,7 @@ function getMainCSS(main_styles, elm_index, type='periods'){
             <div class="col-sm-3">
                <label for="${currentNames.borderType_name}">Border Type</label>
                <select id="${currentNames.borderType_name}" name="${currentNames.borderType_name}" data-index="1"
-               class="form-control period_border_part2_1 period_border1 main_css"
+               class="form-control period_border_part2_1 period_border1 main_css add_required_select"
                data-i="5">
                  ${borderTypeOptions}
                </select>
@@ -403,7 +423,7 @@ function getMainCSS(main_styles, elm_index, type='periods'){
                <label for="${currentNames.borderColor_name}">Border Color</label>
                <select id="${currentNames.borderColor_name}" name="${currentNames.borderColor_name}"
                data-index="1"
-               class="form-control period_border_part3_1 period_border1 main_css" data-i="6">
+               class="form-control period_border_part3_1 period_border1 main_css add_required_select" data-i="6">
                  ${borderColorOptions}
                </select>
             </div>
@@ -464,6 +484,11 @@ function getMainCSS(main_styles, elm_index, type='periods'){
                   periodsHTML += getPeriodHTMLText(period.period_index, period.period_date, period.description, period.id, data.cal_id, period.element_id, period.element_class, period.main_styles, period.custom_styles);
                 });
                 $('#modal_periods_container').html(periodsHTML);
+
+                const allRequireds = document.querySelectorAll(".add_required_select");
+                allRequireds.forEach( (selectBorder)=>{
+                  selectBorder.addEventListener("change", add_required);
+                });
 
               } else {
                 $("#periods_edit_title").text('(0)');

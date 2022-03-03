@@ -39,13 +39,13 @@ class IndexController {
   protected $reservation_service;
   //protected $calendarService;
   protected $Calendar;
-
+  protected $current_styles;
   // calendar meta data
   // current used cal id usefull
   protected $cal_id;
   protected $used_calendar;
   protected $current_role;
-
+  protected $calid;
   protected $years;
   protected $current_year;
   protected $current_month;
@@ -87,6 +87,12 @@ class IndexController {
     $this->user_service = new UserService($pdo);
     $this->style_service = new StyleService($pdo);
     $this->reservation_service = new ReservationService($pdo);
+    $this->style_service = new StyleService($pdo);
+
+
+
+
+
 
     $used_cal = $this->assign_used_calendar();
     if (!$used_cal || empty($used_cal) || !isset($used_cal)){
@@ -101,11 +107,15 @@ class IndexController {
 
     // current year
 
-    if (!isset($current_year) || empty($current_year) || is_null($current_year)){
-     $current_year = $this->return_current_year($used_cal->get_id());
-    } else {
+    $current_year  = $current_year;
+    if (isset($current_year) && !empty($current_year) && !is_null($current_year)){
       $current_year  = $this->year_service->get_year_by_year($current_year, $used_cal->get_id());
     }
+    if (empty($current_year) || is_null($current_year)) {
+      $current_year = $this->return_current_year($used_cal->get_id());
+    }
+
+
 
     if (empty($current_year) || is_null($current_year)){
       throw new Exception( "No years were found for the specified calendar If u can not solve this add years to calendar or delete the calendar and add new one" );
@@ -113,13 +123,15 @@ class IndexController {
     $this->set_current_year($current_year);
 
 
+
     // current month
-    $target_month = !is_null($selected_month) ? $selected_month : $this->get_today_month();
-    $current_month = $this->return_curent_month($this->get_current_year()->get_id(), $target_month);
-    if (empty($current_month) || is_null($current_month)){
+    $target_month = !is_null($selected_month) ? $selected_month : intval($this->get_today_month());
+    $selected_month = $this->return_curent_month($this->get_current_year()->get_id(), $target_month);
+    if (empty($selected_month) || is_null($selected_month)){
       throw new Exception( "We Can not Get the Month Error Error:01" );
     }
-    $this->set_current_month($current_month);
+    $this->set_current_month($selected_month);
+    $current_month = $selected_month;
 
     // current months
     $current_months = $this->return_current_months($this->get_current_year()->get_id());
@@ -127,6 +139,13 @@ class IndexController {
       throw new Exception( "We Can not Get the current Month List make sure calendar setup is valid or try with other calendar Error:02" );
     }
     $this->set_current_months($current_months);
+
+    //$current_periods_styles = $this->get_periods_styles($current_year->get_year(), $this->get_current_month()->get_month(), $used_cal->get_id());
+    //$current_slots_styles = $this->get_slots_styles($current_year->get_year(), $this->get_current_month()->get_month(), $used_cal->get_id());
+
+    $current_styles =  $this->load_current_styles($current_year->get_year(), $this->get_current_month()->get_month(), $used_cal->get_id());
+    $this->set_current_styles($current_styles);
+
 
     $current_days = $this->return_current_days($current_month->get_id());
     if (!$current_days && empty($current_days)){
@@ -353,6 +372,15 @@ class IndexController {
     return $this->today_time;
   }
 
+  public function set_current_styles($current_styles){
+    $this->current_styles = $current_styles;
+  }
+
+  public function get_current_styles(){
+    return $this->current_styles;
+  }
+
+
   public function return_current_logged_role($loged_uid){
     if (!isset($this->user_service) || empty($this->user_service)){return 'user';}
 
@@ -439,6 +467,7 @@ class IndexController {
   public function return_curent_month($year_id, $today_month){
 
     $today_month = strlen($today_month) > 1 && $today_month[0] == '0' ? substr($today_month,1) : $today_month;
+
     if (isset($year_id) && isset($today_month) && isset($this->month_service)){
       $current_month = $this->month_service->get_all_months_where('year_id', $year_id, $limit='1', 'month', $today_month);
       if (empty($current_month)){
@@ -934,6 +963,100 @@ echo date("Y");
     }
   }
 
+  /* styles */
+  public function get_periods_styles($year, $month, $cal_id){
+    if (isset($this->style_service) || !empty($this->style_service)){
+      return $this->style_service->read_class_styles($year, $month, $cal_id, 'period');
+    } else {
+      return array();
+    }
+  }
+
+  public function get_slots_styles($year, $month, $cal_id){
+    if (isset($this->style_service) || !empty($this->style_service)){
+      return $this->style_service->read_class_styles($year, $month, $cal_id, 'slot');
+    } else {
+      return array();
+    }
+  }
+
+  public function load_current_styles($year, $month, $cal_id){
+
+    $current_periods_styles = $this->get_periods_styles($year, $month, $cal_id);
+    $current_slots_styles = $this->get_slots_styles($year, $month, $cal_id);
+    $styles = '';
+    $used_periods = array();
+    for ($pindex=0; $pindex<count($current_periods_styles); $pindex++){
+      $style_role = $current_periods_styles[$pindex]->get_style();
+      $classname = $current_periods_styles[$pindex]->get_classname();
+      $element_id = $current_periods_styles[$pindex]->get_element_id();
+      $custom = $current_periods_styles[$pindex]->get_custom();
+      if (!empty($style_role) && $custom == 0){
+        $important_check = strpos($style_role, '!important') !== false;
+        if (!$important_check){
+          $style_role = substr($style_role, 0, -1) . ' !important;';
+        }
+
+        $style_block = '
+        .' . $classname . '{' . $style_role . '}
+        ';
+        if (in_array($style_block, $used_periods)){
+          continue;
+        }
+        array_push($used_periods, $style_block);
+
+        $styles .= $style_block;
+      } else if (!empty($style_role) && $custom == 1){
+
+        $style_block = '
+        #' . $element_id . '{' . $style_role . '}
+          ';
+        if (in_array($style_block, $used_periods)){
+          continue;
+        }
+        array_push($used_periods, $style_block);
+
+        $styles .= $style_block;
+      } else {
+        continue;
+      }
+    }
+
+    $used_slots = array();
+    for ($sindex=0; $sindex<count($current_slots_styles); $sindex++){
+      $style_role = $current_slots_styles[$sindex]->get_style();
+      array_push($used_slots, $style_role);
+      $classname = $current_slots_styles[$sindex]->get_classname();
+      $element_id = $current_slots_styles[$sindex]->get_element_id();
+      $custom = $current_slots_styles[$sindex]->get_custom();
+      if (!empty($style_role) && $custom == 0){
+        $important_check1 = strpos($style_role, '!important') !== false;
+        if (!$important_check1){
+          $style_role = substr($style_role, 0, -1) . ' !important;';
+        }
+        $style_block =  '
+        .' . $classname . '{' . $style_role . '}
+        ';
+        if (in_array($style_block, $used_slots)){
+          continue;
+        }
+
+        $styles .= $style_block;
+      } else if (!empty($style_role) && $custom == 1){
+
+        $style_block = '
+        #' . $element_id . '{' . $style_role . '}
+          ';
+        if (in_array($style_block, $used_slots)){
+          continue;
+        }
+        $styles .= $style_block;
+      } else {
+        continue;
+      }
+    }
+    return $styles;
+  }
   // load the ajax data for display periods and slots in selected day when user click + <
   // this will return data to used in add_reservation and add normal reservation
   public function return_day_periods_data($cal_id, $day_date){

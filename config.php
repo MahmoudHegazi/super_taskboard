@@ -6,7 +6,7 @@ $password = "root";
 // this appname usally it's the root of the site for example folder contains website name supercalendar
 define('APPNAME', 'supercalendar');
 
-// set default time zone 
+// set default time zone
 define('TIMEZONE', 'Europe/Rome');
 date_default_timezone_set(TIMEZONE);
 

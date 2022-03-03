@@ -51,10 +51,35 @@ class StyleService {
   }
 
   // get All styles
-  function get_all_styles(){
+  function read_class_styles($year, $month, $cal_id, $class_type='period'){
+    $styles_list = array();
+    $style_rows = $this->style_mapper->read_class_styles($year, $month, $cal_id, $class_type);
+    if (count($style_rows) == 0){return array();}
+
+    for ($i=0; $i<count($style_rows); $i++){
+        $style = new Style();
+        $style->init(
+          $style_rows[$i]['classname'],
+          $style_rows[$i]['element_id'],
+          $style_rows[$i]['style'],
+          $style_rows[$i]['class_id'],
+          $style_rows[$i]['active'],
+          $style_rows[$i]['title'],
+          $style_rows[$i]['custom'],
+          $style_rows[$i]['cal_id'],
+          $style_rows[$i]['category']
+
+        );
+        $style->set_id($style_rows[$i]['id']);
+        array_push($styles_list, $style);
+    }
+    return $styles_list;
+  }
+
+  function get_all_styles($ative=1){
 
     $styles_list = array();
-    $style_rows = $this->style_mapper->read_all();
+    $style_rows = $this->style_mapper->read_all($ative);
     if (count($style_rows) == 0){return array();}
 
     for ($i=0; $i<count($style_rows); $i++){

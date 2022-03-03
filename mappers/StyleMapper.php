@@ -75,10 +75,37 @@ class StyleMapper {
       return $statement->execute();
     }
 
-    function read_all(){
+    function read_all($ative=1){
+      if ($ative==1){
+        $ative=' WHERE active=1';
+      } else {
+        $ative = '';
+      }
       $pdo = $this->getPDO();
-      $stmt = $pdo->prepare("SELECT * FROM style");
+      $stmt = $pdo->prepare("SELECT * FROM style".$ative);
       $stmt->execute();
+      $data = $stmt->fetchAll();
+      return $data;
+    }
+
+    function read_class_styles($year, $month, $cal_id, $class_type='period'){
+      $class_type = $class_type == 'period' ? 'period.id' : 'slot.id';
+      $pdo = $this->getPDO();
+      // load style for previous and after month as this pro cal get all days dynamic
+      $min_month = $month > 1 ? $month - 1 : $month;
+      $min_month = $min_month == 12 ? $min_month - 1 : $min_month;
+      $max_month = $month >= 12 ? $month : $month + 1;
+
+
+      $stmt = $pdo->prepare("
+       SELECT style.id, style.class_id, style.custom, style.category, style.title, style.cal_id, style.style, style.active, style.classname, style.element_id, style.category, month.month
+       FROM calendar JOIN year ON calendar.id = year.cal_id JOIN month ON month.year_id = year.id JOIN
+       day ON day.month_id = month.id JOIN period ON day.id = period.day_id JOIN slot ON
+       period.id = slot.period_id JOIN style ON
+       style.class_id=".$class_type." WHERE year.year=? AND (month=? OR month=? OR month=?) AND calendar.id=? AND style.active=1 "
+      );
+      $stmt->execute([$year, $month, $min_month, $max_month, $cal_id]);
+      //print_r($stmt);
       $data = $stmt->fetchAll();
       return $data;
     }

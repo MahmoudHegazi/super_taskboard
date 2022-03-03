@@ -6,7 +6,6 @@
    $request_type = $_SERVER['REQUEST_METHOD'] === 'POST' ? 'POST' : 'GET';
 
    $login_controller = null;
-   $index_controller = null;
    $used_calendar = null;
    $login_error = false;
    $error = false;

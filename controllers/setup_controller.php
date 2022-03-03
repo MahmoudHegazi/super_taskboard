@@ -14,17 +14,21 @@ require_once (dirname(__FILE__, 2) . '\models\Calendar.php');
 
 $_SESSION['error_displayed'] = False;
 
-$redirect_url = $_SERVER['HTTP_REFERER'];
+$appName = defined('APPNAME') ? APPNAME : 'supercalendar';
+$base_url = create_this_link($appName);
+$redirect_url = isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : $base_url;
 /*
 if (!isset($redirect_url)){
   header("Location: ../index.php");
 }
 */
 
+/* BIG note this used in 2 big things create calendar and add years in calendar in case add years it will called direct and data will prepead and gived to it (It handle add years to calendar to and it difrent but if not do that cal I will repeat the half of setup) so it more easy and faster to get the right data and start from last year than repeat*/
 function create_calendar($cal_id, $calendar_name, $start_year, $added_years, $periods_per_day, $slots_per_period, $description, $periods_data, $slots_data)
 {
 
     global $pdo;
+    global $redirect_url;
     $calendar_service = new CalendarService($pdo);
     $year_service = new YearService($pdo);
     $month_service = new MonthService($pdo);
@@ -47,8 +51,8 @@ function create_calendar($cal_id, $calendar_name, $start_year, $added_years, $pe
     $dayService->add_days($days);
     $monthService->add_months($months);
     */
-    $current_year = intval($start_year);
 
+    $current_year = intval($start_year);
     $period_id_index = 1;
     $slot_id_index = 1;
 
@@ -76,14 +80,15 @@ function create_calendar($cal_id, $calendar_name, $start_year, $added_years, $pe
                 $dayname = jddayofweek($jd, 1);
                 // add day
                 $day_id = $day_service->add($day, $dayname, $full_date, $month_id);
-                if ($periods_per_day > 0 && $periods_per_day == $periods_per_day)
+                if ($periods_per_day > 0 && $periods_per_day == count($periods_data))
                 {
 
                     for ($period = 1;$period <= $periods_per_day;$period++)
                     {
                         $period_styles = array();
                         $slot_styles = array();
-                        // get 3 dates array (Periods)
+                        // get 3 dates array (Periods) this usally for developing and setup error incase u setup wrong cal u may get empty periods so continue like wordpress need learn it then use same here
+
                         $current_period = $periods_data[$period - 1];
                         $description = isset($current_period['description']) && !empty($current_period['description']) ? $current_period['description'] : NULL;
                         $perioddate = isset($current_period['period_date']) && !empty($current_period['period_date']) ? $full_date . ' ' . $current_period['period_date'] : NULL;
@@ -92,6 +97,12 @@ function create_calendar($cal_id, $calendar_name, $start_year, $added_years, $pe
                         $period_index_classname = 'period_class_' . $period;
                         $period_id_index += 1;
 
+                        # hereeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee t1
+                        if (!isset($periods_data[$period - 1]) || !isset($periods_data[$period - 1]['styles'])){
+                          setup_redirect($redirect_url, 'false', 'System Error Can not Ge current styles data of this calendar Contact Developer [Periods Styles Missing Recomended (Problem In Add years Periods)]');
+                          die();
+                        }
+
                         // get styles data
                         $current_style = $periods_data[$period - 1]['styles'];
                         $font_color = $current_style['color'];
@@ -99,7 +110,14 @@ function create_calendar($cal_id, $calendar_name, $start_year, $added_years, $pe
                         $font_size = $current_style['fontsize'];
                         $font_family = $current_style['fontfamily'];
 
+                        $font_color_active = $current_style['font_color_active'];
+                        $background_color_active = $current_style['background_color_active'];
+                        $font_size_active = $current_style['font_size_active'];
+                        $font_family_active = $current_style['font_family_active'];
+
+
                         $border = $current_style['border'];
+                        $border_active = $current_style['border_active'];
                         $customcss = $current_style['customcss'];
 
                         $period_id = $period_service->add($day_id, $perioddate, $description, $period, $period_element_id, $period_index_classname);
@@ -110,18 +128,27 @@ function create_calendar($cal_id, $calendar_name, $start_year, $added_years, $pe
                         ///////$style_service->add($period_index_classname, $period_element_id, $font_size, $period_id, 1, 'Period Font Size ' . $period, 0, $calendar->get_id() , 'fontsize');
                         ///////$style_service->add($period_index_classname, $period_element_id, $font_family, $period_id, 1, 'Period Font Family ' . $period, 0, $calendar->get_id() , 'fontfamily');
                         ///////$style_service->add($period_index_classname, $period_element_id, $border, $period_id, 1, 'Period Border ' . $period, 0, $calendar->get_id() , 'border');
+                        //print_r($customcss);
+                        //die();
                         if ($customcss && isset($customcss) && !empty($customcss) && count($customcss) > 0)
                         {
                             for ($cs = 0;$cs < count($customcss);$cs++)
                             {
+                              // the problem here we need index values and the assoc value is get dynamicly static using index ( [0] => font-weight:bold; [custom_active_1] => 1 )  we need only color index 0 and other dynamic
+                              // this new way the problem was we have index and assoc array we need only the index so this is solution in loop if it not set so it's not index / odd so continue
+                              if (!isset($customcss[$cs])){
+                                continue;
+                              }
                                 $custom_title = 'Period Custom: ' . $period . ', ' . ($cs + 1);
+                                $active_title = 'custom_active_' . ($cs + 1);
+                                $custom_active = isset($customcss[$cs][$active_title]) ? $customcss[$cs][$active_title] : 1;
                                 /////$style_service->add($period_index_classname, $period_element_id, $customcss[$cs], $period_id, 1, $custom_title, 1, $calendar->get_id() , 'custom');
                                 $style_row = array(
                                   'element_class' => $period_index_classname,
                                   'element_id' => $period_element_id,
                                   'style' => $customcss[$cs],
                                   'class_id' => $period_id,
-                                  'active' => 1,
+                                  'active' => $custom_active,
                                   'title' => $custom_title,
                                   'custom' => 1,
                                   'cal_id' => $calendar->get_id(),
@@ -137,7 +164,7 @@ function create_calendar($cal_id, $calendar_name, $start_year, $added_years, $pe
                           'element_id' => $period_element_id,
                           'style' => $font_color,
                           'class_id' => $period_id,
-                          'active' => 1,
+                          'active' => $font_color_active,
                           'title' => 'Period Font Color ' . $period,
                           'custom' => 0,
                           'cal_id' => $calendar->get_id(),
@@ -149,7 +176,7 @@ function create_calendar($cal_id, $calendar_name, $start_year, $added_years, $pe
                           'element_id' => $period_element_id,
                           'style' => $background_color,
                           'class_id' => $period_id,
-                          'active' => 1,
+                          'active' => $background_color_active,
                           'title' => 'Period Background Color ' . $period,
                           'custom' => 0,
                           'cal_id' => $calendar->get_id(),
@@ -161,7 +188,7 @@ function create_calendar($cal_id, $calendar_name, $start_year, $added_years, $pe
                           'element_id' => $period_element_id,
                           'style' => $font_size,
                           'class_id' => $period_id,
-                          'active' => 1,
+                          'active' => $font_size_active,
                           'title' => 'Period Font Size ' . $period,
                           'custom' => 0,
                           'cal_id' => $calendar->get_id(),
@@ -173,7 +200,7 @@ function create_calendar($cal_id, $calendar_name, $start_year, $added_years, $pe
                           'element_id' => $period_element_id,
                           'style' => $font_family,
                           'class_id' => $period_id,
-                          'active' => 1,
+                          'active' => $font_family_active,
                           'title' => 'Period Font Family ' . $period,
                           'custom' => 0,
                           'cal_id' => $calendar->get_id(),
@@ -185,7 +212,7 @@ function create_calendar($cal_id, $calendar_name, $start_year, $added_years, $pe
                           'element_id' => $period_element_id,
                           'style' => $border,
                           'class_id' => $period_id,
-                          'active' => 1,
+                          'active' => $border_active,
                           'title' => 'Period Border ' . $period,
                           'custom' => 0,
                           'cal_id' => $calendar->get_id(),
@@ -194,12 +221,18 @@ function create_calendar($cal_id, $calendar_name, $start_year, $added_years, $pe
                         array_push($allstyles, $style_row);
 
                         /* end insert styles periods */
-
                         if ($slots_per_period > 0 && count($slots_data) == $slots_per_period)
                         {
 
+
                             for ($slot = 1;$slot <= $slots_per_period;$slot++)
                             {
+
+                                if (!isset($slots_data[$slot - 1]) || !isset($slots_data[$slot - 1]['styles'])){
+                                  setup_redirect($redirect_url, 'false', 'System Error Can not Ge current styles data of this calendar Contact Developer [Slot Styles Missing Recomended (Problem In Add years Slots)].');
+                                  die();
+                                }
+
                                 $current_slot = $slots_data[$slot - 1];
 
                                 $slot_id_name = 'slot_id_' . $slot;
@@ -222,10 +255,20 @@ function create_calendar($cal_id, $calendar_name, $start_year, $added_years, $pe
                                 $font_size_s = $current_style_s['fontsize'];
                                 $font_family_s = $current_style_s['fontfamily'];
 
-                                $border_s = $current_style_s['border'];
-                                $customcss_s = $current_style_s['customcss'];
-                                $slot_id = $slot_service->add($start_from, $end_at, $period_id, True, $slot, $slot_element_id, $slot_index_classname);
 
+                                // this extra for add years
+
+                                $font_color_s_active = isset($current_style_s['font_color_active']) ? $current_style_s['font_color_active'] : 1;
+                                $background_color_s_active = isset($current_style_s['background_color_active']) ? $current_style_s['background_color_active']  : 1;
+                                $font_size_s_active = isset($current_style_s['font_size_active']) ? $current_style_s['font_size_active'] : 1;
+                                $font_family_s_active = isset($current_style_s['font_family_active']) ? $current_style_s['font_family_active'] : 1;
+
+
+                                $border_s = $current_style_s['border'];
+                                $border_s_active = isset($current_style_s['border_active']) ? $current_style_s['border_active'] : 1;
+
+                                $customcss_s = $current_style_s['customcss'];
+                                $slot_id = $slot_service->add($start_from, $end_at, $period_id, 1, $slot, $slot_element_id, $slot_index_classname);
                                 // insert styles
                                 /////$style_service->add($slot_index_classname, $slot_element_id, $font_color_s, $slot_id, 1, 'Slot Font Color ' . $slot, 0, $calendar->get_id() , 'color');
                                 /////$style_service->add($slot_index_classname, $slot_element_id, $background_color_s, $slot_id, 1, 'Slot Background Color ' . $slot, 0, $calendar->get_id() , 'backgroundcolor');
@@ -236,14 +279,19 @@ function create_calendar($cal_id, $calendar_name, $start_year, $added_years, $pe
                                 {
                                     for ($cs = 0;$cs < count($customcss_s);$cs++)
                                     {
+                                        if (!isset($customcss_s[$cs])){
+                                          continue;
+                                        }
                                         $custom_title = 'Slot Custom: ' . $slot . ', ' . ($cs + 1);
+                                        $active_title_s = 'custom_active_' . ($cs + 1);
+                                        $custom_active_s = isset($customcss_s[$cs][$active_title_s]) ? $customcss_s[$cs][$active_title_s] : 1;
                                         ///$style_service->add($slot_index_classname, $slot_element_id, $customcss_s[$cs], $slot_id, 1, $custom_title, 1, $calendar->get_id() , 'custom');
                                         $style_row = array(
                                           'element_class' => $slot_index_classname,
                                           'element_id' => $slot_element_id,
                                           'style' => $customcss_s[$cs],
                                           'class_id' => $slot_id,
-                                          'active' => 1,
+                                          'active' => $custom_active_s,
                                           'title' => $custom_title,
                                           'custom' => 1,
                                           'cal_id' => $calendar->get_id(),
@@ -260,7 +308,7 @@ function create_calendar($cal_id, $calendar_name, $start_year, $added_years, $pe
                                   'element_id' => $slot_element_id,
                                   'style' => $font_color_s,
                                   'class_id' => $slot_id,
-                                  'active' => 1,
+                                  'active' => $font_color_s_active,
                                   'title' => 'Slot Font Color ' . $slot,
                                   'custom' => 0,
                                   'cal_id' => $calendar->get_id(),
@@ -272,7 +320,7 @@ function create_calendar($cal_id, $calendar_name, $start_year, $added_years, $pe
                                   'element_id' => $slot_element_id,
                                   'style' => $background_color_s,
                                   'class_id' => $slot_id,
-                                  'active' => 1,
+                                  'active' => $background_color_s_active,
                                   'title' => 'Slot Background Color ' . $slot,
                                   'custom' => 0,
                                   'cal_id' => $calendar->get_id(),
@@ -284,7 +332,7 @@ function create_calendar($cal_id, $calendar_name, $start_year, $added_years, $pe
                                   'element_id' => $slot_element_id,
                                   'style' => $font_size_s,
                                   'class_id' => $slot_id,
-                                  'active' => 1,
+                                  'active' => $font_size_s_active,
                                   'title' => 'Slot Font Size ' . $slot,
                                   'custom' => 0,
                                   'cal_id' => $calendar->get_id(),
@@ -296,7 +344,7 @@ function create_calendar($cal_id, $calendar_name, $start_year, $added_years, $pe
                                   'element_id' => $slot_element_id,
                                   'style' => $font_family_s,
                                   'class_id' => $slot_id,
-                                  'active' => 1,
+                                  'active' => $font_family_s_active,
                                   'title' => 'Slot Font Family ' . $slot,
                                   'custom' => 0,
                                   'cal_id' => $calendar->get_id(),
@@ -308,7 +356,7 @@ function create_calendar($cal_id, $calendar_name, $start_year, $added_years, $pe
                                   'element_id' => $slot_element_id,
                                   'style' => $border_s,
                                   'class_id' => $slot_id,
-                                  'active' => 1,
+                                  'active' => $border_s_active,
                                   'title' => 'Slot Border ' . $slot,
                                   'custom' => 0,
                                   'cal_id' => $calendar->get_id(),
@@ -332,7 +380,6 @@ function create_calendar($cal_id, $calendar_name, $start_year, $added_years, $pe
 
     // for performance no use insert fast to insert all data  style later update can make this with all
     $all_styles_added = $style_service->insert_group_fast($allstyles);
-    echo count($all_styles_added);
 
 }
 
@@ -574,14 +621,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST')
             }
         }
 
+        /* Hereee ------------------- t1 --------------
+        echo "<pre>";
+        print_r($periods_data);
+        echo "</pre>";
+        die();
+        /* Hereee ------------------- t1 -------------- */
+
         if ($ready == True)
         {
             $new_cal = add_new_calendar($calendar_title, $start_year, $add_new_year, $period_per_day, $slots_per_period, $calendar_description, $periods_data, $slots_data);
             if ($new_cal['success'] == True)
             {
+                $calendar_id = $new_cal['calendar_id'];
                 $message = 'Calendar With id: ' . $calendar_id . ' Created successfully';
                 $success = true;
-                $calendar_id = $new_cal['calendar_id'];
 
                 // add the logo and favicon if set
                 if (isset($_FILES) && !empty($_FILES) && isset($_FILES['background_image']) && !empty($_FILES['background_image']))
@@ -610,7 +664,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST')
                     }
                 }
                 /* end add logo and favicon */
-
 
                 // add the sign_background if set
                 if (isset($_FILES) && !empty($_FILES) && isset($_FILES['sign_background']) && !empty($_FILES['sign_background']))
@@ -1094,6 +1147,97 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST')
 /* Edit calendar end */
 
 /* add new years to calendar */
+// this way fastest way to get the styles of any object
+global $pdo;
+$calservice = new CalendarService($pdo);
+function getObjectMainStylesData($object){
+  global $calservice;
+  // internal query no external paremeters
+
+  if (!isset($object['styles']) || !is_array($object['styles'])){
+    return $object;
+
+  }
+
+  if ( !isset($object['styles']['customcss']) || !is_array(($object['styles']['customcss'])) ) {
+    $object['styles']['customcss'] = array();
+  }
+
+  if (!isset($object['id']) || empty($object['id']) || !is_numeric($object['id'])){
+    return $object;
+  } else {
+    $object_main_q = 'SELECT category, style, active FROM `style` WHERE class_id = '.test_input($object['id']);
+    $object_main_styles = $calservice->free_group_query($object_main_q);
+
+    for ($sindex = 0;$sindex < count($object_main_styles); $sindex++){
+
+      $category = $object_main_styles[$sindex]['category'];
+      $style = $object_main_styles[$sindex]['style'];
+      $active = $object_main_styles[$sindex]['active'] == 0 ? 0 : 1;
+
+      switch ($category) {
+        case "color":
+          $object['styles']['color'] = $style;
+          $object['styles']['font_color_active'] = $active;
+          break;
+        case "backgroundcolor":
+          $object['styles']['background'] = $object_main_styles[$sindex]['style'];
+          $object['styles']['background_color_active'] = $active;
+          break;
+        case "fontsize":
+          $object['styles']['fontsize'] = $style;
+          $object['styles']['font_size_active'] = $active;
+          break;
+        case "fontfamily":
+          $object['styles']['fontfamily'] = $style;
+          $object['styles']['font_family_active'] = $active;
+          break;
+        case "border":
+          $object['styles']['border'] = $style;
+          $object['styles']['border_active'] = $active;
+          break;
+        default:
+          array_push($object['styles']['customcss'], $style);
+          // math logic to get the index of added active with index array that convert index to not index for smooth working with original function
+          // original would have another array of arrays for custom css
+          $current_index = intval((count($object['styles']['customcss']) + 1) / 2);
+          $object['styles']['customcss']['custom_active_'.$current_index] = $active;
+          break;
+      }
+
+     }
+  }
+  return $object;
+}
+function getObjectStyles($object){
+  if (isset($object['id']) && !empty($object['id']) && is_numeric($object['id'])){
+    $object['styles'] = array(
+      'color'=>'', 'font_color_active'=>1,
+      'background'=>'', 'background_color_active'=>1,
+      'fontsize'=>'', 'font_size_active'=>1,
+      'fontfamily'=>'', 'font_family_active'=>1,
+      'border'=>'', 'border_active'=>1,
+      'customcss'=> array()
+    );
+    $object['not_empty'] = 1;
+    $object = getObjectMainStylesData($object);
+    return $object;
+
+  } else {
+    $object['styles'] = array(
+      'color'=>'', 'font_color_active'=>0,
+      'background'=>'', 'background_color_active'=>0,
+      'fontsize'=>'', 'font_size_active'=>0,
+      'fontfamily'=>'', 'font_family_active'=>0,
+      'border'=>'', 'border_active'=>0,
+      'customcss'=> array(),
+      'not_empty'=>0
+    );
+    $object['not_empty'] = 0;
+  }
+  return $object;
+
+}
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST')
 {
@@ -1102,6 +1246,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST')
     {
         global $pdo;
         $calendar_service = new CalendarService($pdo);
+
 
         $added_years = intval(test_input($_POST['add_new_year_edit']));
         $year_string = $added_years == 1 ? ' year ' : ' years ';
@@ -1114,38 +1259,113 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST')
             setup_redirect($redirect_url, 'false', 'Calendar Not Found Please Refresh the Page.');
         }
 
-        $periods_sql = "SELECT DISTINCT period.description, period.period_date FROM calendar
+
+        $min_year = 2022;
+        $get_min_years = 'SELECT MIN(year) AS first from year WHERE cal_id='.test_input($calid).' LIMIT 1';
+        $min_yearq = $calendar_service->free_single_query($get_min_years);
+        if (isset($total_years['first']) && !empty($total_years['first'])){
+          $start_year = is_numeric($total_years['first']) && $total_years['first'] > 0 ? intval($total_years['first']) + 1 : $min_year;
+        }
+
+        $start_year = 2022;
+        $get_years = 'SELECT MAX(year) AS last from year WHERE cal_id='.test_input($calid).' LIMIT 1';
+        $total_years = $calendar_service->free_single_query($get_years);
+        if (isset($total_years['last']) && !empty($total_years['last'])){
+          $start_year = is_numeric($total_years['last']) && $total_years['last'] > 0 ? (intval($total_years['last']) + 1) : $start_year;
+        }
+
+
+        // get periods of first year I will consider this rule when u add year it will use the first year periods and slots so like a defualt everything
+        $periods__index_sql = "SELECT DISTINCT period.period_index FROM calendar
     JOIN year ON calendar.id = year.cal_id JOIN month ON month.year_id =
     year.id JOIN day ON day.month_id = month.id JOIN period ON day.id =
-    period.day_id JOIN slot ON period.id = slot.period_id WHERE
-    calendar.id=" . $cal_data->get_id();
-        $periods_data_rows = $calendar_service->free_group_query($periods_sql);
+    period.day_id JOIN slot ON period.id = slot.period_id WHERE year.year=". test_input($min_year) ." AND calendar.id=" . $cal_data->get_id();
+
+/*
+    $periods_sql = "SELECT DISTINCT period.period_index, period.id, period.description, period.period_date FROM calendar
+JOIN year ON calendar.id = year.cal_id JOIN month ON month.year_id =
+year.id JOIN day ON day.month_id = month.id JOIN period ON day.id =
+period.day_id JOIN slot ON period.id = slot.period_id WHERE
+calendar.id=" . $cal_data->get_id();*/
+    $pindexes = $calendar_service->free_group_query($periods__index_sql);
+    $periods_data_rows = array();
+    for ($i = 0;$i < count($pindexes);$i++)
+    {
+      $period_sql = "SELECT period.period_index, period.id, period.description, period.period_date FROM calendar
+          JOIN year ON calendar.id = year.cal_id JOIN month ON month.year_id =
+          year.id JOIN day ON day.month_id = month.id JOIN period ON day.id =
+          period.day_id JOIN slot ON period.id = slot.period_id WHERE period_index=".test_input($pindexes[$i]['period_index'])." AND year.year=". test_input($min_year) ." AND calendar.id=" . $cal_data->get_id() . ' LIMIT 1';
+          $new_period = $calendar_service->free_single_query($period_sql);
+      if (!empty($new_period)){
+        array_push($periods_data_rows, $new_period);
+      }
+    }
+
+
+
+
+    //$periods_data_rows = $calendar_service->free_group_query($periods_sql);
+
         $periods_data = array();
         for ($p = 0;$p < count($periods_data_rows);$p++)
         {
-            array_push($periods_data, array(
-                'description' => $periods_data_rows[$p]['description'],
-                'period_date' => $periods_data_rows[$p]['period_date']
-            ));
+          $new_period = array(
+              'description' => $periods_data_rows[$p]['description'],
+              'period_date' => $periods_data_rows[$p]['period_date'],
+              'period_index' => $periods_data_rows[$p]['period_index'],
+              'id' => $periods_data_rows[$p]['id'],
+              'styles'=>array()
+          );
+          // convert array to assoc array this important in map
+          $new_period_ass = (array)($new_period);
+          $new_period_with_styles = getObjectStyles($new_period_ass);
+          array_push($periods_data, $new_period_with_styles);
         }
 
-        $slots_sql = "SELECT DISTINCT slot.start_from, slot.end_at FROM calendar
-    JOIN year ON calendar.id = year.cal_id JOIN month ON month.year_id =
-    year.id JOIN day ON day.month_id = month.id JOIN period ON day.id =
-    period.day_id JOIN slot ON period.id = slot.period_id WHERE
-    calendar.id=" . $cal_data->get_id();
+        // now get the slots alone
 
-        $slots_data_rows = $calendar_service->free_group_query($slots_sql);
+        $slots__index_sql = "SELECT DISTINCT slot.slot_index FROM calendar JOIN year ON calendar.id = year.cal_id JOIN month ON month.year_id = year.id JOIN day ON day.month_id = month.id JOIN period ON day.id =
+        period.day_id JOIN slot ON period.id = slot.period_id WHERE
+        year.year=". test_input($min_year) ." AND calendar.id=" . $cal_data->get_id();
+
+        $slot_indexes = $calendar_service->free_group_query($slots__index_sql);
+        $slots_data_rows = array();
+        for ($is = 0;$is < count($slot_indexes);$is++)
+        {
+          $slot_sql = "SELECT slot.slot_index, slot.id, slot.start_from, slot.end_at FROM calendar JOIN year ON calendar.id = year.cal_id JOIN month ON month.year_id = year.id JOIN day ON day.month_id = month.id JOIN period ON day.id =
+              period.day_id JOIN slot ON period.id = slot.period_id WHERE
+              period_index=".test_input($slot_indexes[$is]['slot_index'])." AND year.year=". test_input($min_year) ." AND
+              calendar.id=" . $cal_data->get_id() . ' LIMIT 1';
+
+              $new_slot = $calendar_service->free_single_query($slot_sql);
+              if (!empty($new_slot)){
+                array_push($slots_data_rows, $new_slot);
+              }
+        }
+
+
+
+
         $slots_data = array();
-
         for ($s = 0;$s < count($slots_data_rows);$s++)
         {
-            array_push($slots_data, array(
+
+            $new_slot = array(
                 'start_from' => $slots_data_rows[$s]['start_from'],
-                'end_at' => $slots_data_rows[$s]['end_at']
-            ));
+                'end_at' => $slots_data_rows[$s]['end_at'],
+                'slot_index' => $slots_data_rows[$s]['slot_index'],
+                'id' => $slots_data_rows[$s]['id'],
+                'styles'=>array()
+            );
+            // note this made at least 365 * 2 (periods and slots) and not only that it made more than 700 for sinlge css so it usally periods has 6 rules so it (365*2) * 6 but as map used and this technuq with child map function call with map it now make speed less than second
+            // here we use map to get the style of slot and add it fast to it one time this fastest and reverse to make it work with create calendar which is function used to create call but this app can use it's functions anywhere as ot dymainc and everything alone also it faster than normal or other
+
+            $new_slot_ass = (array)($new_slot);
+            $new_slot_with_styles = getObjectStyles($new_slot_ass);
+            array_push($slots_data, $new_slot_with_styles);
         }
-        create_calendar($cal_data->get_id() , $cal_data->get_title() , intval($cal_data->get_start_year()) + 1, $added_years, $cal_data->get_periods_per_day() , $cal_data->get_slots_per_period() , $cal_data->get_description() , $periods_data, $slots_data);
+
+        create_calendar($cal_data->get_id() , $cal_data->get_title() , $start_year, $added_years, $cal_data->get_periods_per_day() , $cal_data->get_slots_per_period() , $cal_data->get_description() , $periods_data, $slots_data);
         $new_added_years = intval($cal_data->get_added_years()) + $added_years;
         $calendar_service->update_one_column('added_years', $new_added_years, $calid);
         setup_redirect($redirect_url, 'true', 'Successfully Add : ' . $added_years . $year_string . ' To calendar With ID: ' . $cal_data->get_id());
@@ -2554,9 +2774,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST')
         $font_size = isset($_POST['main_font_size_periods']) && !empty($_POST['main_font_size_periods']) ? test_input($_POST['main_font_size_periods']) : 0;
         $font_family = isset($_POST['main_font_family_periods']) && !empty($_POST['main_font_family_periods']) ? test_input($_POST['main_font_family_periods']) : 0;
         $border_size = isset($_POST['main_border_size_periods']) && !empty($_POST['main_border_size_periods']) ? test_input($_POST['main_border_size_periods']) : 0;
-
         $border_type = isset($_POST['main_border_type_periods']) && !empty($_POST['main_border_type_periods']) ? test_input($_POST['main_border_type_periods']) : 0;
         $border_color = isset($_POST['main_border_color_periods']) && !empty($_POST['main_border_color_periods']) ? test_input($_POST['main_border_color_periods']) : 0;
+
 
         $main_color_title = test_input($_POST['main_css_title1']);
         $main_background_title = test_input($_POST['main_css_title2']);
@@ -2570,22 +2790,26 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST')
 
         if ($color)
         {
-            $edit_style_period = "UPDATE style SET style='color: " . $color . ";' WHERE title='" . $main_color_title . "' AND classname='" . $classname_p . "' AND cal_id=" . $calid_p . " AND custom=0";
+            $color_style = 'color: ' . $color . ';';
+            $edit_style_period = "UPDATE style SET style='".$color_style."' WHERE category='color' AND classname='" . $classname_p . "' AND cal_id=" . $calid_p . " AND custom=0";
             $updated += $calendar_service->excute_on_db($edit_style_period) ? 1 : 0;
         }
         if ($backgrounds)
         {
-            $edit_style_period = "UPDATE style SET style='background-color: " . $backgrounds . ";' WHERE title='" . $main_background_title . "' AND classname='" . $classname_p . "' AND cal_id=" . $calid_p . " AND custom=0";
+            $backgrounds_style = 'background-color: ' . $backgrounds . ';';
+            $edit_style_period = "UPDATE style SET style='". $backgrounds_style ."' WHERE category='backgroundcolor' AND classname='" . $classname_p . "' AND cal_id=" . $calid_p . " AND custom=0";
             $updated += $calendar_service->excute_on_db($edit_style_period) ? 1 : 0;
         }
         if ($font_size)
         {
-            $edit_style_period = "UPDATE style SET style='" . $font_size . "' WHERE title='" . $main_fontsize_title . "' AND classname='" . $classname_p . "' AND cal_id=" . $calid_p . " AND custom=0";
+            $font_size_style = $style_service->formatsignle_css($font_size);
+            $edit_style_period = "UPDATE style SET style='". $font_size_style ."' WHERE category='fontsize' AND classname='" . $classname_p . "' AND cal_id=" . $calid_p . " AND custom=0";
             $updated += $calendar_service->excute_on_db($edit_style_period) ? 1 : 0;
         }
         if ($font_family)
         {
-            $edit_style_period = "UPDATE style SET style='" . $font_family . "' WHERE title='" . $main_fontfamily_title . "' AND classname='" . $classname_p . "' AND cal_id=" . $calid_p . " AND custom=0";
+            $font_family_style = $style_service->formatsignle_css($font_family);
+            $edit_style_period = "UPDATE style SET style='".$font_family_style."' WHERE category='fontfamily' AND classname='" . $classname_p . "' AND cal_id=" . $calid_p . " AND custom=0";
             $updated += $calendar_service->excute_on_db($edit_style_period) ? 1 : 0;
         }
 
@@ -2599,9 +2823,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST')
 
         if ($period_border)
         {
-            $edit_style_period = "UPDATE style SET style='" . $period_border . "' WHERE title='" . $main_border_title . "' AND classname='" . $classname_p . "' AND cal_id=" . $calid_p . " AND custom=0";
+            $period_border_style = $style_service->formatsignle_css($period_border);
+            $edit_style_period = "UPDATE style SET style='" . $period_border . "' WHERE category='border' AND classname='" . $classname_p . "' AND cal_id=" . $calid_p . " AND custom=0";
             $updated += $calendar_service->excute_on_db($edit_style_period) ? 1 : 0;
         }
+
+
 
         $success = $updated ? 'true' : 'false';
         $message = $updated ? 'Action On Periods: successfully edited Main Style Total Changes On: ' . $updated . ' Style rules' : 'Action On Periods: Could not edit Main style';
@@ -2649,9 +2876,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST')
 
         if ($color)
         {
-            $edit_style_slot = "UPDATE style SET style='color: " . $color . ";' WHERE title='" . $main_color_title . "' AND classname='" . $classname_s . "' AND cal_id=" . $calid_s . " AND custom=0";
-            $updated += $calendar_service->excute_on_db($edit_style_slot) ? 1 : 0;
+            $edit_style_period = "UPDATE style SET style='" . $period_style . "' WHERE title='" . $main_color_title . "' AND classname='" . $period_style_classname . "' AND cal_id=" . $cal_id;
+            $updated = $calendar_service->excute_on_db($edit_style_period);
+
         }
+
         if ($backgrounds)
         {
             $edit_style_slot = "UPDATE style SET style='background-color: " . $backgrounds . ";' WHERE title='" . $main_background_title . "' AND classname='" . $classname_s . "' AND cal_id=" . $calid_s . " AND custom=0";

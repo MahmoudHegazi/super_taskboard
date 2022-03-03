@@ -3,9 +3,9 @@ ob_start();
 require_once (dirname(__FILE__, 2) . '\config.php');
 require_once (dirname(__FILE__, 2) . '\functions.php');
 require_once (dirname(__FILE__, 2) . '\services\UserService.php');
+require_once (dirname(__FILE__, 2) . '\services\CalendarService.php');
 require_once (dirname(__FILE__, 2) . '\models\User.php');
 
-require_once (dirname(__FILE__, 2) . '\controllers\IndexController.php');
 
 $redirect_url = isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '';
 
@@ -13,11 +13,11 @@ $redirect_url = isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '';
 class SignupController {
   protected $pdo;
   protected $user_service;
-  protected $index_controller;
+  protected $calendar_service;
   protected $request_type;
   protected $signup_success;
+  protected $used_calendar;
   private $request_token;
-
 
 
 
@@ -26,12 +26,20 @@ class SignupController {
   {
     $this->pdo = $pdo;
     $this->user_service = new UserService($pdo);
-    $this->index_controller = new IndexController($pdo);
+    $this->calendar_service = new CalendarService($pdo);
     $this->set_request_type($request_type);
     $this->set_signup_success(false);
-    $this->set_used_calendar($this->index_controller->get_used_calendar());
-
+    $used_cal = $this->set_used_calendar($this->return_used_calendar());
+    $used_calendar = $this->get_used_calendar();
     $this->set_request_token($this->getnerate_request_secert());
+
+    if (!isset($used_calendar) || empty($used_calendar)){
+      throw new Exception( "No Calendars Created Please Create Calendar First and it will marked as used automatic Erro 01" );
+    }
+
+    if (!isset($this->calendar_service) || empty($this->calendar_service)){
+      throw new Exception( "Can not Get used calendar data please create calendar from admin setup page and try again" );
+    }
 
   }
 
@@ -68,6 +76,7 @@ class SignupController {
   public function get_signup_success(){
     return $this->signup_success;
   }
+
 
   public function all_required_exist($username, $email, $password, $name){
     $empty_username = trim($username," ");
@@ -200,6 +209,13 @@ class SignupController {
     }
     /* Signup Request end */
   }
+
+  /* get the used calendar  */
+  public function return_used_calendar(){
+    $cal = $this->calendar_service->get_used_calendar("used", 1);
+    return $cal;
+  }
+
 
   /* secure from strong type which is send login request not from my website for example use bot or remote reuqest it wont success even if provide a key */
   public function getnerate_request_secert(){

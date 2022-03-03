@@ -36,7 +36,11 @@ class LoginController {
     $used_cal = $this->get_used_calendar();
 
     if (!isset($used_cal) || empty($used_cal)){
-      throw new Exception( "No Calendars Created Please Create Calendar First and it will marked as used automatic" );
+      throw new Exception( "No Calendars Created Please Create Calendar First and it will marked as used automatic Erro 01" );
+    }
+
+    if (!isset($this->calendar_service) || empty($this->calendar_service)){
+      throw new Exception( "Can not Get used calendar data please create calendar from admin setup page and try again" );
     }
 
 
@@ -592,8 +596,6 @@ class LoginController {
   }
 
   public function assign_used_calendar(){
-    //if (!isset($this->calendar_service)){echo 'hi'; return array();}
-    // used has 2 values 1 or 0  , 0 for any calendar not used 1 added automatic to the first added cal when all unused or when remove used cal
     $cal = $this->calendar_service->get_used_calendar("used", 1);
     return $cal;
   }
