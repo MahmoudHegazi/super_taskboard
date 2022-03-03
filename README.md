@@ -14,6 +14,10 @@ This is a CMS for creating fully customized task boards and calendars to suit yo
 ![image](https://user-images.githubusercontent.com/55125302/156525130-1700f032-325c-45be-8a95-28794bb9c4cd.png)
 
 
+in this project I tried to make everything work as single unit to reach the last dynamic level can made by leting everything can work or edited alone smothly without issue, also
+every part in calendar is a single object and has it's service, class/modal and SQL mapper, also I tried as much as possible to make eveything can edited alone even styles, also secret tip, this app will add element_id for each slot or period you can look for ids and add custom style for some single elements to group them beside the main a lots of ways let you group elements with style using class or custom css with id and !important etc
+
+
 
 
 
