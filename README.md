@@ -14,7 +14,7 @@ This is a CMS for creating fully customized task boards and calendars to suit yo
 ![image](https://user-images.githubusercontent.com/55125302/156525107-acc11015-8f64-4c96-81d7-44f3f992b53f.png)
 ![image](https://user-images.githubusercontent.com/55125302/156525130-1700f032-325c-45be-8a95-28794bb9c4cd.png)
 
-#### bootstrap5 and css3 and ES6
+#### bootstrap5 and css3 and ES6 and JQuery aside
 ![image](https://user-images.githubusercontent.com/55125302/156806324-b5930a1e-1c63-46b6-86ad-855087f1e096.png)
 
 
