@@ -162,6 +162,69 @@ class SlotMapper {
     return $inserted_ids;
   }
 
+  function free_group_query($sql){
+    $pdo = $this->getPDO();
+    $query_sql = test_input($sql);
+    $stmt = $pdo->prepare($query_sql);
+    $stmt->execute();
+    return  $stmt->fetchAll(PDO::FETCH_ASSOC);
+  }
+
+  function free_single_query($sql){
+    $pdo = $this->getPDO();
+    $query_sql = test_input($sql);
+    $stmt = $pdo->prepare($query_sql);
+    $stmt->execute();
+    return $stmt->fetch(PDO::FETCH_ASSOC);
+  }
+
+
+  function getLastSlotId($cal_id){
+    $last_slot_id_sql = "SELECT MAX(slot.id) AS last FROM slot JOIN period ON period.id = slot.period_id JOIN day on period.day_id = day.id JOIN month ON day.month_id = month.id JOIN year ON month.year_id = year.id JOIN
+    calendar ON year.cal_id = calendar.id WHERE calendar.id = ".$cal_id." LIMIT 1";
+
+    $last_slot = $this->free_single_query($last_slot_id_sql);
+
+    if (isset($last_slot) && !empty($last_slot) && isset($last_slot['last']) && !empty($last_slot['last']) && is_numeric($last_slot['last'])){
+      $slot_id = $last_slot['last'];
+      $last_slot_data = "SELECT element_id FROM `slot` WHERE id=".test_input($slot_id);
+      $last_element_id = $this->free_single_query($last_slot_data);
+
+      if (isset($last_element_id) && !empty($last_element_id) && isset($last_element_id['element_id']) && !empty($last_element_id['element_id'])){
+        $last_elmid = trim($last_element_id['element_id'],"");
+
+        $last_elmid_list = explode("_",$last_elmid);
+        if (count($last_elmid_list) > 0){
+          $lastid = $last_elmid_list[count($last_elmid_list)-1];
+          $last_found = 0;
+          $found_number = array();
+          if (is_numeric($lastid)){
+            return (intval($lastid) + 1);
+          } else {
+            for ($check=0; $check<count($last_elmid_list); $check++){
+              if (is_numeric($last_elmid_list[$check])){
+                array_push($found_number, intval($last_elmid_list[$check]));
+              }
+            }
+            if (count($found_number) > 0){
+              $last_idd = max(array($found_number));
+              return intval($last_idd) + 1;
+            } else {
+              return 1;
+            }
+          }
+        } else {
+          return 1;
+        }
+      } else {
+        return 1;
+      }
+    } else {
+      return 1;
+    }
+    return 1;
+  }
+
 
 
 }

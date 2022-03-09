@@ -89,22 +89,36 @@ class StyleMapper {
     }
 
     function read_class_styles($year, $month, $cal_id, $class_type='period'){
-      $class_type = $class_type == 'period' ? 'period.id' : 'slot.id';
       $pdo = $this->getPDO();
       // load style for previous and after month as this pro cal get all days dynamic
       $min_month = $month > 1 ? $month - 1 : $month;
       $min_month = $min_month == 12 ? $min_month - 1 : $min_month;
       $max_month = $month >= 12 ? $month : $month + 1;
 
+      $periods_sql = "SELECT style.* FROM style JOIN period ON period.id = style.class_id JOIN day
+      ON period.day_id = day.id JOIN month ON day.month_id = month.id JOIN year ON month.year_id = year.id
+      WHERE year.year=? AND month.month=? AND style.cal_id=?";
 
+      $slots_sql = "SELECT style.* FROM style JOIN slot ON slot.id = style.class_id JOIN
+      period ON slot.period_id = period.id JOIN day ON period.day_id = day.id JOIN month ON
+      day.month_id = month.id JOIN year ON month.year_id = year.id WHERE year.year=? AND month.month=? AND style.cal_id=?";
+
+      if ($class_type == 'slot'){
+        $stmt = $pdo->prepare($slots_sql);
+      } else {
+        $stmt = $pdo->prepare($periods_sql);
+      }
+      $stmt->execute([$year, $month, $cal_id]);
+      /*
       $stmt = $pdo->prepare("
        SELECT style.id, style.class_id, style.custom, style.category, style.title, style.cal_id, style.style, style.active, style.classname, style.element_id, style.category, month.month
        FROM calendar JOIN year ON calendar.id = year.cal_id JOIN month ON month.year_id = year.id JOIN
        day ON day.month_id = month.id JOIN period ON day.id = period.day_id JOIN slot ON
        period.id = slot.period_id JOIN style ON
-       style.class_id=".$class_type." WHERE year.year=? AND (month=? OR month=? OR month=?) AND calendar.id=? AND style.active=1 "
+       style.class_id=".$class_type." WHERE year.year=? AND (month=?) AND calendar.id=? AND style.active=1 "
       );
       $stmt->execute([$year, $month, $min_month, $max_month, $cal_id]);
+      */
       //print_r($stmt);
       $data = $stmt->fetchAll();
       return $data;

@@ -88,6 +88,12 @@ catch( Exception $e ) {
   $error = true;
 }
 
+function getBS($inC, $element_id){
+  $title_container = $inC->getElement($element_id);
+  $title_container_bs = !empty($title_container) ? $title_container->get_bootstrap_classes() : '';
+  return $title_container_bs;
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST'){
   // This How The SuperMVC handle all view with all needed given post requests
   $redirect_url = $_SERVER['HTTP_REFERER'];
@@ -103,11 +109,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
     <title><?php echo defined('TITLE') ? TITLE : 'Super Calendar'; ?></title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="assets/css/style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <meta charset="utf-8">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- local data -->
+    <script src="assets/js/jquery-3.5.1.min.js"></script>
+    <link rel="stylesheet" href="assets/font-awesome-4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css">
+    <script src="assets/bootstrap/js/bootstrap.bundle.min.js"></script>
+
     <style>
       body, html {
       margin: 0;
@@ -116,6 +125,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
       font-size: 16px;
       width: 100%;
       }
+      .active_toggle{
+        box-shadow: 0 4px 8px 0 rgba(200, 200, 200), 0 6px 20px 0 rgba(0, 150, 200, .06) !important;
+      }
+      .main_view {
+        width: 100% !important;
+        max-width: 100% !important;
+        height:max-content;
+      }
+      /* scroll style */
+      ::-webkit-scrollbar {
+        width: 20px;
+        height: 10px !important;
+      }
+      /* Track */
+      ::-webkit-scrollbar-track {
+        box-shadow: inset 0 0 5px grey;
+        border-radius: 10px;
+      }
+
+      /* Handle */
+      ::-webkit-scrollbar-thumb {
+        background: url('assets/images/scrollbg.jpg');
+        border-radius: 10px;
+      }
+
+      /* Handle on hover */
+      ::-webkit-scrollbar-thumb:hover {
+        opacity: 0.8;
+        box-shadow: inset 2px 0 5px lightblue;
+      }
+      .options_parent {min-height: 175px;}
       div.aside_container{
       box-shadow: 0 4px 8px 0 rgba(200, 200, 200), 0 6px 20px 0 rgba(0, 150, 200, .06);
       background: #e6e6fa75;
@@ -171,7 +211,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
       }
       .bg_cornsilk{
       background: cornsilk;
-      color: dimgray !important;
+      color: dimgray;
       }
       .bg_azure{
       background: azure;
@@ -197,10 +237,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
       .cursor_pointer{
         cursor:pointer;
       }
+      .text_black{color: black;}
+      .font_80em {font-size: .80em;}
 
       .max_width_30{
         max-width: 30% !important;
       }
+      .the_width80{ width: 100% !important;}
       .month_arrow {
       cursor: pointer;
       }
@@ -305,12 +348,56 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
         background: dimgrey;
       }
 
+      /* style controller aside */
+      div.active_aside {
+         position: fixed;
+         display: none;
+         bottom: 0;
+         right: 4px;
+         overflow: auto;
+         height: 100%;
+         width: 22%;
+         background: cadetblue;
+         border: 3px solid lightgray;
+         box-shadow: 0 2px 3px 0 khaki, 0 2px 8px 0 lightgray;
+       }
+
+       .style_editor_title{
+      margin: 5px;
+      text-shadow: 1px 1px 2px lightgray, 0 0 25px blue, 0 0 5px gold;
+            box-shadow: 0 2px 3px 0 khaki, 0 2px 8px 0 lightgray;
+      }
+
+      .magic_icon{
+      color: khaki;
+      text-shadow: 1px 1px 2px lightgreen, 0 0 25px blue, 0 0 5px gold;
+    }
+    .toggle_asside{
+      cursor: pointer;
+    }
+
+    .toggle_asside:hover{
+      text-shadow: 1px 1px 2px red, 0 0 25px blue, 0 0 5px gold;
+    }
+
+    .style_viewercss{
+      min-height:100%;
+      height: auto;
+      min-width: 80%;
+      max-width: 100%;
+      width: 100%;
+      box-shadow: 0 2px 3px 2px lightgray, 0 2px 8px 0 gray;
+    }
+
+
+
       /* media query programing */
-      @media only screen and (max-width: 690px) {
+      @media only screen and (max-width: 900px) {
        /* ipad */
       .full_day {display: none !important;}
       .short_day{display: block !important;}
 
+      div.slot_background_default div.justify-content-between{ justify-content: center !important; }
 
        .period_title_default {
           max-width:80% !important;
@@ -318,6 +405,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
           font-size: .525rem;
           padding:0;
       }
+      .active_aside {width: 40% !important;}
 
       .period_background_default {
         padding: 0px !important;
@@ -339,6 +427,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
       }
 
       @media only screen and (max-width: 580px) {
+
+      .active_aside {width: 40% !important;}
 
       .period_title_default {
           max-width:100%;
@@ -457,23 +547,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
           background: #41e15c85 !important;
           box-shadow: 0px 4px 0 4px rgba(50, 50, 50, .4), 2px 2px 2px 1px rgba(255, 255, 255, .8);
       }
+
     </style>
   </head>
   <body>
 
 
+<div class="main_view bg-white">
 
     <div class="container-fluid p-2 text-white text-center cal_title bg_dimgray">
-      <h3 class="display-6 mt-2 mb-3 text-white p-2 bg_indianred
-      default_shadow text_shadow03 border border-secondary">
-      <img src="<?php echo defined('THUMBNAIL') ? 'uploads/images/' . THUMBNAIL : 'uploads/images/default_logo.png'; ?>" alt="Calendar Logo" height="50" width="50">
-      <?php echo defined('TITLE') ? TITLE : 'Super Calendar'; ?>
+
+
+      <h3 data-editor-type="container" id="title_container" data-editor-class="title_container_cs"
+      class="d-flex display-6 mt-2 mb-3 text-white p-2 default_shadow text_shadow03 border border-secondary title_container_cs <?php echo getBS($index_controller, 'title_container'); ?>">
+
+      <img data-editor-type="element" id="logo_image" data-editor-class="logo_image_css"  class="logo_image_css" src="<?php echo defined('THUMBNAIL') ? 'uploads/images/' . THUMBNAIL : 'uploads/images/default_logo.png'; ?>" alt="Calendar Logo" height="50" width="50">
+      <span data-editor-type="element" id="title_text" data-editor-class="title_text_css" class="title_text_css">
+        <?php echo defined('TITLE') ? TITLE : 'Super Calendar'; ?></span>
     </h3>
-      <p class="description_p bg_azure  text-black border border-secondary p-2 default_shadow">
+
+      <p data-editor-type="element" id="title_description" data-editor-class="title_description_css"
+        class="title_description_css description_p bg_azure  text-black border border-secondary p-2 default_shadow">
         <?php echo defined('DESCRIPTION') ? DESCRIPTION : 'Booking Calendar'; ?>
       </p>
 
-      <div class="container d-flex justify-content-end border border-succcess p-2">
+      <div data-editor-type="container" id="top_nav" data-editor-class="top_nav_css" class="top_nav_css container d-flex justify-content-center align-items-end border border-succcess p-2">
 
         <?php
           if (isset($_SESSION['logged_id']) && !empty($_SESSION['logged_id'])){
@@ -522,30 +620,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
 
 
 
+
     <div class="app_main container-fluid p-2 text-black text-center" style="width: 100% !important;">
       <div class="container-fluid main_cal_display border border-secondary">
         <div class="row">
           <div class="col-sm-12  p-2 d-flex justify-content-center">
-            <div class="row container-fluid options_parent  bg_dimgray p-2">
+            <div data-editor-type="container" id="month_switcher_grid" data-editor-class="month_switcher_grid_css"
+            class="row container-fluid options_parent  bg_dimgray p-2 d-flex justify-content-center align-items-center month_switcher_grid_css">
               <!-- month controller start -->
-              <div id="month_controler_container" class="col-sm-6">
+              <div data-editor-type="container" id="monthswitcher_main" data-editor-class="monthswitcher_main_css"
+               class="monthswitcher_main_css d-flex col-sm-12 justify-content-end align-items-center" style="width: 90%;height: fit-content;">
+              <div class="row flex-fill d-flex justify-content-center ">
+              <div id="month_controler_container" class="col-sm-5">
                 <!-- month switcher start -->
-                <div  class="container month_row d-flex flex-wrap align-items-start justify-content-between p-2  text-black border border-light">
-                  <i class="display-6 flex-fill fa fa-arrow-circle-left text-white month_arrow"
+                <div data-editor-type="container" id="monthswitcher_parent" data-editor-class="monthswitcher_css"
+                  class="monthswitcher_css container month_row d-flex flex-wrap align-items-start justify-content-between p-2  text-black border border-light">
+                  <i data-editor-type="element" id="monthswitcher_left" data-editor-class="monthswitcher_left_css"
+                   class="monthswitcher_left_css display-6 flex-fill fa fa-arrow-circle-left text-white month_arrow"
                   data-month="<?php
                   if (is_numeric($index_controller->get_current_month()->get_month())){
                     echo $index_controller->get_current_month()->get_month() >= 2 ? $index_controller->get_current_month()->get_month() - 1 : 1;
                   }
                   ?>"
                   ></i>
-                  <h3 id="selected_month_name" class="flex-fill month_name text_shadow01 text-white">
+                  <h3 data-editor-type="element" data-editor-class="monthswitcher_select_css"
+                      id="selected_month_name" class="flex-fill month_name text_shadow01 text-white monthswitcher_select_css">
                     <?php if (!is_null($index_controller->get_current_month())){
                       $dateObj = DateTime::createFromFormat('!m', $index_controller->get_current_month()->get_month());
                       $monthName = $dateObj->format('F');
                       echo $monthName;
                     } ?>
                   </h3>
-                  <i class="display-6 flex-fill fa fa-arrow-circle-right text-white month_arrow"
+                  <i data-editor-type="element" data-editor-class="monthswitcher_right_css"
+                     id="monthswitcher_right" class="monthswitcher_right_css display-6 flex-fill fa fa-arrow-circle-right text-white month_arrow"
                   data-month="<?php
                   if (is_numeric($index_controller->get_current_month()->get_month())){
                     echo $index_controller->get_current_month()->get_month() <= 12 ? $index_controller->get_current_month()->get_month() + 1 : 12;
@@ -555,10 +662,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
                 <!-- month switcher end -->
               </div>
               <!-- month controller end -->
-              <div class="col-sm-5 d-flex justify-content-center align-items-start rounded p-2">
+
+              <div data-editor-type="container" id="year_select_cont"
+                 data-editor-class="year_select_cont_css" class="year_select_cont_css col-sm-5 d-flex justify-content-center align-items-center rounded">
                 <!-- year display start -->
-                <form class="flex-fill" action="./index.php" method="GET" id="year_form">
-                  <select class="form-control" name="year" id="year">
+                <form data-editor-type="container" id="year_select_form"
+                   data-editor-class="year_select_form_css" class="year_select_form_css flex-fill" action="./index.php" method="GET" id="year_form">
+                  <select data-editor-type="element" data-editor-class="year_select_css"
+                     class="year_select_css form-control" name="year" id="year">
                     <!-- years selector -->
                     <?php if (!empty($cal_years) && is_array($cal_years)) {
                       for ($y=0; $y<count($cal_years); $y++){
@@ -573,18 +684,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
                 </form>
                 <!-- year display end -->
               </div>
-              <div class="col-sm-12 bg_dimgray p-2">
+              <!-- remove bg_dmgriay !Important -->
+              <div data-editor-type="container" id="month_numbers_main" data-editor-class="month_numbers_main_css"
+                class="month_numbers_main_css d-flex justify-content-center align-items-start col-sm-12 bg_dimgray p-2">
                 <!-- months numbers switch month -->
-                <div class="btn-group btn-sm d-flex flex-wrap justify-content-center align-items-center month_small_btns">
+                <div id="month_numbers" data-editor-class="month_numbers_css"
+                  class="btn-group btn-sm d-flex flex-wrap justify-content-center align-items-center month_small_btns month_numbers_css">
                   <?php
 
                     if ($current_months && is_array($current_months) && !empty($current_months)){
                       for ($m=0; $m<count($current_months); $m++){
                         $is_active_class = ($current_months[$m]->get_month() == $current_month) ? 'active_small_button' : '';
+                        $btnid = 'btn_month_' . $current_months[$m]->get_id() . '_' . $current_year->get_year()  . '_' . $current_calendar->get_id();
 
                         ?>
                         <!-- change month by number better UX option for old man -->
-                        <form method="GET" action="./" class="<?php echo $is_active_class; ?> month_form bg-light p-1 m-1 rounded-circle d-flex justify-content-center align-items-center month_toggle_btn" data-month="<?php echo $current_months[$m]->get_month(); ?>">
+                        <form id="<?php echo $btnid; ?>"
+                          data-editor-group="1"
+                          data-editor-type="element" method="GET" action="./" class="<?php echo $is_active_class; ?> month_form bg-light p-1 m-1 rounded-circle d-flex justify-content-center align-items-center month_toggle_btn" data-month="<?php echo $current_months[$m]->get_month(); ?>">
                           <span class="p-1 text-center"> <?php echo $current_months[$m]->get_month(); ?></span>
                           <input type="hidden" style="display:none;" name="month" value="<?php echo $current_months[$m]->get_month(); ?>" required>
                         </form>
@@ -597,62 +714,81 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
               </div>
             </div>
           </div>
-          <div class="col-sm-12 d-flex justify-content-center align-items-center bg_dimgray">
+        </div>
+
+
+          </div>
+          <div data-editor-type="container" data-editor-class="calendar_first_container_css"  id="calendar_first_container"
+            class="p-1 col-sm-12 d-flex justify-content-center align-items-center bg_dimgray calendar_first_container_css">
 
             <!-- Calendar display start -->
-            <div class="calendar border border-dark p-2 mt-3 mb-5 container-fluid bg-white">
-              <div class="text-black"><h5><?php
+            <div data-editor-type="main" data-editor-class="main_calendar_container"  id="main_calendar_container_css"
+              class="main_calendar_container_css calendar border border-dark p-2 mt-3 mb-5 container-fluid bg-white">
+              <div data-editor-type="container" id="cal_date_title_cont" data-editor-class="cal_date_title_contcss"
+              class="cal_date_title_contcss d-flex  justify-content-center align-items-center">
+                <h5 data-editor-type="element" id="cal_date_title_cont" data-editor-class="cal_date_title_contcss" class="cal_date_title_contcss text_black"><?php
               $smonth = intval($index_controller->get_current_month()->get_month()) > 9 ? $index_controller->get_current_month()->get_month() : '0' . $index_controller->get_current_month()->get_month();
 
               echo $index_controller->get_current_year()->get_year() . '-' . $smonth . '-01'; ?></h5></div>
               <!-- week Titles row start -->
-              <div class="d-flex p-2 cal_days_titles">
-                <div class="flex-fill border border-light cal_card_cell">
-                  <span class="full_day">Monday</span>
-                  <span class="short_day" style="display:none;">Mon</span>
+              <div data-editor-type="container" id="day_namecont" data-editor-class="day_namecont_css"
+                class="day_namecont_css d-flex justify-content-center align-items-center p-2 cal_days_titles">
+
+                <div data-editor-type="element" id="day_name_parent1" data-editor-class="day_name_parentcss" data-editor-group="2"
+                class="day_outer_name_contcss flex-fill border border-light cal_card_cell">
+                  <span class="full_day" data-editor-type="element" id="day_mon" data-editor-class="day_mon_css" class="day_mon_css">Monday</span>
+                  <span class="short_day" data-editor-type="element" id="day_mon_mob" data-editor-class="day_mon_mob_css" class="day_mon_mob_css" style="display:none;">Mon</span>
                 </div>
-                <div class="flex-fill border border-light cal_card_cell">
+
+                <div data-editor-type="element" id="day_name_parent2" data-editor-class="day_name_parentcss" data-editor-group="2" class="day_name_parentcss flex-fill border border-light cal_card_cell">
                   <span class="full_day">Tuesday</span>
-                  <span class="short_day" style="display:none;">Tue</span>
+                  <span class="short_day" data-editor-type="element" id="day_tue_mob" data-editor-class="day_tue_mob_css" class="day_tue_mob_css" style="display:none;">Tue</span>
                 </div>
-                <div class="flex-fill border border-light cal_card_cell">
+                <div data-editor-type="element" id="day_name_parent3" data-editor-class="day_name_parentcss" data-editor-group="2" class="day_name_parentcss flex-fill border border-light cal_card_cell">
                   <span class="full_day">Wednesday</span>
-                  <span class="short_day" style="display:none;">Wed</span>
+                  <span class="short_day" data-editor-type="element" id="day_wed_mob" data-editor-class="day_wed_mob_css" class="day_wed_mob_css" style="display:none;">Wed</span>
                 </div>
-                <div class="flex-fill border border-light cal_card_cell">
+                <div data-editor-type="element" id="day_name_parent4" data-editor-class="day_name_parentcss" data-editor-group="2" class="day_name_parentcss flex-fill border border-light cal_card_cell">
                   <span class="full_day">Thursday</span>
-                  <span class="short_day" style="display:none;">Thu</span>
+                  <span class="short_day" data-editor-type="element" id="day_thu_mob" data-editor-class="day_thu_mob_css" class="day_thu_mob_css" style="display:none;">Thu</span>
                 </div>
-                <div class="flex-fill border border-light cal_card_cell">
+                <div data-editor-type="element" id="day_name_parent5" data-editor-class="day_name_parentcss" data-editor-group="2" class="day_name_parentcss flex-fill border border-light cal_card_cell">
                   <span class="full_day">Friday</span>
-                  <span class="short_day" style="display:none;">Fri</span>
+                  <span class="short_day" data-editor-type="element" id="day_fri_mob" data-editor-class="day_fri_mob_css" class="day_fri_mob_css" style="display:none;">Fri</span>
                 </div>
-                <div class="flex-fill border border-light cal_card_cell">
+                <div data-editor-type="element" id="day_name_parent6" data-editor-class="day_name_parentcss" data-editor-group="2" class="day_name_parentcss flex-fill border border-light cal_card_cell">
                   <span class="full_day">Saturday</span>
-                  <span class="short_day" style="display:none;">Sat</span>
+                  <span class="short_day" data-editor-type="element" id="day_sat_mob" data-editor-class="day_sat_mob_css" class="day_sat_mob_css" style="display:none;">Sat</span>
                 </div>
-                <div class="flex-fill border border-light cal_card_cell">
+                <div data-editor-type="element" id="day_name_parent7" data-editor-class="day_name_parentcss" data-editor-group="2" class="day_name_parentcss flex-fill border border-light cal_card_cell">
                   <span class="full_day">Sunday</span>
-                  <span class="short_day" style="display:none;">Sun</span>
+                  <span class="short_day" data-editor-type="element" id="day_sun_mob" data-editor-class="day_sun_mob_css" class="day_sun_mob_css" style="display:none;">Sun</span>
                 </div>
               </div>
               <!-- week Titles row end -->
               <!-- hidden week scroll buttons -->
-              <div class="d-flex flex-column align-items-center p-2 " style="position: fixed;left:0;top:0;background: transparent;width:fit-content;max-width:100% !important; font-size:10px;margin:0;padding:0 !important;">
+              <div data-editor-type="container" id="weekscroll_container" data-editor-class="weekscroll_containercss"  class="weekscroll_containercss d-flex flex-column align-items-center p-2 " style="position: fixed;left:0;top:0;background: transparent;width:fit-content;max-width:100% !important; font-size:10px;margin:0;padding:0 !important;">
                 <?php
                   if ($current_weeks && !empty($current_weeks)){
                     for ($cw=0; $cw<count($current_weeks); $cw++){
                       $week_id = 'week_' . ($cw+1);
                       ?>
-                      <div class="scroll_to_btns flex-fill border border-primary btn  btn-secondary text-white  mt-1 mb-1" data-target="<?php echo $week_id; ?>"><?php echo ($cw+1); ?></div>
+                      <div data-editor-type="element"
+                      id="<?php echo 'scrollbtn_'.$week_id; ?>" data-editor-group="3" data-editor-class="scroll_left_btncss"
+                      class="scroll_left_btncss flex-fill border border-primary btn  btn-secondary text-white  mt-1 mb-1"
+                      data-target="<?php echo $week_id; ?>"><?php echo ($cw+1); ?></div>
                       <?php
                     }
                   }
                 ?>
 
-
-                <div id="map_booking_modal_open" class="flex-fill border border-primary btn btn-light mt-1 mb-1 aside_add_res" data-bs-toggle="modal" data-bs-target="#mapBookingModal">
+                <div data-editor-type="element" id="map_booking_modal_open" data-editor-class="map_resevation_css" class="map_resevation_css flex-fill border border-primary btn btn-light mt-1 mb-1 aside_add_res" data-bs-toggle="modal" data-bs-target="#mapBookingModal">
                  <i class="fa fa-plus text-primary"></i>
+                </div>
+
+                <div data-editor-type="element" data-editor-class="open_style_editorcss" id="open_style_editor"
+                  class="open_style_editorcss toggle_asside magical_btn flex-fill border border-primary btn  btn-danger text-white  mt-1 mb-1"
+                  title="Close The Style Editor" data-bs-original-title="Close The Style Editor"><i class="fa fa-magic text-white"></i>
                 </div>
 
 
@@ -679,7 +815,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
                           ?>
                           <!-- empty day -->
                           <!-- day start -->
-                          <div class="flex-fill border border-light cal_card_cell day_card null_day" title="This day is not available The selected month is : <?php echo $week_count; ?> Days">
+                          <div data-editor-type="element" data-editor-class="day_x_css"
+                          data-editor-group="4"  id="x_day_<?php echo uniqid(); ?>" class="day_x_css flex-fill border border-light cal_card_cell day_card null_day"
+                          title="This day is not available The selected month is : <?php echo $week_count; ?> Days">
 
                           </div>
                           <?php
@@ -690,18 +828,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
                           $day = $selected_day->get_day();
                           $day_date = $selected_day->get_day_date();
                           $day_name = $selected_day->get_day_name();
+                          $daycalid = $index_controller->get_used_calendar()->get_id();
 
                           $selected_day_data = $day_data['day_data'];
                         ?>
                         <!-- day start -->
-                        <div data-day="<?php echo $day_name; ?>" class="flex-fill border border-light cal_card_cell day_card" id="day_<?php echo $day_id;  ?>">
+                        <div data-editor-type="element" data-editor-group="5" data-day="<?php echo $day_name; ?>" data-editor-class="day_style_css"
+                          class="flex-fill border border-light cal_card_cell day_card day_style_css" id="day_<?php echo $day_id;  ?>">
 
                            <!-- day meta -->
-                             <h6 class="text-center"><?php echo substr($day_name, 0, 3) . ' ' . $day; ?></h6>
-                             <h6 class="text-center bg-light text-black badge"><?php echo $day_date; ?></h6>
+                             <h6 data-editor-type="element" data-editor-group="6" id="<?php echo 'day_title_'.$day_id . '_' . $daycalid;  ?>" data-editor-class="day_title_textcss" class="day_title_textcss text-center font_80em"><?php echo substr($day_name, 0, 3) . ' ' . $day; ?></h6>
+                             <h6 data-editor-type="element" data-editor-group="7" id="<?php echo 'day_date_'.$day_id . '_' . $daycalid;  ?>"  data-editor-class="day_date_css"  class="day_date_css text-center bg-light text-black badge"><?php echo $day_date; ?></h6>
                            <!-- array_distribution -->
                            <!-- all periods start -->
-                           <div class="all_periods">
+                           <div data-editor-type="container" id="all_periods_container" data-editor-class="all_periods_containercss"  class="all_periods_containercss all_periods d-flex flex-column flex-nowrap justify-content-center align-items-center">
                              <?php // now get periods from the data array
                                // day_data array(Array([day_period] => Period Object, [day_slot] => Array([0] => Slot Object)))
                                // loop over periods data (
@@ -716,15 +856,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
                                  $period_index = $selected_period->get_period_index();
                                  $p_element_id = $selected_period->get_element_id();
                                  $p_element_class = $selected_period->get_element_class();
+                                 $daycalid = $index_controller->get_used_calendar()->get_id();
 
 
                                  /* ##################### display periods   ############################ */
                                  ?>
                                  <!-- period example start -->
                                  <!-- notice here  the id come from database and class u can change also u can add normal css to target some slots in css file many ways -->
-                                 <div class="container period_background_default <?php echo $p_element_class; ?>" id="<?php echo $p_element_id; ?>" >
+                                 <div data-editor-type="container" data-editor-class="period_container_css"
+                                 data-editor-group="8" class="period_container_css d-flex justify-content-center align-items-center flex-column flex-nowrap container period_background_default <?php echo $p_element_class; ?>" id="<?php echo $p_element_id; ?>" >
                                     <!-- period title -->
-                                    <span class="badge bg-success mt-1 period_title_default" ><?php echo $p_description; ?></span>
+                                    <span data-editor-type="element" id="period_desc_<?php echo $p_id; ?>" data-editor-group="7" data-editor-class="period_description_css" class="period_description_css badge bg-secondary p-1 mt-1 period_title_default" ><?php echo $p_description; ?></span>
                                     <!-- all slots start -->
 
                                     <?php
@@ -751,10 +893,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
                                         if ($s_empty == 0){
                                           // display used slot
                                           ?>
+
+
                                           <!-- slot start booked already -->
-                                          <div class="slot_background_default p-1 m-1 used_slot <?php echo $s_element_class; ?>"
-                                            id="<?php echo $s_element_id; ?>">
-                                           <div class="container d-flex justify-content-between align-items-between">
+                                          <div
+
+                                            data-editor-class="slot_cont_css"
+                                            data-editor-type="element"
+                                            class="slot_background_default slot_cont_css p-1 m-1 used_slot <?php echo $s_element_class; ?>"
+                                            id="<?php echo $s_element_id; ?>" data-editor-group="9">
+                                           <div data-editor-type="container" data-editor-group="10" id="child_<?php echo $s_element_id; ?>" data-editor-class="slot_child_contcss"
+                                            class="container d-flex justify-content-between align-items-between slot_child_contcss">
 
                                              <!-- if this slot owned by logged display controls else nope -->
                                              <?php
@@ -789,9 +938,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
                                           <?php
                                         } else {
                                           ?>
-                                          <!-- slot start with booking -->
-                                          <div class="slot_background_default p-1 m-1 empty_slot <?php echo $s_element_class; ?>" id="<?php echo $s_element_id; ?>">
-                                           <div class="d-flex justify-content-between container d-flex justify-content-center align-items-between">
+                                          <!-- slot start with booking diffrent group to diffrence -->
+                                          <div data-editor-type="element" data-editor-group="11" data-editor-class="slot_cont_css" class="slot_background_default slot_cont_css p-1 m-1 empty_slot <?php echo $s_element_class; ?>" id="<?php echo $s_element_id; ?>">
+                                           <div data-editor-type="container" data-editor-group="12" id="child_<?php echo $s_element_id; ?>" data-editor-class="slot_child_contcss" class="slot_child_contcss d-flex justify-content-between container d-flex justify-content-center align-items-between">
                                              <i class="fa text-primary fa fa-calendar-o book_open_btn" style="font-size:1.1em;" data-slot-id="<?php echo $s_id; ?>"
                                              data-slot-start_from="<?php echo $s_start_from; ?>"
                                              data-slot-end_at="<?php echo $s_end_at; ?>"
@@ -855,6 +1004,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
     </div>
   </div>
 
+</div>
 
 <!-- Booking modal start -->
 <div class="modal fade" id="bookingModal">
@@ -863,7 +1013,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
 
       <!-- Modal Header -->
       <div class="modal-header ">
-        <h5 class="modal-title ">Booking <span id="booking_date_a"></span> <i class="fa fa-calendar"></i></h5>
+        <h5 class="modal-title">Booking <span id="booking_date_a"></span> <i class="fa fa-calendar"></i></h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
 
@@ -880,6 +1030,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
                 <textarea min="0" maxlength="255" placeholder="Reservation Notes.." class="form-control" rows="3" id="reservation_comment" name="reservation_comment"></textarea>
               </div>
 
+              <!-- addmin select user id -->
               <!-- addmin select user id -->
               <?php
                if (isset($index_controller) && !empty($index_controller) && $user_role === 'admin'){
@@ -954,6 +1105,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
                   // check if min year and max year and the calendar has years you can has calendar with 0 years easy
                   if ($has_years && !is_null($min_year) && !is_null($max_year)){
                   ?>
+
+                  <!-- for admin this best secured way instead of interput ajax request or play in this area just load it with php and display noe and in level 3display block -->
+                  <?php
+                   if (isset($index_controller) && !empty($index_controller) && $user_role === 'admin'){
+                     ?>
+                     <div class="form-group mb-2 mt-2" id="admin_reservation_owner" style="display:none;">
+                     <label for="admin_select_userid_add">Select the owner of the reservation</label>
+                     <select title="You See this Becuase You Are an admin select the user"
+                       class="form-control mb-2" id="admin_select_userid_add1" name="admin_select_userid_add" required>
+                         <?php
+                         $public_users_data = $index_controller->return_users_public_data();
+                         for ($pu=0; $pu<count($public_users_data); $pu++){
+                           $user_id = $public_users_data[$pu]->get_id();
+                           $uname = ($user_id === $logged_userid) ? 'You: ' . $public_users_data[$pu]->get_name() : $public_users_data[$pu]->get_name();
+                         ?>
+                           <option value="<?php echo $user_id; ?>" checked><?php echo $uname; ?></option>
+                         <?php
+                         }?>
+                     </select>
+                     </div>
+                     <?php
+                   }
+                  ?>
+
                     <label>Pick a Date</label>
                     <input class="form-control" name="map_reservation_date"
                     id="map_reservation_date" data-cal-id="<?php echo Calid;?>" type="date"  min="<?php echo $min_year . '-01-01'; ?>" max="<?php echo $max_year . '-12-12'; ?>">
@@ -1217,6 +1392,115 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
 </div>
 <!-- Cancel reservation modal end -->
 
+
+<!-- active_aside NEW -->
+<div class="active_aside bg-light" id="aside_style_controller">
+
+   <div class="container-fluid editor_part">
+   <h4 class="p-3 mt-2 mb-4 text-center border border-secondary rounded bg-dark text-white style_editor_title " data-bs-original-title="Close The Style Editor">
+      <i class="fa fa-magic magic_icon toggle_asside"></i> <span>Style Editor</span>
+   </h4>
+   <div class="d-flex flex-column">
+   <div class="d-flex flex-column no-wrap justify-content-center align-items-center p-2 bg-light">
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill row bg-light">
+            <label for="sys_elm_bg" class="col-sm-7">Background: </label>
+            <input type="color" class="col-sm-4 p-2 border border-outline-primary" id="sys_elm_bg" name="sys_elm_bg" />
+         </div>
+      </div>
+
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill row">
+            <label for="sys_elm_color" class="col-sm-7">Color: </label>
+            <input type="color" class="col-sm-4 p-2 border border-outline-primary" id="sys_elm_color" name="sys_elm_color" />
+         </div>
+      </div>
+
+
+
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="sys_elm_width" class="badge bg-light text-black">Padding: </label>
+            </div>
+            <div class="flex-fill" style="max-width:50%;">
+              <input type="number" class="form-control" id="sys_elm_padding" name="sys_elm_padding" placeholder="Width" />
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control" id="sys_elm_paddingu" name="sys_elm_paddingu">
+                <option value="%">%</option>
+                <option value="px">px</option>
+                <option value="em">em</option>
+                <option value="rem">rem</option>
+                <option value="vw">vw</option>
+                <option value="vh">vh</option>
+              </select>
+            </div>
+         </div>
+      </div>
+
+
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="sys_elm_width" class="badge bg-light text-black">Width: </label>
+            </div>
+            <div class="flex-fill" style="max-width:50%;">
+              <input type="number" class="form-control" id="sys_elm_width" name="sys_elm_width" placeholder="Width" />
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control" id="sys_elm_widthu" name="sys_elm_widthu">
+                <option value="%">%</option>
+                <option value="px">px</option>
+                <option value="em">em</option>
+                <option value="rem">rem</option>
+                <option value="vw">vw</option>
+                <option value="vh">vh</option>
+              </select>
+            </div>
+         </div>
+      </div>
+
+
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="sys_elm_height" class="badge bg-light text-black">Height: </label>
+            </div>
+            <div class="flex-fill" style="max-width:50%;">
+              <input type="number" class="form-control" id="sys_elm_height" name="sys_elm_width" placeholder="Height" />
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control" id="sys_elm_heightu" name="sys_elm_heightu">
+                <option value="%">%</option>
+                <option value="px">px</option>
+                <option value="em">em</option>
+                <option value="rem">rem</option>
+                <option value="vw">vw</option>
+                <option value="vh">vh</option>
+              </select>
+            </div>
+         </div>
+      </div>
+ </div>
+
+ <div class="d-flex justify-content-center align-items-center p-2 m-2 flex-column">
+   <div class="style_viewercss  border border-secondary p-2 bg-light flex-fill" id="style_viewer">
+     1
+   </div>
+ </div>
+
+</div>
+  </div>
+</div>
+
+
+
+
+</div>
+<!-- NEW -->
+
+
 <!-- sound effects -->
 <audio id="open_modal_sound">
   <source src="https://sndup.net/rp5j/d" type="audio/wav">
@@ -1229,7 +1513,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
 <!-- HTML5 sounds -->
 <script>
 
+/* ############## AJAX ############## */
+const postData = async function (url="", data={}){
+  const response = await fetch(url, {
+        method: "POST",
+        credentials: "same-origin",
+        headers:{
+         "Content-Type": "application/json"
+       },
+       body: JSON.stringify(data)
+     }
+   );
+   try{
+      const res = await response.json();
+      //console.error(res);
+      return res;
+    }catch(err){
+      console.error(err);
+    }
+}
 
+const backToDefault = ()=>{
+  const ActivesSecs = document.querySelectorAll(".active_section");
+  ActivesSecs.forEach( (activeSec)=>{
+    activeSec.classList.remove("active_section");
+  });
+
+  const ActivesLinks = document.querySelectorAll(".active_link");
+  ActivesLinks.forEach( (activeLink)=>{
+    activeLink.classList.remove("active_link");
+  });
+
+};
+
+
+
+
+window.addEventListener('DOMContentLoaded', (event) => {
 const playSound = (selector)=>{
   //open_modal_sound unable_open_modal
   const selectedSound = document.querySelector(`${selector}`);
@@ -1274,18 +1594,7 @@ allSections.forEach( (currentSection)=>{
 const min_elm_hieght = Math.min(...sections);
 const nagtive_height = -1 * Number(min_elm_hieght);
 
-const backToDefault = ()=>{
-  const ActivesSecs = document.querySelectorAll(".active_section");
-  ActivesSecs.forEach( (activeSec)=>{
-    activeSec.classList.remove("active_section");
-  });
 
-  const ActivesLinks = document.querySelectorAll(".active_link");
-  ActivesLinks.forEach( (activeLink)=>{
-    activeLink.classList.remove("active_link");
-  });
-
-};
 window.addEventListener( 'scroll', ()=>{
   let activeSection = null;
   let activeLink = null;
@@ -1402,25 +1711,7 @@ allEmptySlots.forEach( (slot)=>{
 const addResAisde = document.querySelector(".aside_add_res");
 addResAisde.addEventListener("click", ()=>{playSound("#open_modal_sound")});
 
-/* ############## AJAX ############## */
-const postData = async function (url="", data={}){
-  const response = await fetch(url, {
-        method: "POST",
-        credentials: "same-origin",
-        headers:{
-         "Content-Type": "application/json"
-       },
-       body: JSON.stringify(data)
-     }
-   );
-   try{
-      const res = await response.json();
-      //console.error(res);
-      return res;
-    }catch(err){
-      console.error(err);
-    }
-}
+
 /*
 const reservationName = document.getElementById('reservation_name');
 const reservationComment = document.getElementById('reservation_comment');
@@ -1441,7 +1732,7 @@ addReservationBtn.addEventListener("click", bookingFunction );
 
 
 /* AJAX Map New Reservation advanced UX */
-window.addEventListener('DOMContentLoaded', (event) => {
+
 
 const mapDayLevel2 = document.querySelector("#map_day_level2");
 const mapDayLevel3 = document.querySelector("#map_day_level3");
@@ -1457,6 +1748,7 @@ function backEveryThingMap(){
   mapDayLevel3.style.display = "none";
   mapDayLevel2.style.display = "none";
   mapNewPeriodsCont.innerHTML = '';
+  adminResOwner.style.display = "none";
   periodIndex = 0;
 }
 mapBookingModalOpen.addEventListener("click", backEveryThingMap);
@@ -1468,13 +1760,14 @@ function goTomapLevel2(){
 }
 
 
-
+const adminResOwner = document.querySelector("#admin_reservation_owner");
 function goTomapLevel3(event){
   mapNewPeriodsCont.innerHTML = '';
   const slotId = event.target.value;
   const slotStartFrom = event.target.getAttribute('data-start');
   const slotEndAt = event.target.getAttribute('data-end');
   const periodTitle = event.target.getAttribute('data-period-title');
+  adminResOwner.style.display = "block";
   displayAddReservationForm(slotId, slotStartFrom,  slotEndAt, periodTitle);
 }
 
@@ -1584,7 +1877,6 @@ async function getDayPeriodsAndSlots(event){
 const mapRservationDate = document.querySelector("#map_reservation_date");
 mapRservationDate.addEventListener( "change", getDayPeriodsAndSlots );
 
-});
 
 // effects for owned
 const reservationIdInp = document.querySelector("#cancel_reservation_id");
@@ -1671,6 +1963,12 @@ const emptyViewSlots = document.querySelectorAll(".view_empty_slot");
 emptyViewSlots.forEach( (emptySlot)=>{
   emptySlot.addEventListener("mouseenter", (event)=>{showOwnedEffectOpen(event, 'i.view_empty_slot', 'View Empter Slot Data', 'right')});
   emptySlot.addEventListener("mouseout", (event)=>{showOwnedEffectClose(event, 'i.view_empty_slot')});
+});
+
+const togglesAsside = document.querySelectorAll(".toggle_asside");
+togglesAsside.forEach( (toggleAsside)=>{
+  toggleAsside.addEventListener("mouseenter", (event)=>{showOwnedEffectOpen(event, 'i.toggle_asside', 'Close The Style Editor', 'bottom')});
+  toggleAsside.addEventListener("mouseout", (event)=>{showOwnedEffectClose(event, 'i.toggle_asside', 'Close The Style Editor')});
 });
 
 
@@ -1806,10 +2104,109 @@ function viewSlotHandler(event){
 
 /* AJAX MAP new Reservation end */
 
+/*  UX jquery for aside nav for style controller */
+let body_max_width = 1;
+/*  UX jquery for aside nav for style controller */
+// fix some effect in resisze important Advanced UX small details
+$(window).resize(function(){
 
-function add_required(event){
-  alert(event.target.selected);
+  if ($(window).width() > 900 && document.body.style.width.trim() == '60%'){
+    document.body.style.background = "lightgray";
+    document.body.style.width = "78%";
+  }
+
+  if ($(window).width() < 900 && document.body.style.width.trim() == '78%'){
+    document.body.style.width = "60%";
+
+  }
+
+});
+
+function fit_body_for_aisde(){
+  // add css class to body for nice ux
+    document.body.style.overflow = "auto";
+    if (toggAsside.classList.contains("active_toggle")){
+      toggAsside.classList.remove("active_toggle");
+      // sound effects
+      playSound("#open_modal_sound");
+    }
+
+    //toggAsside.style.display = "";
+    if (body_max_width == 1){
+      body_max_width = 0;
+      if ($(window).width() < 900){
+        document.body.style.width = "60%";
+      } else {
+        document.body.style.width = "78%";
+      }
+      document.body.style.background = "url('assets/images/load_circle_ux.gif')";
+      document.body.style.backgroundRepeat = "no-repeat";
+      document.body.style.backgroundPosition = "right";
+      document.body.style.backgroundAttachment = "fixed";
+   }
+   else{
+      body_max_width = 1;
+      document.body.style.width = "100%";
+      document.body.style.background = "lightgray";
+      // this for make small detail effect show scrollbar after 75mili from all animation end give it ncie ux
+
+   }
+
 }
+
+const toggAsside = document.querySelector("div.toggle_asside");
+
+
+
+// advanced styles for control UX and aside and animation
+$(document).ready(function(){
+  $(".toggle_asside").each(function(i, c){
+    const magicBtn = $(this);
+    $(magicBtn).click(function(event){
+      //toggAsside.style.display = "none";
+      if (!toggAsside.classList.contains("active_toggle")){
+        toggAsside.classList.add("active_toggle");
+      } else {
+        return false;
+      }
+
+      if (body_max_width == 1){
+        document.body.style.width = "78%";
+        document.body.style.background = "url('assets/images/load_circle_ux.gif')";
+        document.body.style.backgroundRepeat = "no-repeat";
+        document.body.style.backgroundPosition = "right";
+        document.body.style.backgroundAttachment = "fixed";
+        // note this will cast first then the callback so it will will have auto when end 35 smaller alot than effect
+        document.body.style.overflow = "hidden";
+      } else {
+        document.body.style.overflow = "hidden";
+      }
+      $("#aside_style_controller").slideToggle(null, 'swing', fit_body_for_aisde);
+    });
+  })
+
+});
+
+/* UX jquery for aside nav for style controller My WP */
+
+
+/* Style Editor start */
+const allElements = document.querySelectorAll("[data-editor-type='element']");
+const allContainers = document.querySelectorAll("[data-editor-type='container']");
+
+const elements = [];
+allElements.forEach( (elm,index)=>{
+  if (elm.hasAttribute('id')){
+    elements.push(elm);
+  }
+});
+
+console.log(elements.length);
+console.log(allElements.length);
+
+/* style editor end */
+
+});
 
     </script>
     <!-- this question in udacity 2 years ago why add the style in the end to override the default style in top if any -->

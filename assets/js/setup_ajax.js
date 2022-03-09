@@ -629,6 +629,9 @@ function getPeriodHTMLText(period_index, period_date, period_description, period
                         <label for="custom_style_period_style">CSS rules</label>
                         <input placeholder="color:gold !important;" class="form-control" id="custom_style_period_style" name="custom_style_period_style" type="text" required title="add single css rule or group separated by | wrong formated rules will be ignored" />
                       </div>
+
+
+
                     </div>
                     <div class="form-group mt-2 d-grid">
                       <input type="submit" value="Add Custom Rule" class="btn btm-block btn-primary">
@@ -636,6 +639,9 @@ function getPeriodHTMLText(period_index, period_date, period_description, period
                       name="period_add_calid" style="display:none;">
                       <input type="hidden" value="${lastCustomIndex}" class="form-control"
                       name="custom_period_newindex" style="display:none;" required>
+                      <input placeholder="color:gold !important;" class="form-control"
+                      value="${period_index}" id="custom_style_period_index" name="custom_style_period_index" type="hidden"
+                      required style="display:none;" />
                     </div>
                   </form>
                 </div>

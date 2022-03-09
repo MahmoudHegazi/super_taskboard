@@ -49,7 +49,22 @@ class SlotService {
     return $slot;
   }
 
-  // get All slot
+  function convertDataToSlot($start_from, $end_at, $period_id, $empty, $slot_index, $element_id='', $element_class='', $id=null){
+    $slot = new Slot();
+    $slot->init($start_from, $end_at, $period_id, $empty, $slot_index);
+    $slot->set_id($id);
+    $slot->set_element_id($element_id);
+    $slot->set_element_class($element_class);
+    return $slot;
+  }
+
+  public function getnew_slot_element_id($cal_id){
+    $cal_id = test_input($cal_id);
+    if (empty($cal_id) || $cal_id < 1){return 0;}
+    return $this->slot_mapper->getLastSlotId($cal_id);
+  }
+
+    // get All slot
   function get_all_slots(){
 
     $slot_list = array();

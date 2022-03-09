@@ -11,6 +11,7 @@ require_once (dirname(__FILE__, 2) . '\services\SlotService.php');
 require_once (dirname(__FILE__, 2) . '\services\ReservationService.php');
 require_once (dirname(__FILE__, 2) . '\services\UserService.php');
 require_once (dirname(__FILE__, 2) . '\services\StyleService.php');
+require_once (dirname(__FILE__, 2) . '\services\ElementService.php');
 require_once (dirname(__FILE__, 2) . '\models\Calendar.php');
 
 
@@ -29,6 +30,7 @@ class IndexController {
   // connection and services
   protected $pdo;
   protected $calendar_service;
+  protected $element_service;
   protected $year_service;
   protected $month_service;
   protected $day_service;
@@ -66,6 +68,14 @@ class IndexController {
 
   private $request_secert;
 
+  protected $used_styles_periods;
+  protected $used_styles_slots;
+
+  /* CP style editor */
+  protected $calendar_elements;
+  protected $element_ids;
+
+
 
 
 
@@ -88,10 +98,7 @@ class IndexController {
     $this->style_service = new StyleService($pdo);
     $this->reservation_service = new ReservationService($pdo);
     $this->style_service = new StyleService($pdo);
-
-
-
-
+    $this->element_service = new ElementService($pdo);
 
 
     $used_cal = $this->assign_used_calendar();
@@ -169,6 +176,21 @@ class IndexController {
     if ($this->get_has_years() && isset($year_data['min_year']) && isset($year_data['max_year'])){
       $this->set_current_min_year($year_data['min_year']);
       $this->set_current_max_year($year_data['max_year']);
+    }
+
+
+    /*get style ids for better pefromance */
+    $elements_data = $this->element_service->read_all_cal_elements($used_cal->get_id());
+    if (isset($elements_data['elements_objects'])){
+      $this->set_calendar_elements($elements_data['elements_objects']);
+    } else {
+      $this->set_calendar_elements(array());
+    }
+
+    if (isset($elements_data['elements_ids'])){
+      $this->set_element_ids($elements_data['elements_ids']);
+    } else {
+      $this->set_element_ids(array());
     }
 
 
@@ -318,9 +340,23 @@ class IndexController {
   }
 
 
-  public function get_style(){
-
+  public function set_used_styles_periods($used_styles_periods){
+    $this->used_styles_periods = $used_styles_periods;
   }
+
+  public function get_used_styles_periods(){
+    return $this->used_styles_periods;
+  }
+
+  public function set_used_styles_slots($used_styles_slots){
+    $this->used_styles_slots = $used_styles_slots;
+  }
+
+  public function get_used_styles_slots(){
+    return $this->used_styles_slots;
+  }
+
+
 
 
   public function set_visit_date($visit_date){
@@ -379,6 +415,26 @@ class IndexController {
   public function get_current_styles(){
     return $this->current_styles;
   }
+
+  public function set_calendar_elements($calendar_elements){
+    $this->calendar_elements = $calendar_elements;
+  }
+
+  public function get_calendar_elements(){
+    return $this->calendar_elements;
+  }
+
+
+  public function set_element_ids($element_ids){
+    $this->element_ids = $element_ids;
+  }
+
+  public function get_element_ids(){
+    return $this->element_ids;
+  }
+
+
+
 
 
   public function return_current_logged_role($loged_uid){
@@ -645,7 +701,8 @@ echo date("Y");
 
 
       $admin_select_user = isset($post_obj['admin_select_userid_add']) && !empty($post_obj['admin_select_userid_add']);
-
+      //print_r($post_obj['admin_select_userid_add']);
+      //die();
       $logged_id = $session_obj['logged_id'];
       $logged_userid = test_input($post_obj['loggeduid']);
       $is_admin_user = $index_controller_obj->return_current_logged_role($logged_id) === 'admin';
@@ -979,18 +1036,32 @@ echo date("Y");
       return array();
     }
   }
+/*
+SELECT * FROM style JOIN period ON style.class_id=period.id JOIN day ON period.day_id=day.id JOIN month ON month.id = day.month_id JOIN year ON year.id = month.year_id JOIN calendar ON calendar.id = year.cal_id WHERE style.cal_id=289 AND style.custom=0 AND period.period_index = 2
+
+UPDATE style style JOIN period ON style.class_id=period.id JOIN day ON period.day_id=day.id JOIN month ON month.id = day.month_id JOIN year ON year.id = month.year_id JOIN calendar ON calendar.id = year.cal_id set style = 'background: red !important;' WHERE style.cal_id=289 AND style.custom=0 AND period.period_index = 2
+*/
+
+
+
 
   public function load_current_styles($year, $month, $cal_id){
+    $this->set_used_styles_periods(array());
+    $this->set_used_styles_slots(array());
+    $used_periods = $this->get_used_styles_periods();
+    $used_slots = $this->get_used_styles_slots();
 
     $current_periods_styles = $this->get_periods_styles($year, $month, $cal_id);
     $current_slots_styles = $this->get_slots_styles($year, $month, $cal_id);
     $styles = '';
-    $used_periods = array();
+
     for ($pindex=0; $pindex<count($current_periods_styles); $pindex++){
       $style_role = $current_periods_styles[$pindex]->get_style();
       $classname = $current_periods_styles[$pindex]->get_classname();
       $element_id = $current_periods_styles[$pindex]->get_element_id();
       $custom = $current_periods_styles[$pindex]->get_custom();
+
+
       if (!empty($style_role) && $custom == 0){
         $important_check = strpos($style_role, '!important') !== false;
         if (!$important_check){
@@ -1008,6 +1079,11 @@ echo date("Y");
         $styles .= $style_block;
       } else if (!empty($style_role) && $custom == 1){
 
+        $important_check = strpos($style_role, '!important') !== false;
+        if (!$important_check){
+          $style_role = substr($style_role, 0, -1) . ' !important;';
+        }
+
         $style_block = '
         #' . $element_id . '{' . $style_role . '}
           ';
@@ -1021,8 +1097,6 @@ echo date("Y");
         continue;
       }
     }
-
-    $used_slots = array();
     for ($sindex=0; $sindex<count($current_slots_styles); $sindex++){
       $style_role = $current_slots_styles[$sindex]->get_style();
       array_push($used_slots, $style_role);
@@ -1034,12 +1108,16 @@ echo date("Y");
         if (!$important_check1){
           $style_role = substr($style_role, 0, -1) . ' !important;';
         }
+
         $style_block =  '
         .' . $classname . '{' . $style_role . '}
         ';
         if (in_array($style_block, $used_slots)){
           continue;
+        } else {
+          array_push($used_slots, $style_block);
         }
+
 
         $styles .= $style_block;
       } else if (!empty($style_role) && $custom == 1){
@@ -1047,9 +1125,13 @@ echo date("Y");
         $style_block = '
         #' . $element_id . '{' . $style_role . '}
           ';
+
         if (in_array($style_block, $used_slots)){
           continue;
+        } else {
+          array_push($used_slots, $style_block);
         }
+
         $styles .= $style_block;
       } else {
         continue;
@@ -1062,5 +1144,28 @@ echo date("Y");
   public function return_day_periods_data($cal_id, $day_date){
   }
 
+  /* style editor */
+  public function get_element_classes($cal_elements, $elm_id, $cal_id, $default_classes){
+    if (!isset($cal_elements) || empty($cal_elements)){
+      echo $default_classes;
+      return 'no';
+    } else {
+      if (!isset($cal_elements[$elm_id]) || empty($cal_elements[$elm_id])){
+        echo $default_classes;
+        return 'no';
+      } else {
+        echo $cal_elements[$elm_id]->get_bootstrap_classes();
+        return 'yes';
+      }
+    }
+  }
+
+  public function getElement($element_id){
+    return $this->element_service->getElement($element_id);
+  }
+
+  public function get_elements_ids($cal_id){
+
+  }
 
 }

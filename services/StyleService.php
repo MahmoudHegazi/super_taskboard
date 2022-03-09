@@ -50,6 +50,16 @@ class StyleService {
     return $style;
   }
 
+
+
+  function convertDataToStyle($classname, $element_id, $style, $class_id, $active, $title, $custom, $cal_id, $category, $id=null){
+    $style = new Style();
+    $style->init($classname, $element_id, $style, $class_id, $active, $title, $custom, $cal_id, $category);
+    $style->set_id($id);
+    return $style;
+  }
+
+
   // get All styles
   function read_class_styles($year, $month, $cal_id, $class_type='period'){
     $styles_list = array();

@@ -1219,7 +1219,6 @@ function getObjectStyles($object){
       'border'=>'', 'border_active'=>1,
       'customcss'=> array()
     );
-    $object['not_empty'] = 1;
     $object = getObjectMainStylesData($object);
     return $object;
 
@@ -1233,7 +1232,6 @@ function getObjectStyles($object){
       'customcss'=> array(),
       'not_empty'=>0
     );
-    $object['not_empty'] = 0;
   }
   return $object;
 
@@ -1324,17 +1322,16 @@ calendar.id=" . $cal_data->get_id();*/
 
         // now get the slots alone
 
-        $slots__index_sql = "SELECT DISTINCT slot.slot_index FROM calendar JOIN year ON calendar.id = year.cal_id JOIN month ON month.year_id = year.id JOIN day ON day.month_id = month.id JOIN period ON day.id =
-        period.day_id JOIN slot ON period.id = slot.period_id WHERE
-        year.year=". test_input($min_year) ." AND calendar.id=" . $cal_data->get_id();
+        $slots__index_sql = "SELECT DISTINCT slot_index FROM slot JOIN period ON slot.period_id = period.id JOIN day ON period.day_id = day.id JOIN month ON month.id = day.month_id JOIN year ON year.id = month.year_id JOIN calendar ON year.cal_id = calendar.id WHERE calendar.id=".$cal_data->get_id();
 
         $slot_indexes = $calendar_service->free_group_query($slots__index_sql);
+
         $slots_data_rows = array();
         for ($is = 0;$is < count($slot_indexes);$is++)
         {
           $slot_sql = "SELECT slot.slot_index, slot.id, slot.start_from, slot.end_at FROM calendar JOIN year ON calendar.id = year.cal_id JOIN month ON month.year_id = year.id JOIN day ON day.month_id = month.id JOIN period ON day.id =
               period.day_id JOIN slot ON period.id = slot.period_id WHERE
-              period_index=".test_input($slot_indexes[$is]['slot_index'])." AND year.year=". test_input($min_year) ." AND
+              slot.slot_index=".test_input($slot_indexes[$is]['slot_index'])." AND year.year=". test_input($min_year) ." AND
               calendar.id=" . $cal_data->get_id() . ' LIMIT 1';
 
               $new_slot = $calendar_service->free_single_query($slot_sql);
@@ -1364,6 +1361,7 @@ calendar.id=" . $cal_data->get_id();*/
             $new_slot_with_styles = getObjectStyles($new_slot_ass);
             array_push($slots_data, $new_slot_with_styles);
         }
+
 
         create_calendar($cal_data->get_id() , $cal_data->get_title() , $start_year, $added_years, $cal_data->get_periods_per_day() , $cal_data->get_slots_per_period() , $cal_data->get_description() , $periods_data, $slots_data);
         $new_added_years = intval($cal_data->get_added_years()) + $added_years;
@@ -1756,6 +1754,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST')
         $calendar_service = new CalendarService($pdo);
         $period_service = new PeriodService($pdo);
         $style_service = new StyleService($pdo);
+        $slot_service = new SlotService($pdo);
+
 
         $cal_id = intval(test_input($_POST['add_periods_cal_id']));
         $added_periods = intval(test_input($_POST['added_periods']));
@@ -1770,10 +1770,104 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST')
         {
             $periods_data = $period_service->get_distinct_periods_data($distinct_periods_rows);
         }
-
         $calendar_days_sql = "SELECT day.id, day.day_date FROM day JOIN month ON day.month_id=month.id JOIN year
-      ON month.year_id=year.id JOIN calendar ON year.cal_id=calendar.id WHERE calendar.id=" . $cal_id;
+        ON month.year_id=year.id JOIN calendar ON year.cal_id=calendar.id WHERE calendar.id=" . $cal_id;
         $calendar_days = $calendar_service->free_group_query($calendar_days_sql);
+
+        $calendar_slots_sql = "SELECT DISTINCT slot.slot_index FROM calendar JOIN year ON calendar.id = year.cal_id JOIN month
+        ON month.year_id = year.id JOIN day ON day.month_id = month.id JOIN period ON day.id =
+        period.day_id JOIN slot ON period.id = slot.period_id WHERE
+        calendar.id=" . $cal_id;
+        $calendar_slots = $calendar_service->free_group_query($calendar_slots_sql);
+
+
+        $slots_data = array();
+        $slots_styles = array();
+        for ($is=0; $is<count($calendar_slots); $is++){
+          $current = array('data'=>array() , 'styles'=>array());
+          $slot_index = $calendar_slots[$is]['slot_index'];
+          $slotsq = "SELECT slot.* FROM calendar JOIN year ON calendar.id = year.cal_id JOIN month
+          ON month.year_id = year.id JOIN day ON day.month_id = month.id JOIN period ON day.id =
+          period.day_id JOIN slot ON period.id = slot.period_id WHERE
+          calendar.id=" . $cal_id . ' AND slot.slot_index=' . $slot_index;
+          $slotse = $calendar_service->free_single_query($slotsq);
+          if (isset($slotse) && !empty($slotse)){
+            $current['data'] = $slotse;
+            $s_styles_q = "SELECT style.* FROM calendar JOIN year ON calendar.id = year.cal_id JOIN month
+            ON month.year_id = year.id JOIN day ON day.month_id = month.id JOIN period ON day.id =
+            period.day_id JOIN slot ON period.id = slot.period_id JOIN style ON slot.id = style.class_id WHERE
+            calendar.id=" . $cal_id . ' AND slot.id=' . $slotse['id'];
+            $s_styles = $calendar_service->free_group_query($s_styles_q);
+
+            if (isset($s_styles) && !empty($s_styles)){
+              for ($style_i=0; $style_i<count($s_styles); $style_i++){
+                array_push($slots_styles, $s_styles[$style_i]);
+                array_push($current['styles'], $s_styles[$style_i]);
+              }
+            }
+            array_push($slots_data, $current);
+          }
+        }
+
+
+
+        //        $added_slot = $slot_service->add($start_from, $end_at, $period_id, $empty, $slot_index, $element_id='', $element_class='');
+
+        /* heREEEEEEEEEEEEEEEEEEEEEEEEE t1
+
+
+
+
+
+
+
+                $perid_addes_ids = $period_service->insert_group_fast($new_periods_data);
+                $period_full_styles = array();
+                for ($pi = 0;$pi < count($perid_addes_ids);$pi++)
+                {
+                    $current_style_group = $style_arrays[$pi];
+                    for ($ps = 0;$ps < count($current_style_group);$ps++)
+                    {
+                        $current_group = $current_style_group[$ps];
+                        $current_group['class_id'] = $perid_addes_ids[$pi];
+                        array_push($period_full_styles, $current_group);
+                    }
+                }
+                $periods_added_styles = $style_service->insert_group_fast($period_full_styles);
+
+                print_r($slots_data);
+                $slotsData = array();
+                for ($pI=0; $pI<count($perid_addes_ids); $pI++){
+                  for ($slotI=0; $slotI<count($slots_data); $slotI++){
+                    if (!isset($slots_data[$slotI]['data']) || empty($slots_data[$slotI]['data'])){
+                      continue;
+                    }
+                    $slot_data = $slots_data[$slotI]['data'];
+                    $slot_style = isset($slots_data[$slotI]['styles']) ? $slots_data[$slotI]['styles'] : array();
+                    $current_elm_id += 1;
+                  }
+                }
+
+                echo "<pre>";
+                print_r($slotsData);
+                echo "<pre>";
+                die();
+
+
+                echo "<pre>";
+                print_r($slots_data);
+                echo "<pre>";
+                //die();
+
+                echo "<pre>";
+                print_r($new_periods_data);
+                echo "<pre>";
+                die();
+
+
+
+        */
+
 
         $total_periods_new = count($periods_data) + $added_periods;
         $start_index = count($periods_data) + 1;
@@ -1989,13 +2083,74 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST')
                 array_push($period_full_styles, $current_group);
             }
         }
-
+        $current_elm_id = intval($slot_service->getnew_slot_element_id($cal_id));
+        if ($current_elm_id == 0){
+          setup_redirect($redirect_url, 'false', 'new slot can not added due to problem in current used calendar try change it');
+          die();
+        }
         $periods_added_styles = $style_service->insert_group_fast($period_full_styles);
         $calendar_service->update_one_column('periods_per_day', $total_periods_new, $cal_id);
+
+        $total_added_slots = 0;
+        $total_added_styles = 0;
+        $not_added_slots = 0;
+        $not_added_styles = 0;
+        /* Copy slots data but with diffrent ids and html element id  each slot or period has html id and classname*/
+        for ($pI=0; $pI<count($perid_addes_ids); $pI++){
+          $periodid =  $perid_addes_ids[$pI];
+          for ($slotI=0; $slotI<count($slots_data); $slotI++){
+            $styles = array();
+            if (!isset($slots_data[$slotI]['data']) || empty($slots_data[$slotI]['data'])){
+              continue;
+            }
+            if (!isset($slots_data[$slotI]['data']['period_id']) || !isset($slots_data[$slotI]['data']['element_id'])){
+              continue;
+            }
+            $data = $slots_data[$slotI]['data'];
+            $elmid = 'element_id_'.$current_elm_id;
+            $elclass = $data['element_class'];
+
+            // add slot
+            $new_slot_id = $slot_service->add(
+              $data['start_from'], $data['end_at'],
+              $periodid, $data['empty'],
+              $data['slot_index'],
+              $elmid,
+              $elclass
+            );
+            $current_elm_id += 1;
+
+            // styles
+            if (!empty($new_slot_id) && isset($slots_data[$slotI]['styles']) && !empty($slots_data[$slotI]['styles'])){
+              $styles = $slots_data[$slotI]['styles'];
+              for ($s=0; $s<count($styles); $s++){
+                $style_row = $styles[$s];
+                $style_id = $style_service->add(
+                  $elclass, $elmid, $style_row['style'],
+                  $new_slot_id, $style_row['active'], $style_row['title'],
+                  $style_row['custom'], $style_row['cal_id'], $style_row['category']
+                );
+              }
+          }
+          }
+        }
         setup_redirect($redirect_url, 'true', 'Successfully Add: ' . $total_addedperiods . ' periods to calendar with ID:' . $cal_id);
     }
 }
 /* Add new Periods End */
+
+/*
+
+
+
+
+$style_id = $style_service->add(
+  $slot_elm_class, $current_elm_id, $current_style['style'],
+  $new_slot_id, $current_style['active'], $current_style['title'], $current_style['custom'],
+  $current_style['cal_id'], $current_style['category']
+);
+
+*/
 
 /* Add New Slot added_periods add_periods_cal_id */
 
@@ -2262,7 +2417,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST')
         }
 
         $total_added_styles = $style_service->insert_group_fast($styles_with_slots_ids);
-
         $calendar_service->update_one_column('slots_per_period', $total_slots_new, $cal_id);
         setup_redirect($redirect_url, 'true', 'Successfully Add: ' . $total_addedslots . ' Slots to calendar with ID:' . $cal_id);
 
@@ -2601,7 +2755,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST')
         $calendar_service = new CalendarService($pdo);
         $style_service = new StyleService($pdo);
 
-        if (empty($_POST['custom_style_period_title']) || empty($_POST['custom_style_period_style']) || empty($_POST['period_add_calid']))
+        if (empty($_POST['custom_style_period_title']) || empty($_POST['custom_style_period_style']) || empty($_POST['period_add_calid']) || empty($_POST['custom_style_period_index']))
         {
             setup_redirect($redirect_url, 'false', 'Period Style rule group could not add missing required data');
             die();
@@ -2622,10 +2776,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST')
 
         $period_style = test_input($_POST['custom_style_period_style']);
         $cal_id = test_input($_POST['period_add_calid']);
-        $req_new_index = intval(test_input($_POST['custom_slot_newindex']));
+        $req_new_index = intval(test_input($_POST['custom_period_newindex']));
+        $period_index = test_input($_POST['custom_style_period_index']);
         $style_rules = $style_service->get_advanced_style_data(explode('|', $period_style));
 
-        $all_cal_periods_sql = "SELECT period.id, period.element_id, period.element_class, calendar.id AS cal_id FROM period JOIN day ON period.day_id = day.id JOIN month ON day.month_id = month.id JOIN year ON month.year_id = year.id JOIN calendar ON year.cal_id = calendar.id WHERE cal_id=" . $cal_id;
+        $all_cal_periods_sql = "SELECT period.id, period.period_index, period.element_id, period.element_class, calendar.id AS cal_id
+        FROM period JOIN day ON period.day_id = day.id JOIN month ON day.month_id = month.id JOIN year
+        ON month.year_id = year.id JOIN calendar ON year.cal_id = calendar.id WHERE cal_id=" . $cal_id . " AND period.period_index=".$period_index;
+
         $cal_periods = $calendar_service->free_group_query($all_cal_periods_sql);
 
         $total_effected = 0;
@@ -2788,28 +2946,29 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST')
         // create update sting
         $updated = 0;
 
+        # new update instead of js and disable advanced sql update not updated if any
         if ($color)
         {
             $color_style = 'color: ' . $color . ';';
-            $edit_style_period = "UPDATE style SET style='".$color_style."' WHERE category='color' AND classname='" . $classname_p . "' AND cal_id=" . $calid_p . " AND custom=0";
+            $edit_style_period = "UPDATE style SET style='".$color_style."' WHERE category='color' AND classname='" . $classname_p . "' AND cal_id=" . $calid_p . " AND custom=0 AND style != '" . $color_style . "'";
             $updated += $calendar_service->excute_on_db($edit_style_period) ? 1 : 0;
         }
         if ($backgrounds)
         {
             $backgrounds_style = 'background-color: ' . $backgrounds . ';';
-            $edit_style_period = "UPDATE style SET style='". $backgrounds_style ."' WHERE category='backgroundcolor' AND classname='" . $classname_p . "' AND cal_id=" . $calid_p . " AND custom=0";
+            $edit_style_period = "UPDATE style SET style='". $backgrounds_style ."' WHERE category='backgroundcolor' AND classname='" . $classname_p . "' AND cal_id=" . $calid_p . " AND custom=0 AND style != '".$backgrounds_style . "'";
             $updated += $calendar_service->excute_on_db($edit_style_period) ? 1 : 0;
         }
         if ($font_size)
         {
             $font_size_style = $style_service->formatsignle_css($font_size);
-            $edit_style_period = "UPDATE style SET style='". $font_size_style ."' WHERE category='fontsize' AND classname='" . $classname_p . "' AND cal_id=" . $calid_p . " AND custom=0";
+            $edit_style_period = "UPDATE style SET style='". $font_size_style ."' WHERE category='fontsize' AND classname='" . $classname_p . "' AND cal_id=" . $calid_p . " AND custom=0 AND style != '" . $font_size_style . "'";
             $updated += $calendar_service->excute_on_db($edit_style_period) ? 1 : 0;
         }
         if ($font_family)
         {
             $font_family_style = $style_service->formatsignle_css($font_family);
-            $edit_style_period = "UPDATE style SET style='".$font_family_style."' WHERE category='fontfamily' AND classname='" . $classname_p . "' AND cal_id=" . $calid_p . " AND custom=0";
+            $edit_style_period = "UPDATE style SET style='".$font_family_style."' WHERE category='fontfamily' AND classname='" . $classname_p . "' AND cal_id=" . $calid_p . " AND custom=0 AND style != '" . $font_family . "'";
             $updated += $calendar_service->excute_on_db($edit_style_period) ? 1 : 0;
         }
 
@@ -2824,7 +2983,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST')
         if ($period_border)
         {
             $period_border_style = $style_service->formatsignle_css($period_border);
-            $edit_style_period = "UPDATE style SET style='" . $period_border . "' WHERE category='border' AND classname='" . $classname_p . "' AND cal_id=" . $calid_p . " AND custom=0";
+            $edit_style_period = "UPDATE style SET style='" . $period_border . "' WHERE category='border' AND classname='" . $classname_p . "' AND cal_id=" . $calid_p . " AND custom=0 AND style != '" . $period_border . "'";
             $updated += $calendar_service->excute_on_db($edit_style_period) ? 1 : 0;
         }
 
@@ -2870,13 +3029,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST')
         $main_fontsize_title = test_input($_POST['main_css_title4']);
         $main_border_title = test_input($_POST['main_css_title5']);
 
-
         // create update sting
         $updated = 0;
 
         if ($color)
         {
-            $edit_style_period = "UPDATE style SET style='" . $period_style . "' WHERE title='" . $main_color_title . "' AND classname='" . $period_style_classname . "' AND cal_id=" . $cal_id;
+            $edit_style_period = "UPDATE style SET style='" . $color . "' WHERE title='" . $main_color_title . "' AND classname='" . $classname_s . "' AND cal_id=" . $calid_s . " AND custom=0";
             $updated = $calendar_service->excute_on_db($edit_style_period);
 
         }
