@@ -13,7 +13,8 @@ require_once (dirname(__FILE__, 2) . '\services\UserService.php');
 require_once (dirname(__FILE__, 2) . '\services\StyleService.php');
 require_once (dirname(__FILE__, 2) . '\services\ElementService.php');
 require_once (dirname(__FILE__, 2) . '\models\Calendar.php');
-
+require_once (dirname(__FILE__, 2) . '\services\BootstrapContainerService.php');
+require_once (dirname(__FILE__, 2) . '\services\BootstrapElementService.php');
 
 /*
 setlocale(LC_TIME, 'sr_BA');
@@ -25,12 +26,13 @@ https://stackoverflow.com/questions/13845554/php-date-get-name-of-the-months-in-
 
 $redirect_url = isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '';
 
-
 class IndexController {
   // connection and services
   protected $pdo;
   protected $calendar_service;
   protected $element_service;
+  protected $bootstrap_container_service;
+  protected $bootstrap_element_service;
   protected $year_service;
   protected $month_service;
   protected $day_service;
@@ -99,7 +101,8 @@ class IndexController {
     $this->reservation_service = new ReservationService($pdo);
     $this->style_service = new StyleService($pdo);
     $this->element_service = new ElementService($pdo);
-
+    $this->bootstrap_container_service = new BootstrapContainerService($pdo);
+    $this->bootstrap_element_service = new BootstrapElementService($pdo);
 
     $used_cal = $this->assign_used_calendar();
     if (!$used_cal || empty($used_cal) || !isset($used_cal)){
@@ -192,17 +195,6 @@ class IndexController {
     } else {
       $this->set_element_ids(array());
     }
-
-
-    /*
-    echo "<pre>";
-    print_r(array_distribution($projectData, 7, 5, $default=false));
-    //print_r(array_distribution($this->monday_start_mange($current_days), 7, 5, $default=false));
-    echo "</pre>";/*
-    die();
-    $day_periods = $this->return_day_periods($current_days[0]->get_id());
-    $period_slots = $this->return_period_slots($day_periods[0]->get_id());
-    */
   }
 
 
@@ -731,6 +723,7 @@ echo date("Y");
   public function postHandler($index_controller, $post_obj, $session_obj, $redirect_url, $error){
     $ajax_request = false;
 
+
     if ($error || !isset($index_controller)){
       $_SESSION['message'] = 'The calendar cannot be executed. The procedure is not set up correctly';
       $_SESSION['success'] = 'false';
@@ -799,6 +792,8 @@ echo date("Y");
       die();
     }
 
+
+
     // this bridge for direct post AJAX requests to AJAX handler
     try{
       $data = json_decode(file_get_contents('php://input'), true);
@@ -830,6 +825,7 @@ echo date("Y");
   public function ajaxHandler($index_controller, $data){
     /* Map New reservation AJAX start */
     $is_get_periods_and_slots = isset($index_controller) && isset($data['map_reservation_date']) && isset($data['map_cal_id']);
+
     if ($is_get_periods_and_slots){
       $day_data = array();
       $day_date = test_input($data['map_reservation_date']);
@@ -871,6 +867,126 @@ echo date("Y");
       die();
     }
     /* Map New reservation AJAX end */
+
+    /* style setup container */
+    $is_add_container = isset($index_controller) && isset($data['setup_containers']);
+    if ($is_add_container){
+      if (empty($data['setup_containers'])){
+        print_r(
+          json_encode(array('code'=> 400, 'message'=> 'can not setup containers bad request'))
+        );
+        die();
+      }
+      // setup containers
+      $arrayphp = array($data['setup_containers']);
+      $total_updated_classes = 0;
+
+      $containerdata = count($arrayphp) > 0 ? $arrayphp[0] : array();
+      for ($bsCont=0; $bsCont<count($containerdata); $bsCont++){
+        $dataRow = $containerdata[$bsCont];
+        if (
+          isset($dataRow['element_id']) && !empty($dataRow['element_id']) &&
+          isset($dataRow['html_class']) && !empty($dataRow['html_class']) &&
+          isset($dataRow['c_cal_id']) && !empty($dataRow['c_cal_id'])
+          )
+          {
+
+
+
+
+          $elmid = test_input($dataRow['element_id']);
+          $elmclass = test_input($dataRow['html_class']);
+          $c_cal_id = test_input($dataRow['c_cal_id']);
+          $data_group = isset($dataRow['data_group']) && !empty($dataRow['data_group']) ? test_input($dataRow['data_group']) : NULL;
+          $is_elmexist = $index_controller->element_service->getElement($elmid, $type='container');
+          if (empty($is_elmexist) || $is_elmexist == false){
+            $new_element_id = $index_controller->element_service->add($elmid, $elmclass, $c_cal_id, 'container', $default_bootstrap='', $default_style = '', $group=$data_group, $bootstrap_classes='', $innerHTML=NULL, $innerText=NULL, $data=NULL);
+            $new_bootstrap_containerid = $index_controller->bootstrap_container_service->add(
+              $new_element_id, $c_cal_id, $bg='', $text_color='', $p='', $m='', $border='', $border_size='', $border_color='', $border_round='', $width='', $height='',
+              $m_t='', $m_b='', $m_r='', $m_l='', $p_t='', $p_b='', $p_r='', $p_l='', $visibility='', $box_shadow='', $justify_content='justify-content-center', $align_items='align-items-center',
+              $ratio='', $flex_flow='', $flex_type='d-flex', $flex_wrap='', $align_content='align-content-center'
+            );
+            if (!$new_element_id){
+              print_r(
+                json_encode(array('code'=> 200, 'message'=> $new_element_id, 'total'=>$total_updated_classes))
+              );
+              die();
+            }
+            /* this way I made very large complcated table work very smooth and add and edit and remove then I update 1 single column
+            in the element and only query with this so it very good for performance and also will not use the large table only in update or delete and later update the element bootclass +
+             it give u 1 column contain values in large table this easy but imagine u have 100 column how speed will this reduce */
+            $elm_bootstrap_class = $index_controller->bootstrap_container_service->get_bootstrap_classes_by_element($new_element_id);
+            $bs_contid = $index_controller->element_service->update_one_column('bootstrap_classes', $elm_bootstrap_class, $new_element_id);
+            $total_updated_classes += $bs_contid ? 1 : 0;
+          }
+        }
+      }
+      print_r(
+        json_encode(array('code'=> 200, 'message'=> 'setup done', 'total'=>$total_updated_classes))
+      );
+      die();
+    }
+    // ende setup element
+    $is_add_element = isset($index_controller) && isset($data['setup_elements']);
+    if ($is_add_element){
+      if (empty($data['setup_elements'])){
+        print_r(
+          json_encode(array('code'=> 400, 'message'=> 'can not setup elements bad request'))
+        );
+        die();
+      }
+
+      // setup elements
+      $elements_ar = array($data['setup_elements']);
+      $total_updated_classes_elm = 0;
+      $elementsdata = count($elements_ar) > 0 ? $elements_ar[0] : array();
+
+      for ($bsElm=0; $bsElm<count($elementsdata); $bsElm++){
+        $elmRow = $elementsdata[$bsElm];
+        if (
+          isset($elmRow['element_id']) && !empty($elmRow['element_id']) &&
+          isset($elmRow['html_class']) && !empty($elmRow['html_class']) &&
+          isset($elmRow['c_cal_id']) && !empty($elmRow['c_cal_id'])
+          )
+          {
+
+            $e_elmid = test_input($elmRow['element_id']);
+            $e_elmclass = test_input($elmRow['html_class']);
+            $e_c_cal_id = test_input($elmRow['c_cal_id']);
+            $e_data_group = isset($elmRow['data_group']) && !empty($elmRow['data_group']) ? test_input($elmRow['data_group']) : NULL;
+            $e_is_elmexist = $index_controller->element_service->getElement($e_elmid, $type='element');
+            if (empty($e_is_elmexist) || $e_is_elmexist == false){
+              $e_newelm_id = $index_controller->element_service->add($e_elmid, $e_elmclass, $e_c_cal_id, 'element', $default_bootstrap='', $default_style = '', $group=$e_data_group, $bootstrap_classes='', $innerHTML=NULL, $innerText=NULL, $data=NULL);
+              try {
+                $new_bs_elmid = $index_controller->bootstrap_element_service->add(
+                  $e_newelm_id, $e_c_cal_id, $bg='', $text_color='', $p='', $m='', $border='', $border_size='', $border_color='', $border_round='', $width='', $height='',
+                  $m_t='', $m_b='', $m_r='', $m_l='', $p_t='', $p_b='', $p_r='', $p_l='', $visibility='', $box_shadow='', $flex_fill='', $flex_grow='', $ms_auto='',
+                  $flex_order='', $vertical_align='', $col_sm='', $h='', $display='', $text_wrap='', $font_weight='', $text_case='', $badge='',
+                  $float_position='', $text_align='text-center', $text_break='', $center_content=''
+                );
+                $elm_bootstrap_class_e = $index_controller->bootstrap_element_service->get_bootstrap_classes_by_element($e_newelm_id);
+                $updateds = $index_controller->element_service->update_one_column('bootstrap_classes', $elm_bootstrap_class_e, $e_newelm_id);
+                $total_updated_classes_elm += $updateds ? 1 : 0;
+              } catch(Exception $e){
+                print_r(
+                  json_encode(array('code'=> 404, 'message'=> json_encode($e->getMessage())))
+                );
+                die();
+              }
+            }
+          }
+        }
+        print_r(
+          json_encode(array('code'=> 200, 'message'=> 'done setup elements', 'total'=>$total_updated_classes_elm))
+        );
+        die();
+    }
+
+    print_r(
+      json_encode(array('code'=> 422, 'message'=> 'unkown request'))
+    );
+    die();
+    /* style setup container end */
   }
 
   public function get_dayid_by_date($day_date, $cal_id){
@@ -1160,8 +1276,13 @@ UPDATE style style JOIN period ON style.class_id=period.id JOIN day ON period.da
     }
   }
 
-  public function getElement($element_id){
-    return $this->element_service->getElement($element_id);
+  public function getElement($element_id, $type='container'){
+    $element = $this->element_service->getElement($element_id, $type);
+    if (!isset($element) || empty($element)){
+      return false;
+    } else {
+      return $element;
+    }
   }
 
   public function get_elements_ids($cal_id){

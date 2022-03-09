@@ -185,7 +185,7 @@ class LogsService {
       $log_data['block_end'], $log_data['banned'],
       $log_data['completed'], $log_data['remember_me'], $log_data['notes'], $log_data['remember_me_token']
     );
-    $log->set_id($log_row['email']);
+    $log->set_id($log_row['id']);
     return $log;
   }
 
@@ -206,7 +206,7 @@ class LogsService {
       $log_data['completed'], $log_data['remember_me'],
       $log_data['notes'], $log_data['remember_me_token']
     );
-    $log->set_id($log_row['email']);
+    $log->set_id($log_row['id']);
     return $log;
   }
   /* UX */

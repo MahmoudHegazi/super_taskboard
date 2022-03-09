@@ -21,22 +21,27 @@ class ElementMapper {
         $pdo = $this->getPDO();
         if (empty($element)){return 0;}
 
-        $statement = $pdo->prepare('INSERT INTO element (element_id, class_name, cal_id, default_bootstrap, default_style, data_group, bootstrap_classes, innerHTML, innerText, data) VALUES(:element_id, :class_name, :cal_id, :default_bootstrap, :default_style, :data_group, :bootstrap_classes, :innerHTML, :innerText, :data)');
+        $statement = $pdo->prepare('INSERT INTO element (element_id, class_name, cal_id, type, default_bootstrap, default_style, data_group, bootstrap_classes, innerHTML, innerText, data) VALUES(:element_id, :class_name, :cal_id, :type, :default_bootstrap, :default_style, :data_group, :bootstrap_classes, :innerHTML, :innerText, :data)');
         //print_r($statement);
         //die();
-        $statement->execute(array(
-            'element_id' => $element->get_element_id(),
-            'class_name' => $element->get_class_name(),
-            'cal_id' => $element->get_cal_id(),
-            'default_bootstrap' => $element->get_default_bootstrap(),
-            'default_style' => $element->get_default_style(),
-            'data_group' => $element->get_data_group(),
-            'bootstrap_classes' => $element->get_bootstrap_classes(),
-            'innerHTML' => $element->get_innerHTML(),
-            'innerText' => $element->get_innerText(),
-            'data' => $element->get_data()
-        ));
+        try{
+          $statement->execute(array(
+              'element_id' => $element->get_element_id(),
+              'class_name' => $element->get_class_name(),
+              'cal_id' => $element->get_cal_id(),
+              'type'=> $element->get_type(),
+              'default_bootstrap' => $element->get_default_bootstrap(),
+              'default_style' => $element->get_default_style(),
+              'data_group' => $element->get_data_group(),
+              'bootstrap_classes' => $element->get_bootstrap_classes(),
+              'innerHTML' => $element->get_innerHTML(),
+              'innerText' => $element->get_innerText(),
+              'data' => $element->get_data()
 
+          ));
+        } catch(Exception $e){
+          return 0;
+        }
         return $pdo->lastInsertId();
     }
     function read_one($id){
@@ -48,12 +53,11 @@ class ElementMapper {
       return $data;
     }
 
-    function get_element($element_id){
+    function get_element($element_id, $type='container'){
       $pdo = $this->getPDO();
-      $stmt = $pdo->prepare("SELECT * FROM element WHERE element_id=:element_id");
+      $stmt = $pdo->prepare("SELECT * FROM element WHERE element_id=:element_id AND type=:type");
       $stmt->bindParam(':element_id', $element_id, PDO::PARAM_STR);
-
-
+      $stmt->bindParam(':type', $type, PDO::PARAM_STR);
       $stmt->execute();
       $data = $stmt->fetch();
       return $data;
@@ -62,11 +66,12 @@ class ElementMapper {
 
     function update($day){
       $pdo = $this->getPDO();
-      $statement = $pdo->prepare('UPDATE day (element_id, class_name, cal_id, default_bootstrap, default_style, data_group, bootstrap_classes, innerHTML, innerText, data) VALUES(:element_id, :class_name, :cal_id, :default_bootstrap, :default_style, :data_group, :bootstrap_classes, :innerHTML, :innerText, :data)');
+      $statement = $pdo->prepare('UPDATE element (element_id, class_name, cal_id, type, default_bootstrap, default_style, data_group, bootstrap_classes, innerHTML, innerText, data) VALUES(:element_id, :class_name, :cal_id, :type, :default_bootstrap, :default_style, :data_group, :bootstrap_classes, :innerHTML, :innerText, :data)');
       $statement->execute(array(
         'element_id' => $day->get_element_id(),
         'class_name' => $day->get_class_name(),
         'cal_id' => $day->get_cal_id(),
+        'type'=> $element->get_type(),
         'default_bootstrap' => $day->get_default_bootstrap(),
         'default_style' => $day->get_default_style(),
         'data_group' => $day->get_data_group(),
@@ -116,9 +121,10 @@ class ElementMapper {
 
     function update_column($column, $value, $id){
       $pdo = $this->getPDO();
-      $sql = "UPDATE day ".$column."=? WHERE id=?";
+      $sql = "UPDATE element SET ".$column."=? WHERE id=?";
       $stmt= $pdo->prepare($sql);
-      return $stmt->execute([$value, $id]);
+      $data = $stmt->execute([$value, $id]);
+      return $data ? 1 : 0;
     }
 
     function get_total_elements(){
@@ -132,12 +138,13 @@ class ElementMapper {
       $pdo = $this->getPDO();
       $pdo->setAttribute(PDO::ATTR_AUTOCOMMIT, 0);
       $pdo->beginTransaction(); // also helps speed up your inserts.
-      $stmt = $pdo->prepare('INSERT INTO day(element_id, class_name, cal_id, default_bootstrap, default_style, group, bootstrap_classes, innerHTML, innerText, data) VALUES(:element_id, :class_name, :cal_id, :default_bootstrap, :default_style, :group, :bootstrap_classes, :innerHTML, :innerText, :data)');
+      $stmt = $pdo->prepare('INSERT INTO day(element_id, class_name, cal_id, type, default_bootstrap, default_style, group, bootstrap_classes, innerHTML, innerText, data) VALUES(:element_id, :class_name, :cal_id, :type, :default_bootstrap, :default_style, :group, :bootstrap_classes, :innerHTML, :innerText, :data)');
       foreach($data as $item)
       {
           $stmt->bindValue(':element_id', $item->get_element_id());
           $stmt->bindValue(':class_name', $item->get_class_name());
           $stmt->bindValue(':cal_id', $item->get_cal_id());
+          $stmt->bindValue(':type', $item->get_type());
           $stmt->bindValue(':default_bootstrap', $item->get_default_bootstrap());
           $stmt->bindValue(':default_style', $item->get_default_style());
           $stmt->bindValue(':data_group', $item->get_data_data_group());

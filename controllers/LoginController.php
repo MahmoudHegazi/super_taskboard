@@ -641,7 +641,7 @@ class LoginController {
       $encrypted_uid = test_input($cookie_object['uid']);
       $selected_log = $this->pick_selected_remember_meuid($encrypted_uid);
       if (empty($selected_log) || !isset($selected_log['uid']) || !isset($selected_log['id'])){
-        return $date;
+        return $data;
       }
       $uid = $selected_log['uid'];
       $logid = $selected_log['id'];

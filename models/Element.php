@@ -7,6 +7,7 @@ class Element {
   private $bootstrap_classes;
   private $cal_id;
   private $data_group;
+  private $type;
 
   // advanced other verios update
   private $default_bootstrap;
@@ -15,10 +16,11 @@ class Element {
   private $innerText;
   private $data;
 
-  function init($element_id, $class_name, $cal_id, $default_bootstrap='', $default_style = '', $data_group=NULL, $bootstrap_classes='', $innerHTML=NULL, $innerText=NULL, $data=NULL){
+  function init($element_id, $class_name, $cal_id, $type, $default_bootstrap='', $default_style = '', $data_group=NULL, $bootstrap_classes='', $innerHTML=NULL, $innerText=NULL, $data=NULL){
     $this->element_id = $element_id;
     $this->class_name = $class_name;
     $this->cal_id = $cal_id;
+    $this->type = $type;
     $this->default_bootstrap = $default_bootstrap;
     $this->default_style = $default_style;
     $this->data_group = $data_group;
@@ -26,6 +28,7 @@ class Element {
     $this->innerHTML = $innerHTML;
     $this->innerText = $innerText;
     $this->data = $data;
+
   }
 
   // Setter and geter
@@ -106,6 +109,13 @@ class Element {
   }
   function get_data() {
     return $this->data;
+  }
+
+  function set_type($type) {
+    $this->type = $type;
+  }
+  function get_type() {
+    return $this->type;
   }
 
 }

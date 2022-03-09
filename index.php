@@ -88,11 +88,26 @@ catch( Exception $e ) {
   $error = true;
 }
 
-function getBS($inC, $element_id){
-  $title_container = $inC->getElement($element_id);
-  $title_container_bs = !empty($title_container) ? $title_container->get_bootstrap_classes() : '';
-  return $title_container_bs;
+// load containers bs and check if loaded or not
+function setupBSElementsData($inC, $element_id, $type='container', $default_classes=''){
+  if ($type == 'container'){
+    $classes = empty($default_classes) ? 'd-flex justify-content-center align-items-end not_saved' : $default_classes . ' not_saved';
+    $title_container = $inC->getElement($element_id, $type);
+    // this help js to connected with php esaily for save the new added elements so if u need add element and active make it like other elements
+    $title_container_bs = !empty($title_container) ? $title_container->get_bootstrap_classes() : $classes;
+    return $title_container_bs;
+  } else {
+    $element = $inC->getElement($element_id, $type);
+    if (!isset($element) || empty($element)){
+      return $default_classes . ' not_saved_element';
+    } else {
+      return $element->get_bootstrap_classes();
+    }
+  }
+  // note this default bs classes for containers (not_saved to tell send message to js when load elements controlled by user to setup, all needed now js know with legal way 'class' not php to js what php need to do with elements)
+
 }
+
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST'){
   // This How The SuperMVC handle all view with all needed given post requests
@@ -558,27 +573,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
     <div class="container-fluid p-2 text-white text-center cal_title bg_dimgray">
 
 
-      <h3 data-editor-type="container" id="title_container" data-editor-class="title_container_cs"
-      class="d-flex display-6 mt-2 mb-3 text-white p-2 default_shadow text_shadow03 border border-secondary title_container_cs <?php echo getBS($index_controller, 'title_container'); ?>">
+      <div data-editor-type="container" data-editor-class="title_container_cs"
+      class="<?php echo setupBSElementsData($index_controller, 'title_container_new', 'container'); ?> display-6 mt-2 mb-3 text-white p-2 default_shadow text_shadow03 border border-secondary title_container_cs" id="title_container_new" >
 
-      <img data-editor-type="element" id="logo_image" data-editor-class="logo_image_css"  class="logo_image_css" src="<?php echo defined('THUMBNAIL') ? 'uploads/images/' . THUMBNAIL : 'uploads/images/default_logo.png'; ?>" alt="Calendar Logo" height="50" width="50">
-      <span data-editor-type="element" id="title_text" data-editor-class="title_text_css" class="title_text_css">
+      <img data-editor-type="element" id="logo_image" data-editor-class="logo_image_css"  class="logo_image_css <?php echo setupBSElementsData($index_controller, 'logo_image', 'element'); ?>"
+      src="<?php echo defined('THUMBNAIL') ? 'uploads/images/' . THUMBNAIL : 'uploads/images/default_logo.png'; ?>" alt="Calendar Logo" height="50" width="50">
+      <span data-editor-type="element" id="title_text" data-editor-class="title_text_css" class="title_text_css <?php echo setupBSElementsData($index_controller, 'title_text', 'element'); ?>">
         <?php echo defined('TITLE') ? TITLE : 'Super Calendar'; ?></span>
-    </h3>
+      </div>
 
-      <p data-editor-type="element" id="title_description" data-editor-class="title_description_css"
-        class="title_description_css description_p bg_azure  text-black border border-secondary p-2 default_shadow">
+
+
+
+
+
+        <div data-editor-type="container" data-editor-class="desc_class"
+        class="<?php echo setupBSElementsData($index_controller, 'desc_id', 'container'); ?> desc_class description_p bg_azure  text-black border border-secondary p-2 default_shadow" id="desc_id" >
+
         <?php echo defined('DESCRIPTION') ? DESCRIPTION : 'Booking Calendar'; ?>
-      </p>
+      </div>
 
-      <div data-editor-type="container" id="top_nav" data-editor-class="top_nav_css" class="top_nav_css container d-flex justify-content-center align-items-end border border-succcess p-2">
+      <div data-editor-type="container" id="top_nav" data-editor-class="top_nav_css" class="top_nav_css container border border-succcess p-2 <?php echo setupBSElementsData($index_controller, 'top_nav', 'container'); ?>">
 
         <?php
           if (isset($_SESSION['logged_id']) && !empty($_SESSION['logged_id'])){
             ?>
-            <a href="./logout.php" class="btn btn-danger">Log Out</a>
+            <a href="./logout.php" class="<?php echo setupBSElementsData($index_controller, 'logout_page_link', 'element'); ?> logout_page_link_css btn btn-danger" id="logout_page_link" data-editor-type="element" data-editor-class="logout_page_link_css">Log Out</a>
             <span style="width:10px;"></span>
-            <a href="./profile?uid=<?php echo $_SESSION['logged_id'];  ?>" class="btn btn-success">Profile</a>
+            <a href="./profile?uid=<?php echo $_SESSION['logged_id'];  ?>" class="<?php echo setupBSElementsData($index_controller, 'profile_page_link', 'element'); ?> profile_page_link_css btn btn-success" id="profile_page_link" data-editor-type="element" data-editor-class="profile_page_link_css">Profile</a>
             <?php
           }
          ?>
@@ -586,7 +608,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
         <span style="width:10px;"></span>
         <?php if ($user_role == 'admin'){
           ?>
-            <a href="./setup.php" class="btn btn-primary">Setup</a>
+            <a href="./setup.php" class="<?php echo setupBSElementsData($index_controller, 'setup_page_link', 'element'); ?> setup_page_link_css btn btn-primary" id="setup_page_link" data-editor-type="element" data-editor-class="setup_page_link_css">Setup</a>
           <?php
         } ?>
       </div>
@@ -626,17 +648,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
         <div class="row">
           <div class="col-sm-12  p-2 d-flex justify-content-center">
             <div data-editor-type="container" id="month_switcher_grid" data-editor-class="month_switcher_grid_css"
-            class="row container-fluid options_parent  bg_dimgray p-2 d-flex justify-content-center align-items-center month_switcher_grid_css">
+            class="row container-fluid options_parent bg_dimgray p-2 month_switcher_grid_css <?php echo setupBSElementsData($index_controller, 'month_switcher_grid', 'container'); ?>">
               <!-- month controller start -->
               <div data-editor-type="container" id="monthswitcher_main" data-editor-class="monthswitcher_main_css"
-               class="monthswitcher_main_css d-flex col-sm-12 justify-content-end align-items-center" style="width: 90%;height: fit-content;">
+               class="monthswitcher_main_css col-sm-12 <?php echo setupBSElementsData($index_controller, 'monthswitcher_main', 'container'); ?>" style="width: 90%;height: fit-content;">
               <div class="row flex-fill d-flex justify-content-center ">
               <div id="month_controler_container" class="col-sm-5">
                 <!-- month switcher start -->
                 <div data-editor-type="container" id="monthswitcher_parent" data-editor-class="monthswitcher_css"
-                  class="monthswitcher_css container month_row d-flex flex-wrap align-items-start justify-content-between p-2  text-black border border-light">
+                  class="monthswitcher_css container month_row flex-wrap p-2 text-black border border-light <?php echo setupBSElementsData($index_controller, 'monthswitcher_parent', 'container', 'd-flex align-items-start justify-content-between'); ?>">
                   <i data-editor-type="element" id="monthswitcher_left" data-editor-class="monthswitcher_left_css"
-                   class="monthswitcher_left_css display-6 flex-fill fa fa-arrow-circle-left text-white month_arrow"
+                   class="monthswitcher_left_css display-6 flex-fill fa fa-arrow-circle-left text-white month_arrow <?php echo setupBSElementsData($index_controller, 'monthswitcher_left', 'element'); ?>"
                   data-month="<?php
                   if (is_numeric($index_controller->get_current_month()->get_month())){
                     echo $index_controller->get_current_month()->get_month() >= 2 ? $index_controller->get_current_month()->get_month() - 1 : 1;
@@ -644,7 +666,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
                   ?>"
                   ></i>
                   <h3 data-editor-type="element" data-editor-class="monthswitcher_select_css"
-                      id="selected_month_name" class="flex-fill month_name text_shadow01 text-white monthswitcher_select_css">
+                      id="selected_month_name" class="flex-fill month_name text_shadow01 text-white monthswitcher_select_css <?php echo setupBSElementsData($index_controller, 'selected_month_name', 'element'); ?>">
                     <?php if (!is_null($index_controller->get_current_month())){
                       $dateObj = DateTime::createFromFormat('!m', $index_controller->get_current_month()->get_month());
                       $monthName = $dateObj->format('F');
@@ -652,7 +674,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
                     } ?>
                   </h3>
                   <i data-editor-type="element" data-editor-class="monthswitcher_right_css"
-                     id="monthswitcher_right" class="monthswitcher_right_css display-6 flex-fill fa fa-arrow-circle-right text-white month_arrow"
+                     id="monthswitcher_right" class="monthswitcher_right_css display-6 flex-fill fa fa-arrow-circle-right text-white month_arrow <?php echo setupBSElementsData($index_controller, 'monthswitcher_right', 'element'); ?>"
                   data-month="<?php
                   if (is_numeric($index_controller->get_current_month()->get_month())){
                     echo $index_controller->get_current_month()->get_month() <= 12 ? $index_controller->get_current_month()->get_month() + 1 : 12;
@@ -664,12 +686,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
               <!-- month controller end -->
 
               <div data-editor-type="container" id="year_select_cont"
-                 data-editor-class="year_select_cont_css" class="year_select_cont_css col-sm-5 d-flex justify-content-center align-items-center rounded">
+                 data-editor-class="year_select_cont_css" class="year_select_cont_css col-sm-5 rounded <?php echo setupBSElementsData($index_controller, 'year_select_cont', 'container'); ?>">
                 <!-- year display start -->
                 <form data-editor-type="container" id="year_select_form"
-                   data-editor-class="year_select_form_css" class="year_select_form_css flex-fill" action="./index.php" method="GET" id="year_form">
+                   data-editor-class="year_select_form_css" class="year_select_form_css flex-fill <?php echo setupBSElementsData($index_controller, 'year_select_form', 'container'); ?>" action="./index.php" method="GET" id="year_form">
                   <select data-editor-type="element" data-editor-class="year_select_css"
-                     class="year_select_css form-control" name="year" id="year">
+                     class="year_select_css form-control" name="year" id="year" <?php echo setupBSElementsData($index_controller, 'year', 'element'); ?>>
                     <!-- years selector -->
                     <?php if (!empty($cal_years) && is_array($cal_years)) {
                       for ($y=0; $y<count($cal_years); $y++){
@@ -686,24 +708,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
               </div>
               <!-- remove bg_dmgriay !Important -->
               <div data-editor-type="container" id="month_numbers_main" data-editor-class="month_numbers_main_css"
-                class="month_numbers_main_css d-flex justify-content-center align-items-start col-sm-12 bg_dimgray p-2">
+                class="month_numbers_main_css col-sm-12 bg_dimgray p-2 <?php echo setupBSElementsData($index_controller, 'month_numbers_main', 'container'); ?>">
                 <!-- months numbers switch month -->
-                <div id="month_numbers" data-editor-class="month_numbers_css"
-                  class="btn-group btn-sm d-flex flex-wrap justify-content-center align-items-center month_small_btns month_numbers_css">
+                <div data-editor-type="container" id="month_numbers" data-editor-class="month_numbers_css"
+                  class="btn-group btn-sm flex-wrap month_small_btns month_numbers_css <?php echo setupBSElementsData($index_controller, 'month_numbers', 'container'); ?>">
                   <?php
 
                     if ($current_months && is_array($current_months) && !empty($current_months)){
                       for ($m=0; $m<count($current_months); $m++){
                         $is_active_class = ($current_months[$m]->get_month() == $current_month) ? 'active_small_button' : '';
-                        $btnid = 'btn_month_' . $current_months[$m]->get_id() . '_' . $current_year->get_year()  . '_' . $current_calendar->get_id();
+                        $btnidhtml = 'btn_month_' . ($m +1);
 
                         ?>
                         <!-- change month by number better UX option for old man -->
-                        <form id="<?php echo $btnid; ?>"
-                          data-editor-group="1"
-                          data-editor-type="element" method="GET" action="./" class="<?php echo $is_active_class; ?> month_form bg-light p-1 m-1 rounded-circle d-flex justify-content-center align-items-center month_toggle_btn" data-month="<?php echo $current_months[$m]->get_month(); ?>">
-                          <span class="p-1 text-center"> <?php echo $current_months[$m]->get_month(); ?></span>
-                          <input type="hidden" style="display:none;" name="month" value="<?php echo $current_months[$m]->get_month(); ?>" required>
+                        <form  id="<?php echo $btnidhtml;?>"
+                        data-editor-type="element"
+                        data-month="<?php echo $current_months[$m]->get_month(); ?>"
+                        data-editor-class="btn_arrow_month"
+                        data-editor-group="1"
+                        class="btn_arrow_month month_form bg-light p-1 m-1 rounded-circle d-flex justify-content-center align-items-center month_toggle_btn <?php echo setupBSElementsData($index_controller, $btnidhtml, 'element'); ?>">
+                        <span class="p-1 text-center"> <?php echo $current_months[$m]->get_month(); ?></span>
+                        <input type="hidden" style="display:none;" name="month" value="<?php echo $current_months[$m]->get_month(); ?>" required>
                         </form>
                         <?php
                       }
@@ -719,55 +744,56 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
 
           </div>
           <div data-editor-type="container" data-editor-class="calendar_first_container_css"  id="calendar_first_container"
-            class="p-1 col-sm-12 d-flex justify-content-center align-items-center bg_dimgray calendar_first_container_css">
+            class="p-1 col-sm-12 bg_dimgray calendar_first_container_css <?php echo setupBSElementsData($index_controller, 'calendar_first_container', 'container'); ?>">
 
             <!-- Calendar display start -->
             <div data-editor-type="main" data-editor-class="main_calendar_container"  id="main_calendar_container_css"
               class="main_calendar_container_css calendar border border-dark p-2 mt-3 mb-5 container-fluid bg-white">
               <div data-editor-type="container" id="cal_date_title_cont" data-editor-class="cal_date_title_contcss"
-              class="cal_date_title_contcss d-flex  justify-content-center align-items-center">
-                <h5 data-editor-type="element" id="cal_date_title_cont" data-editor-class="cal_date_title_contcss" class="cal_date_title_contcss text_black"><?php
+              class="cal_date_title_contcss <?php echo setupBSElementsData($index_controller, 'cal_date_title_cont', 'container'); ?>">
+
+
+              <h5 data-editor-type="element" id="cal_date_title_elm" data-editor-class="cal_date_title_contcss" class="cal_date_title_contcss text_black <?php echo setupBSElementsData($index_controller, 'cal_date_title_elm', 'element'); ?>"><?php
               $smonth = intval($index_controller->get_current_month()->get_month()) > 9 ? $index_controller->get_current_month()->get_month() : '0' . $index_controller->get_current_month()->get_month();
 
               echo $index_controller->get_current_year()->get_year() . '-' . $smonth . '-01'; ?></h5></div>
               <!-- week Titles row start -->
               <div data-editor-type="container" id="day_namecont" data-editor-class="day_namecont_css"
-                class="day_namecont_css d-flex justify-content-center align-items-center p-2 cal_days_titles">
+                class="day_namecont_css p-2 cal_days_titles <?php echo setupBSElementsData($index_controller, 'day_namecont', 'container'); ?>">
 
                 <div data-editor-type="element" id="day_name_parent1" data-editor-class="day_name_parentcss" data-editor-group="2"
                 class="day_outer_name_contcss flex-fill border border-light cal_card_cell">
-                  <span class="full_day" data-editor-type="element" id="day_mon" data-editor-class="day_mon_css" class="day_mon_css">Monday</span>
-                  <span class="short_day" data-editor-type="element" id="day_mon_mob" data-editor-class="day_mon_mob_css" class="day_mon_mob_css" style="display:none;">Mon</span>
+                  <span data-editor-type="element" id="day_mon" data-editor-class="day_mon_css" class="full_day day_mon_css <?php echo setupBSElementsData($index_controller, 'day_mon', 'element'); ?>">Monday</span>
+                  <span data-editor-type="element" id="day_mon_mob" data-editor-class="day_mon_mob_css" class="short_day day_mon_mob_css <?php echo setupBSElementsData($index_controller, 'day_mon_mob', 'element'); ?>" style="display:none;">Mon</span>
                 </div>
-
-                <div data-editor-type="element" id="day_name_parent2" data-editor-class="day_name_parentcss" data-editor-group="2" class="day_name_parentcss flex-fill border border-light cal_card_cell">
-                  <span class="full_day">Tuesday</span>
-                  <span class="short_day" data-editor-type="element" id="day_tue_mob" data-editor-class="day_tue_mob_css" class="day_tue_mob_css" style="display:none;">Tue</span>
+                <div data-editor-type="element" id="day_name_parent2" data-editor-class="day_name_parentcss" data-editor-group="2" class="day_name_parentcss flex-fill border border-light cal_card_cell <?php echo setupBSElementsData($index_controller, 'day_name_parent2', 'element'); ?>">
+                  <span data-editor-type="element" id="day_tue" data-editor-class="day_tue_css" class="full_day day_tue_css <?php echo setupBSElementsData($index_controller, 'day_tue', 'element'); ?>">Tuesday</span>
+                  <span data-editor-type="element" id="day_tue_mob" data-editor-class="day_tue_mob_css" class="short_day day_tue_mob_css <?php echo setupBSElementsData($index_controller, 'day_tue_mob', 'element'); ?>" style="display:none;">Tue</span>
                 </div>
-                <div data-editor-type="element" id="day_name_parent3" data-editor-class="day_name_parentcss" data-editor-group="2" class="day_name_parentcss flex-fill border border-light cal_card_cell">
-                  <span class="full_day">Wednesday</span>
-                  <span class="short_day" data-editor-type="element" id="day_wed_mob" data-editor-class="day_wed_mob_css" class="day_wed_mob_css" style="display:none;">Wed</span>
+                <div data-editor-type="element" id="day_name_parent3" data-editor-class="day_name_parentcss" data-editor-group="2" class="day_name_parentcss flex-fill border border-light cal_card_cell <?php echo setupBSElementsData($index_controller, 'day_name_parent3', 'element'); ?>">
+                  <span data-editor-type="element" id="day_wed" data-editor-class="day_thu_css" class="full_day day_thu_css <?php echo setupBSElementsData($index_controller, 'day_wed', 'element'); ?>">Wednesday</span>
+                  <span data-editor-type="element" id="day_wed_mob" data-editor-class="day_wed_mob_css" class="short_day day_wed_mob_css <?php echo setupBSElementsData($index_controller, 'day_wed_mob', 'element'); ?>" style="display:none;">Wed</span>
                 </div>
-                <div data-editor-type="element" id="day_name_parent4" data-editor-class="day_name_parentcss" data-editor-group="2" class="day_name_parentcss flex-fill border border-light cal_card_cell">
-                  <span class="full_day">Thursday</span>
-                  <span class="short_day" data-editor-type="element" id="day_thu_mob" data-editor-class="day_thu_mob_css" class="day_thu_mob_css" style="display:none;">Thu</span>
+                <div data-editor-type="element" id="day_name_parent4" data-editor-class="day_name_parentcss" data-editor-group="2" class="day_name_parentcss flex-fill border border-light cal_card_cell <?php echo setupBSElementsData($index_controller, 'day_name_parent4', 'element'); ?>">
+                  <span data-editor-type="element" id="day_thu" data-editor-class="day_thu_css" class="full_day day_thu_css <?php echo setupBSElementsData($index_controller, 'day_thu', 'element'); ?>">Thursday</span>
+                  <span data-editor-type="element" id="day_thu_mob" data-editor-class="day_thu_mob_css" class="short_day day_thu_mob_css <?php echo setupBSElementsData($index_controller, 'day_thu_mob', 'element'); ?>" style="display:none;">Thu</span>
                 </div>
-                <div data-editor-type="element" id="day_name_parent5" data-editor-class="day_name_parentcss" data-editor-group="2" class="day_name_parentcss flex-fill border border-light cal_card_cell">
-                  <span class="full_day">Friday</span>
-                  <span class="short_day" data-editor-type="element" id="day_fri_mob" data-editor-class="day_fri_mob_css" class="day_fri_mob_css" style="display:none;">Fri</span>
+                <div data-editor-type="element" id="day_name_parent5" data-editor-class="day_name_parentcss" data-editor-group="2" class="day_name_parentcss flex-fill border border-light cal_card_cell <?php echo setupBSElementsData($index_controller, 'day_name_parent5', 'element'); ?>">
+                  <span  data-editor-type="element"id="day_fri" data-editor-class="day_thu_css" class="full_day day_thu_css <?php echo setupBSElementsData($index_controller, 'day_fri', 'element'); ?>">Friday</span>
+                  <span  data-editor-type="element" id="day_fri_mob" data-editor-class="day_fri_mob_css" class="short_day day_fri_mob_css <?php echo setupBSElementsData($index_controller, 'day_fri_mob', 'element'); ?>" style="display:none;">Fri</span>
                 </div>
-                <div data-editor-type="element" id="day_name_parent6" data-editor-class="day_name_parentcss" data-editor-group="2" class="day_name_parentcss flex-fill border border-light cal_card_cell">
-                  <span class="full_day">Saturday</span>
-                  <span class="short_day" data-editor-type="element" id="day_sat_mob" data-editor-class="day_sat_mob_css" class="day_sat_mob_css" style="display:none;">Sat</span>
+                <div data-editor-type="element" id="day_name_parent6" data-editor-class="day_name_parentcss" data-editor-group="2" class="day_name_parentcss flex-fill border border-light cal_card_cell <?php echo setupBSElementsData($index_controller, 'day_fri_mob', 'element'); ?>">
+                  <span  data-editor-type="element" id="day_sat" data-editor-class="day_thu_css" class="full_day day_thu_css <?php echo setupBSElementsData($index_controller, 'day_sat', 'element'); ?>">Saturday</span>
+                  <span  data-editor-type="element" id="day_sat_mob" data-editor-class="day_sat_mob_css" class="short_day day_sat_mob_css <?php echo setupBSElementsData($index_controller, 'day_sat_mob', 'element'); ?>" style="display:none;">Sat</span>
                 </div>
-                <div data-editor-type="element" id="day_name_parent7" data-editor-class="day_name_parentcss" data-editor-group="2" class="day_name_parentcss flex-fill border border-light cal_card_cell">
-                  <span class="full_day">Sunday</span>
-                  <span class="short_day" data-editor-type="element" id="day_sun_mob" data-editor-class="day_sun_mob_css" class="day_sun_mob_css" style="display:none;">Sun</span>
+                <div data-editor-type="element" id="day_name_parent7" data-editor-class="day_name_parentcss" data-editor-group="2" class="day_name_parentcss flex-fill border border-light cal_card_cell <?php echo setupBSElementsData($index_controller, 'day_name_parent7', 'element'); ?>">
+                  <span  data-editor-type="element" id="day_sun" data-editor-class="day_thu_css" class="full_day day_thu_css <?php echo setupBSElementsData($index_controller, 'day_sun', 'element'); ?>">Sunday</span>
+                  <span  data-editor-type="element" id="day_sun_mob" data-editor-class="day_sun_mob_css" class="short_day day_sun_mob_css <?php echo setupBSElementsData($index_controller, 'day_sun_mob', 'element'); ?>" style="display:none;">Sun</span>
                 </div>
               </div>
               <!-- week Titles row end -->
               <!-- hidden week scroll buttons -->
-              <div data-editor-type="container" id="weekscroll_container" data-editor-class="weekscroll_containercss"  class="weekscroll_containercss d-flex flex-column align-items-center p-2 " style="position: fixed;left:0;top:0;background: transparent;width:fit-content;max-width:100% !important; font-size:10px;margin:0;padding:0 !important;">
+              <div data-editor-type="container" id="weekscroll_container" data-editor-class="weekscroll_containercss"  class="weekscroll_containercss flex-column p-2 <?php echo setupBSElementsData($index_controller, 'weekscroll_container', 'container'); ?>" style="position: fixed;left:0;top:0;background: transparent;width:fit-content;max-width:100% !important; font-size:10px;margin:0;padding:0 !important;">
                 <?php
                   if ($current_weeks && !empty($current_weeks)){
                     for ($cw=0; $cw<count($current_weeks); $cw++){
@@ -775,19 +801,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
                       ?>
                       <div data-editor-type="element"
                       id="<?php echo 'scrollbtn_'.$week_id; ?>" data-editor-group="3" data-editor-class="scroll_left_btncss"
-                      class="scroll_left_btncss flex-fill border border-primary btn  btn-secondary text-white  mt-1 mb-1"
+                      class="scroll_to_btns scroll_left_btncss flex-fill border border-primary btn  btn-secondary text-white  mt-1 mb-1 <?php echo setupBSElementsData($index_controller, ('scrollbtn_'.$week_id), 'element'); ?>"
                       data-target="<?php echo $week_id; ?>"><?php echo ($cw+1); ?></div>
                       <?php
                     }
                   }
                 ?>
 
-                <div data-editor-type="element" id="map_booking_modal_open" data-editor-class="map_resevation_css" class="map_resevation_css flex-fill border border-primary btn btn-light mt-1 mb-1 aside_add_res" data-bs-toggle="modal" data-bs-target="#mapBookingModal">
+                <div data-editor-type="element" id="map_booking_modal_open" data-editor-class="map_resevation_css" class="map_resevation_css flex-fill border border-primary btn btn-light mt-1 mb-1 aside_add_res <?php echo setupBSElementsData($index_controller, 'map_booking_modal_open' , 'element'); ?>" data-bs-toggle="modal" data-bs-target="#mapBookingModal">
                  <i class="fa fa-plus text-primary"></i>
                 </div>
 
                 <div data-editor-type="element" data-editor-class="open_style_editorcss" id="open_style_editor"
-                  class="open_style_editorcss toggle_asside magical_btn flex-fill border border-primary btn  btn-danger text-white  mt-1 mb-1"
+                  class="open_style_editorcss toggle_asside magical_btn flex-fill border border-primary btn  btn-danger text-white  mt-1 mb-1 <?php echo setupBSElementsData($index_controller, 'open_style_editor' , 'element'); ?>"
                   title="Close The Style Editor" data-bs-original-title="Close The Style Editor"><i class="fa fa-magic text-white"></i>
                 </div>
 
@@ -811,12 +837,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
                         $day_data = $current_weeks[$w][$d];
                         if ($day_data == false || empty($day_data)){
                           // empty day
-
+                          $delm_id = 'x_day_' . $d . '_' . $index_controller->get_current_month()->get_month();
                           ?>
                           <!-- empty day -->
                           <!-- day start -->
                           <div data-editor-type="element" data-editor-class="day_x_css"
-                          data-editor-group="4"  id="x_day_<?php echo uniqid(); ?>" class="day_x_css flex-fill border border-light cal_card_cell day_card null_day"
+                          data-editor-group="4"  id="<?php echo $delm_id; ?>" class="day_x_css flex-fill border border-light cal_card_cell day_card null_day <?php echo setupBSElementsData($index_controller, $delm_id, 'element'); ?>"
                           title="This day is not available The selected month is : <?php echo $week_count; ?> Days">
 
                           </div>
@@ -829,19 +855,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
                           $day_date = $selected_day->get_day_date();
                           $day_name = $selected_day->get_day_name();
                           $daycalid = $index_controller->get_used_calendar()->get_id();
+                          $day_id_html = 'day_' . $day_id;
+                          $title_id_html = 'day_title_'.$day_id . '_' . $daycalid;
+                          $date_id_html = 'day_date_'.$day_id . '_' . $daycalid;
 
                           $selected_day_data = $day_data['day_data'];
                         ?>
                         <!-- day start -->
-                        <div data-editor-type="element" data-editor-group="5" data-day="<?php echo $day_name; ?>" data-editor-class="day_style_css"
-                          class="flex-fill border border-light cal_card_cell day_card day_style_css" id="day_<?php echo $day_id;  ?>">
-
+                        <div data-day="<?php echo $day_name; ?>" class="flex-fill border border-light cal_card_cell day_card day_style_css" id="<?php echo $day_id_html;  ?>">
                            <!-- day meta -->
-                             <h6 data-editor-type="element" data-editor-group="6" id="<?php echo 'day_title_'.$day_id . '_' . $daycalid;  ?>" data-editor-class="day_title_textcss" class="day_title_textcss text-center font_80em"><?php echo substr($day_name, 0, 3) . ' ' . $day; ?></h6>
-                             <h6 data-editor-type="element" data-editor-group="7" id="<?php echo 'day_date_'.$day_id . '_' . $daycalid;  ?>"  data-editor-class="day_date_css"  class="day_date_css text-center bg-light text-black badge"><?php echo $day_date; ?></h6>
+                             <h6 data-editor-type="element" data-editor-group="5" id="<?php echo $title_id_html;  ?>" data-editor-class="day_title_textcss" class="day_title_textcss text-center font_80em <?php echo setupBSElementsData($index_controller, $title_id_html , 'element'); ?>"><?php echo substr($day_name, 0, 3) . ' ' . $day; ?></h6>
+                             <h6 data-editor-type="element" data-editor-group="6" id="<?php echo $date_id_html;  ?>"  data-editor-class="day_date_css"  class="day_date_css text-center bg-light text-black badge <?php echo setupBSElementsData($index_controller, $date_id_html , 'element'); ?>"><?php echo $day_date; ?></h6>
                            <!-- array_distribution -->
                            <!-- all periods start -->
-                           <div data-editor-type="container" id="all_periods_container" data-editor-class="all_periods_containercss"  class="all_periods_containercss all_periods d-flex flex-column flex-nowrap justify-content-center align-items-center">
+                           <div data-editor-type="container" id="all_periods_container" data-editor-class="all_periods_containercss"  class="all_periods_containercss all_periods flex-column flex-nowrap <?php echo setupBSElementsData($index_controller, 'all_periods_container', 'container'); ?>">
                              <?php // now get periods from the data array
                                // day_data array(Array([day_period] => Period Object, [day_slot] => Array([0] => Slot Object)))
                                // loop over periods data (
@@ -857,6 +884,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
                                  $p_element_id = $selected_period->get_element_id();
                                  $p_element_class = $selected_period->get_element_class();
                                  $daycalid = $index_controller->get_used_calendar()->get_id();
+                                 $period_id_html = 'period_desc_'. $p_id;
 
 
                                  /* ##################### display periods   ############################ */
@@ -864,9 +892,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
                                  <!-- period example start -->
                                  <!-- notice here  the id come from database and class u can change also u can add normal css to target some slots in css file many ways -->
                                  <div data-editor-type="container" data-editor-class="period_container_css"
-                                 data-editor-group="8" class="period_container_css d-flex justify-content-center align-items-center flex-column flex-nowrap container period_background_default <?php echo $p_element_class; ?>" id="<?php echo $p_element_id; ?>" >
+                                 data-editor-group="8" class="<?php echo setupBSElementsData($index_controller, $p_element_id, 'container'); ?> period_container_css flex-column flex-nowrap container period_background_default <?php echo $p_element_class; ?>" id="<?php echo $p_element_id; ?>" >
                                     <!-- period title -->
-                                    <span data-editor-type="element" id="period_desc_<?php echo $p_id; ?>" data-editor-group="7" data-editor-class="period_description_css" class="period_description_css badge bg-secondary p-1 mt-1 period_title_default" ><?php echo $p_description; ?></span>
+                                    <span data-editor-type="element" id="<?php echo $period_id_html; ?>" data-editor-group="7" data-editor-class="period_description_css" class="period_description_css badge bg-secondary p-1 mt-1 period_title_default <?php echo setupBSElementsData($index_controller, $date_id_html , 'element'); ?>" ><?php echo $p_description; ?></span>
                                     <!-- all slots start -->
 
                                     <?php
@@ -900,10 +928,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
 
                                             data-editor-class="slot_cont_css"
                                             data-editor-type="element"
-                                            class="slot_background_default slot_cont_css p-1 m-1 used_slot <?php echo $s_element_class; ?>"
-                                            id="<?php echo $s_element_id; ?>" data-editor-group="9">
-                                           <div data-editor-type="container" data-editor-group="10" id="child_<?php echo $s_element_id; ?>" data-editor-class="slot_child_contcss"
-                                            class="container d-flex justify-content-between align-items-between slot_child_contcss">
+                                            class="<?php echo setupBSElementsData($index_controller, $s_element_id, 'element'); ?> slot_background_default slot_cont_css p-1 m-1 used_slot <?php echo $s_element_class; ?>"
+                                            id="<?php echo $s_element_id; ?>" data-editor-group="8">
+                                           <div data-editor-type="container" data-editor-group="9" id="child_<?php echo $s_element_id; ?>" data-editor-class="slot_child_contcss"
+                                            class="container slot_child_contcss <?php echo setupBSElementsData($index_controller, 'child_' . $s_element_id, 'container', 'justify-content-between align-items-center'); ?>">
 
                                              <!-- if this slot owned by logged display controls else nope -->
                                              <?php
@@ -939,8 +967,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
                                         } else {
                                           ?>
                                           <!-- slot start with booking diffrent group to diffrence -->
-                                          <div data-editor-type="element" data-editor-group="11" data-editor-class="slot_cont_css" class="slot_background_default slot_cont_css p-1 m-1 empty_slot <?php echo $s_element_class; ?>" id="<?php echo $s_element_id; ?>">
-                                           <div data-editor-type="container" data-editor-group="12" id="child_<?php echo $s_element_id; ?>" data-editor-class="slot_child_contcss" class="slot_child_contcss d-flex justify-content-between container d-flex justify-content-center align-items-between">
+                                          <div data-editor-type="element" data-editor-group="10" data-editor-class="slot_cont_css" class="<?php echo setupBSElementsData($index_controller, $s_element_id, 'element'); ?> slot_background_default slot_cont_css p-1 m-1 empty_slot <?php echo $s_element_class; ?>" id="<?php echo $s_element_id; ?>">
+                                           <div data-editor-type="container" data-editor-group="12" id="child_<?php echo $s_element_id; ?>" data-editor-class="slot_child_contcss" class="slot_child_contcss <?php echo setupBSElementsData($index_controller, 'child_' . $s_element_id, 'container', 'd-flex justify-content-between align-items-center'); ?>">
                                              <i class="fa text-primary fa fa-calendar-o book_open_btn" style="font-size:1.1em;" data-slot-id="<?php echo $s_id; ?>"
                                              data-slot-start_from="<?php echo $s_start_from; ?>"
                                              data-slot-end_at="<?php echo $s_end_at; ?>"
@@ -1400,6 +1428,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
    <h4 class="p-3 mt-2 mb-4 text-center border border-secondary rounded bg-dark text-white style_editor_title " data-bs-original-title="Close The Style Editor">
       <i class="fa fa-magic magic_icon toggle_asside"></i> <span>Style Editor</span>
    </h4>
+   <div id="editor_error_cont"></div>
+
+   <div class="container">
+     <div class="d-flex justify-content-between align-items-center mt-2 mb-2" style="display:none;" id="edit_mode_container">
+       <button class="btn btn-success mt-2 btn-small mr-2" id="enable_edit_mode">Start Edit Containers</button>  <span id="enable_edit_modemsg">(OFF)</span>
+     </div>
+     <div class="d-flex justify-content-between align-items-center mt-2 mb-2" style="display:none;" id="edit_mode_elm">
+       <button class="btn btn-success mt-2 btn-small mr-2" id="enable_edit_mode_elm">Start Edit Elements</button>  <span id="enable_edit_modemsg_elm">(OFF)</span>
+     </div>
+     <div class="d-flex justify-content-center align-items-center flex-column bg-secondary p-2">
+       <img id="editor_wait_gif" src="assets/images/load_circle_ux.gif" width="150" height="150" style="display:none;" />
+     </div>
+
+     <div id="setup_elm_conts">
+       <div class="d-flex justify-content-center align-items-center flex-column bg-secondary p-2">
+         <span class="text-white">Undefined Containers: <span id="total_undefined_containers" class="badge p-2"></span></span>
+         <button class="btn btn-primary mt-2" style="display:none;" id="setup_loaded_containers">Setup These Containers</button>
+       </div>
+
+       <div class="d-flex justify-content-center align-items-center flex-column bg-secondary p-2">
+         <span class="text-white">Undefined Elements: <span id="total_undefined_elements_txt" class="badge p-2"></span></span>
+         <button class="btn btn-primary mt-2" style="display:none;" id="setup_element_btn">Setup These Elements</button>
+       </div>
+     </div>
+
+     <div class="d-flex justify-content-center align-items-center p-2 m-2 flex-column">
+       <div class="style_viewercss  border border-secondary p-4 bg-secondary text-black flex-fill" id="style_viewer">
+       </div>
+     </div>
+   </div>
+
+   <input id="calid_editor_style" type="hidden" value="<?php echo $current_calendar->get_id(); ?>" style="display:none;">
    <div class="d-flex flex-column">
    <div class="d-flex flex-column no-wrap justify-content-center align-items-center p-2 bg-light">
       <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
@@ -1417,23 +1477,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
       </div>
 
 
+      <!-- Container Styles Start -->
+      <div id="bs_containers_editor">
 
       <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
          <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
             <div class="flex-fill">
-              <label for="sys_elm_width" class="badge bg-light text-black">Padding: </label>
-            </div>
-            <div class="flex-fill" style="max-width:50%;">
-              <input type="number" class="form-control" id="sys_elm_padding" name="sys_elm_padding" placeholder="Width" />
+              <label for="container_bg" class="badge bg-light text-black">Background Color: </label>
             </div>
             <div class="" style="width:max-content;">
-              <select class="form-control" id="sys_elm_paddingu" name="sys_elm_paddingu">
-                <option value="%">%</option>
-                <option value="px">px</option>
-                <option value="em">em</option>
-                <option value="rem">rem</option>
-                <option value="vw">vw</option>
-                <option value="vh">vh</option>
+              <select class="form-control" id="container_bg" name="container_bg">
+                <option value=""></option>
+                <option value="bg-primary">Blue</option>
+                <option value="bg-success">Green</option>
+                <option value="bg-info">Lightblue</option>
+                <option value="bg-warning">Yellow</option>
+                <option value="bg-danger">Red</option>
+                <option value="bg-secondary">gray</option>
+                <option value="bg-dark">black</option>
+                <option value="bg-light">light gray</option>
               </select>
             </div>
          </div>
@@ -1443,19 +1505,556 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
       <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
          <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
             <div class="flex-fill">
-              <label for="sys_elm_width" class="badge bg-light text-black">Width: </label>
-            </div>
-            <div class="flex-fill" style="max-width:50%;">
-              <input type="number" class="form-control" id="sys_elm_width" name="sys_elm_width" placeholder="Width" />
+              <label for="container_text_color" class="badge bg-light text-black">Text Color: </label>
             </div>
             <div class="" style="width:max-content;">
-              <select class="form-control" id="sys_elm_widthu" name="sys_elm_widthu">
-                <option value="%">%</option>
-                <option value="px">px</option>
-                <option value="em">em</option>
-                <option value="rem">rem</option>
-                <option value="vw">vw</option>
-                <option value="vh">vh</option>
+              <select class="form-control" id="container_text_color" name="container_text_color">
+                <option value=""></option>
+                <option value="text-muted">muted</option>
+                <option value="text-primary">blue</option>
+                <option value="text-success">green</option>
+                <option value="text-info">lightblue</option>
+                <option value="text-warning">yellow</option>
+                <option value="text-danger">red</option>
+                <option value="text-secondary">Gray</option>
+                <option value="text-white">White</option>
+                <option value="text-dark">black</option>
+                <option value="text-light">Lightgray</option>
+                <option value="text-body">parent color</option>
+              </select>
+            </div>
+         </div>
+      </div>
+
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="container_p" class="badge bg-light text-black">Padding: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control" id="container_p" name="container_p">
+                <option value=""></option>
+                <option value="p-1">p-1</option>
+                <option value="p-2">p-2</option>
+                <option value="p-3">p-3</option>
+                <option value="p-4">p-4</option>
+                <option value="p-5">p-5</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="container_m" class="badge bg-light text-black">Margin: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control" id="container_m" name="container_m">
+                <option value=""></option>
+                <option value="m-1">m-1</option>
+                <option value="m-2">m-2</option>
+                <option value="m-3">m-3</option>
+                <option value="m-4">m-4</option>
+                <option value="m-5">m-5</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="container_border" class="badge bg-light text-black">Border: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control" id="container_border" name="container_border">
+                <option value=""></option>
+                <option value="border">border</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="container_border_size" class="badge bg-light text-black">Border Size: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control" id="container_border_size" name="container_border_size">
+                <option value=""></option>
+                <option value="border-1">border-1</option>
+                <option value="border-2">border-2</option>
+                <option value="border-3">border-3</option>
+                <option value="border-4">border-4</option>
+                <option value="border-5">border-5</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+       <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="container_border_color" class="badge bg-light text-black">Border Color: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control" id="container_border_color" name="container_border_color">
+                <option value=""></option>
+                <option value="border-primary">Blue</option>
+                <option value="border-secondary">Gray</option>
+                <option value="border-success">Green</option>
+                <option value="border-danger">Red</option>
+                <option value="border-warning">Yellow</option>
+                <option value="border-info">Lightblue</option>
+                <option value="border-light">Lightgray</option>
+                <option value="border-dark">Black</option>
+                <option value="border-white">White</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+
+       <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="container_round" class="badge bg-light text-black">Border Round: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control" id="container_round" name="container_round">
+                <option value=""></option>
+                <option value="rounded">rounded</option>
+                <option value="rounded-top">rounded-top</option>
+                <option value="rounded-end">rounded-end</option>
+                <option value="rounded-bottom">rounded-bottom</option>
+                <option value="rounded-start">rounded-start</option>
+                <option value="rounded-circle">rounded-circle</option>
+                <option value="rounded-pill">rounded-pill</option>
+                <option value="rounded-0">rounded-0</option>
+                <option value="rounded-1">rounded-1</option>
+                <option value="rounded-2">rounded-2</option>
+                <option value="rounded-3">rounded-3</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="container_width" class="badge bg-light text-black">Width: </label>
+            </div>
+
+            <div class="" style="width:max-content;">
+              <select class="form-control" id="container_width" name="container_width">
+                <option value=""></option>
+                <option value="w-25">25%</option>
+                <option value="w-50">50%</option>
+                <option value="w-75">75%</option>
+                <option value="w-100">100%</option>
+                <option value="w-auto">auto</option>
+                <option value="mw-100">Max</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="container_height" class="badge bg-light text-black">Height: </label>
+            </div>
+
+            <div class="" style="width:max-content;">
+              <select class="form-control" id="container_height" name="container_height">
+                <option value=""></option>
+                <option value="h-25">25%</option>
+                <option value="h-50">50%</option>
+                <option value="h-75">75%</option>
+                <option value="h-100">100%</option>
+                <option value="h-auto">auto</option>
+                <option value="mh-100">Max</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="container_m_t" class="badge bg-light text-black">Margin Top: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control" id="container_m_t" name="container_m_t">
+                <option value=""></option>
+                <option value="mt-1">1</option>
+                <option value="mt-2">2</option>
+                <option value="mt-3">3</option>
+                <option value="mt-4">4</option>
+                <option value="mt-4">5</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="container_m_b" class="badge bg-light text-black">Margin Bottom: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control" id="container_m_b" name="container_m_b">
+                <option value=""></option>
+                <option value="mb-1">1</option>
+                <option value="mb-2">2</option>
+                <option value="mb-3">3</option>
+                <option value="mb-4">4</option>
+                <option value="mb-4">5</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="container_m_r" class="badge bg-light text-black">Margin Right: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control" id="container_m_r" name="container_m_r">
+                <option value=""></option>
+                <option value="mr-1">1</option>
+                <option value="mr-2">2</option>
+                <option value="mr-3">3</option>
+                <option value="mr-4">4</option>
+                <option value="mr-4">5</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="container_m_l" class="badge bg-light text-black">Margin Left: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control" id="container_m_l" name="container_m_l">
+                <option value=""></option>
+                <option value="ml-1">1</option>
+                <option value="ml-2">2</option>
+                <option value="ml-3">3</option>
+                <option value="ml-4">4</option>
+                <option value="ml-4">5</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="container_p_t" class="badge bg-light text-black">Padding Top: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control" id="container_p_t" name="container_p_t">
+                <option value=""></option>
+                <option value="pt-1">1</option>
+                <option value="pt-2">2</option>
+                <option value="pt-3">3</option>
+                <option value="pt-4">4</option>
+                <option value="pt-4">5</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="container_p_b" class="badge bg-light text-black">Padding Bottom: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control" id="container_p_b" name="container_p_b">
+                <option value=""></option>
+                <option value="pb-1">1</option>
+                <option value="pb-2">2</option>
+                <option value="pb-3">3</option>
+                <option value="pb-4">4</option>
+                <option value="pb-4">5</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="container_p_r" class="badge bg-light text-black">Padding Right: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control" id="container_p_r" name="container_p_r">
+                <option value=""></option>
+                <option value="pr-1">1</option>
+                <option value="pr-2">2</option>
+                <option value="pr-3">3</option>
+                <option value="pr-4">4</option>
+                <option value="pr-4">5</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="container_p_l" class="badge bg-light text-black">Padding Left: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control" id="container_p_l" name="container_p_l">
+                <option value=""></option>
+                <option value="pl-1">1</option>
+                <option value="pl-2">2</option>
+                <option value="pl-3">3</option>
+                <option value="pl-4">4</option>
+                <option value="pl-4">5</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="container_visibility" class="badge bg-light text-black">Visibility</label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control" id="container_visibility" name="container_visibility">
+                <option value=""></option>
+                <option value="visible">visible</option>
+                <option value="invisible">invisible</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="container_box_shadow" class="badge bg-light text-black">Shadow: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control" id="container_box_shadow" name="container_box_shadow">
+                <option value=""></option>
+                <option value="shadow-none">None</option>
+                <option value="shadow-sm">Small</option>
+                <option value="shadow">Normal</option>
+                <option value="shadow-lg">Large</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="container_justify_content" class="badge bg-light text-black">Justify Content: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control" id="container_justify_content" name="container_justify_content">
+                <option value=""></option>
+                <option value="justify-content-start">Start</option>
+                <option value="justify-content-end">End</option>
+                <option value="justify-content-center">Center</option>
+                <option value="justify-content-between">Space Between</option>
+                <option value="justify-content-around">Space Around</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+       <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="container_align_items" class="badge bg-light text-black">Align Items: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control" id="container_align_items" name="container_align_items">
+                <option value=""></option>
+                <option value="align-items-start">Start</option>
+                <option value="align-items-end">End</option>
+                <option value="align-items-center">Center</option>
+                <option value="align-items-around">Space Around</option>
+                <option value="align-items-stretch">Stretch</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+
+      <!-- Bootstrap input -->
+     <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+        <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+           <div class="flex-fill">
+             <label for="container_align_content" class="badge bg-light text-black">Align Content: </label>
+           </div>
+           <div class="" style="width:max-content;">
+             <select class="form-control" id="container_align_content" name="container_align_content">
+               <option value=""></option>
+               <option value="align-content-start">Start</option>
+               <option value="align-content-end">End</option>
+               <option value="align-content-center">Center</option>
+               <option value="align-content-around">Space Around</option>
+               <option value="align-content-stretch">Stretch</option>
+             </select>
+           </div>
+        </div>
+     </div>
+     <!-- bootstrap -->
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="container_ratio" class="badge bg-light text-black" title="diffrent heights for containers">Size Ratio: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control" id="container_ratio" name="container_ratio">
+                <option value=""></option>
+                <option value="ratio ratio-1x1">1x1</option>
+                <option value="ratio ratio-4x3">4x3</option>
+                <option value="ratio ratio-16x9">16x9</option>
+                <option value="ratio ratio-21x9">21x9</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="container_flex_type" class="badge bg-light text-black">Flex Type:</label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control" id="container_flex_type" name="container_flex_type">
+                <option value=""></option>
+                <option value="d-flex">Flex</option>
+                <option value="d-inline-flex">Inline Flex</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+
+      <!-- Bootstrap input Flex -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="container_flex_flow" class="badge bg-light text-black" title="(layout type)">Flex flow</label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control" id="container_flex_flow" name="container_flex_flow">
+                <option value=""></option>
+                <option value="flex-row">Row</option>
+                <option value="flex-row-reverse">Row Reverse</option>
+                <option value="flex-column">Column</option>
+                <option value="flex-column">Column Reverse</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+       <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="container_flex_wrap" class="badge bg-light text-black">Flex Wrap: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control" id="container_flex_wrap" name="container_flex_wrap">
+                <option value=""></option>
+                <option value="flex-wrap">Wrap</option>
+                <option value="flex-wrap-reverse">Wrap reverse</option>
+                <option value="flex-nowrap">No wrap</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+    </div>
+    <!-- Container Styles End -->
+
+    <!-- element start -->
+    <div id="bs_element_editor">
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="element_bg" class="badge bg-light text-black">Background Color: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control" id="element_bg" name="element_bg">
+                <option value=""></option>
+                <option value="bg-primary">Blue</option>
+                <option value="bg-success">Green</option>
+                <option value="bg-info">Lightblue</option>
+                <option value="bg-warning">Yellow</option>
+                <option value="bg-danger">Red</option>
+                <option value="bg-secondary">gray</option>
+                <option value="bg-dark">black</option>
+                <option value="bg-light">light gray</option>
               </select>
             </div>
          </div>
@@ -1465,38 +2064,718 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
       <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
          <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
             <div class="flex-fill">
-              <label for="sys_elm_height" class="badge bg-light text-black">Height: </label>
-            </div>
-            <div class="flex-fill" style="max-width:50%;">
-              <input type="number" class="form-control" id="sys_elm_height" name="sys_elm_width" placeholder="Height" />
+              <label for="element_text_color" class="badge bg-light text-black">Text Color: </label>
             </div>
             <div class="" style="width:max-content;">
-              <select class="form-control" id="sys_elm_heightu" name="sys_elm_heightu">
-                <option value="%">%</option>
-                <option value="px">px</option>
-                <option value="em">em</option>
-                <option value="rem">rem</option>
-                <option value="vw">vw</option>
-                <option value="vh">vh</option>
+              <select class="form-control" id="element_text_color" name="element_text_color">
+                <option value=""></option>
+                <option value="text-muted">muted</option>
+                <option value="text-primary">blue</option>
+                <option value="text-success">green</option>
+                <option value="text-info">lightblue</option>
+                <option value="text-warning">yellow</option>
+                <option value="text-danger">red</option>
+                <option value="text-secondary">Gray</option>
+                <option value="text-white">White</option>
+                <option value="text-dark">black</option>
+                <option value="text-light">Lightgray</option>
+                <option value="text-body">parent color</option>
               </select>
             </div>
          </div>
       </div>
+
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="element_p" class="badge bg-light text-black">Padding: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control" id="element_p" name="element_p">
+                <option value=""></option>
+                <option value="p-1">p-1</option>
+                <option value="p-2">p-2</option>
+                <option value="p-3">p-3</option>
+                <option value="p-4">p-4</option>
+                <option value="p-5">p-5</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="element_m" class="badge bg-light text-black">Margin: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control" id="element_m" name="element_m">
+                <option value=""></option>
+                <option value="m-1">m-1</option>
+                <option value="m-2">m-2</option>
+                <option value="m-3">m-3</option>
+                <option value="m-4">m-4</option>
+                <option value="m-5">m-5</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="element_border" class="badge bg-light text-black">Border: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control" id="element_border" name="element_border">
+                <option value=""></option>
+                <option value="border">border</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="element_border_size" class="badge bg-light text-black">Border Size: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control" id="element_border_size" name="element_border_size">
+                <option value=""></option>
+                <option value="border-1">border-1</option>
+                <option value="border-2">border-2</option>
+                <option value="border-3">border-3</option>
+                <option value="border-4">border-4</option>
+                <option value="border-5">border-5</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+       <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="element_border_color" class="badge bg-light text-black">Border Color: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control" id="element_border_color" name="element_border_color">
+                <option value=""></option>
+                <option value="border-primary">Blue</option>
+                <option value="border-secondary">Gray</option>
+                <option value="border-success">Green</option>
+                <option value="border-danger">Red</option>
+                <option value="border-warning">Yellow</option>
+                <option value="border-info">Lightblue</option>
+                <option value="border-light">Lightgray</option>
+                <option value="border-dark">Black</option>
+                <option value="border-white">White</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+
+       <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="element_round" class="badge bg-light text-black">Border Round: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control" id="element_round" name="element_round">
+                <option value=""></option>
+                <option value="rounded">rounded</option>
+                <option value="rounded-top">rounded-top</option>
+                <option value="rounded-end">rounded-end</option>
+                <option value="rounded-bottom">rounded-bottom</option>
+                <option value="rounded-start">rounded-start</option>
+                <option value="rounded-circle">rounded-circle</option>
+                <option value="rounded-pill">rounded-pill</option>
+                <option value="rounded-0">rounded-0</option>
+                <option value="rounded-1">rounded-1</option>
+                <option value="rounded-2">rounded-2</option>
+                <option value="rounded-3">rounded-3</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="element_width" class="badge bg-light text-black">Width: </label>
+            </div>
+
+            <div class="" style="width:max-content;">
+              <select class="form-control" id="element_width" name="element_width">
+                <option value=""></option>
+                <option value="w-25">25%</option>
+                <option value="w-50">50%</option>
+                <option value="w-75">75%</option>
+                <option value="w-100">100%</option>
+                <option value="w-auto">auto</option>
+                <option value="mw-100">Max</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="element_height" class="badge bg-light text-black">Height: </label>
+            </div>
+
+            <div class="" style="width:max-content;">
+              <select class="form-control" id="element_height" name="element_height">
+                <option value=""></option>
+                <option value="h-25">25%</option>
+                <option value="h-50">50%</option>
+                <option value="h-75">75%</option>
+                <option value="h-100">100%</option>
+                <option value="h-auto">auto</option>
+                <option value="mh-100">Max</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="element_m_t" class="badge bg-light text-black">Margin Top: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control" id="element_m_t" name="element_m_t">
+                <option value=""></option>
+                <option value="mt-1">1</option>
+                <option value="mt-2">2</option>
+                <option value="mt-3">3</option>
+                <option value="mt-4">4</option>
+                <option value="mt-4">5</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="element_m_b" class="badge bg-light text-black">Margin Bottom: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control" id="element_m_b" name="element_m_b">
+                <option value=""></option>
+                <option value="mb-1">1</option>
+                <option value="mb-2">2</option>
+                <option value="mb-3">3</option>
+                <option value="mb-4">4</option>
+                <option value="mb-4">5</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="element_m_r" class="badge bg-light text-black">Margin Right: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control" id="element_m_r" name="element_m_r">
+                <option value=""></option>
+                <option value="mr-1">1</option>
+                <option value="mr-2">2</option>
+                <option value="mr-3">3</option>
+                <option value="mr-4">4</option>
+                <option value="mr-4">5</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="element_m_l" class="badge bg-light text-black">Margin Left: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control" id="element_m_l" name="element_m_l">
+                <option value=""></option>
+                <option value="ml-1">1</option>
+                <option value="ml-2">2</option>
+                <option value="ml-3">3</option>
+                <option value="ml-4">4</option>
+                <option value="ml-4">5</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="element_p_t" class="badge bg-light text-black">Padding Top: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control" id="element_p_t" name="element_p_t">
+                <option value=""></option>
+                <option value="pt-1">1</option>
+                <option value="pt-2">2</option>
+                <option value="pt-3">3</option>
+                <option value="pt-4">4</option>
+                <option value="pt-4">5</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="element_p_b" class="badge bg-light text-black">Padding Bottom: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control" id="element_p_b" name="element_p_b">
+                <option value=""></option>
+                <option value="pb-1">1</option>
+                <option value="pb-2">2</option>
+                <option value="pb-3">3</option>
+                <option value="pb-4">4</option>
+                <option value="pb-4">5</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="element_p_r" class="badge bg-light text-black">Padding Right: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control" id="element_p_r" name="element_p_r">
+                <option value=""></option>
+                <option value="pr-1">1</option>
+                <option value="pr-2">2</option>
+                <option value="pr-3">3</option>
+                <option value="pr-4">4</option>
+                <option value="pr-4">5</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="element_p_l" class="badge bg-light text-black">Padding Left: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control" id="element_p_l" name="element_p_l">
+                <option value=""></option>
+                <option value="pl-1">1</option>
+                <option value="pl-2">2</option>
+                <option value="pl-3">3</option>
+                <option value="pl-4">4</option>
+                <option value="pl-4">5</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="element_visibility" class="badge bg-light text-black">Visibility</label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control" id="element_visibility" name="element_visibility">
+                <option value=""></option>
+                <option value="visible">visible</option>
+                <option value="invisible">invisible</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="element_box_shadow" class="badge bg-light text-black">Shadow: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control" id="element_box_shadow" name="element_box_shadow">
+                <option value=""></option>
+                <option value="shadow-none">None</option>
+                <option value="shadow-sm">Small</option>
+                <option value="shadow">Normal</option>
+                <option value="shadow-lg">Large</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+
+
+
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="element_text_align" class="badge bg-light text-black">Text Align: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control" id="element_text_align" name="element_text_align">
+                <option value=""></option>
+                <option value="text-start">Start</option>
+                <option value="text-center">Center</option>
+                <option value="text-end">End</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="element_text_break" class="badge bg-light text-black">Text Break: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control" id="element_text_break" name="element_text_break">
+                <option value=""></option>
+                <option value="text-break">text break</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="element_text_case" class="badge bg-light text-black">Text Case: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control" id="element_text_case" name="element_text_case">
+                <option value=""></option>
+                <option value="text-lowercase">LowerCase</option>
+                <option value="text-uppercase">upperCase</option>
+                <option value="text-capitalize">Capitalize</option>
+                <option value="initialism">Initialism</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="element_text_wrap" class="badge bg-light text-black">Text Wrap: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control" id="element_text_wrap" name="element_text_wrap">
+                <option value=""></option>
+                <option value="text-wrap">Wrap</option>
+                <option value="text-nowrap">No Wrap</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="element_font_wight" class="badge bg-light text-black">Font Wight: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control" id="element_font_wight" name="element_font_wight">
+                <option value=""></option>
+                <option value="font-weight-bold">Bold</option>
+                <option value="font-weight-bolder">Bolder</option>
+                <option value="font-weight-normal">Normal</option>
+                <option value="font-weight-light">Light</option>
+                <option value="font-weight-lighter">Lighter</option>
+                <option value="font-italic">Italic</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="element_display" class="badge bg-light text-black">Display: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control" id="element_display" name="element_display">
+                <option value=""></option>
+                <option value="display-1">1</option>
+                <option value="display-2">2</option>
+                <option value="display-3">3</option>
+                <option value="display-4">4</option>
+                <option value="display-5">5</option>
+                <option value="display-6">6</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="element_heading" class="badge bg-light text-black">Heading: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control" id="element_heading" name="element_heading">
+                <option value=""></option>
+                <option value="h1">1</option>
+                <option value="h2">2</option>
+                <option value="h3">3</option>
+                <option value="h4">4</option>
+                <option value="h5">5</option>
+                <option value="h6">6</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="element_flex_order" class="badge bg-light text-black">Flex Order: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control" id="element_flex_order" name="element_flex_order">
+                <option value=""></option>
+                <option value="order-1">1</option>
+                <option value="order-2">2</option>
+                <option value="order-3">3</option>
+                <option value="order-4">4</option>
+                <option value="order-5">5</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="element_flex_fill" class="badge bg-light text-black">Flex fill: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control" id="element_flex_fill" name="element_flex_fill">
+                <option value=""></option>
+                <option value="flex-fill">Fill</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="element_flex_grow" class="badge bg-light text-black">Flex Grow: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control" id="element_flex_grow" name="element_flex_grow">
+                <option value=""></option>
+                <option value="flex-grow-1">Grow 1</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="element_ms_auto" class="badge bg-light text-black">MS auto: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control" id="element_ms_auto" name="element_ms_auto">
+                <option value=""></option>
+                <option value="ms-auto">Grow 1</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="element_mx_auto" class="badge bg-light text-black">Center Content</label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control" id="element_mx_auto" name="element_mx_auto">
+                <option value=""></option>
+                <option value="mx-auto">Center mx-auto</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="element_badge" class="badge bg-light text-black">Badge: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control" id="element_badge" name="element_badge">
+                <option value=""></option>
+                <option value="badge">Badge</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="element_vertical_align" class="badge bg-light text-black">Vertical Align: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control" id="element_vertical_align" name="element_vertical_align">
+                <option value=""></option>
+                <option value="align-baseline">baseline</option>
+                <option value="align-top">top</option>
+                <option value="align-bottom">bottom</option>
+                <option value="align-text-top">text top</option>
+                <option value="align-text-bottom">text bottom</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="element_box_shadow" class="badge bg-light text-black">Float Position : </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control" id="element_box_shadow" name="element_box_shadow">
+                <option value=""></option>
+                <option value="float-sm-end">sm-end</option>
+                <option value="float-md-end">md-end</option>
+                <option value="float-md-end">md-end</option>
+                <option value="float-xl-end">xl-end</option>
+                <option value="float-xxl-end">xxl-end</option>
+                <option value="float-none">none</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="element_colsm" class="badge bg-light text-black">Col SM: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control" id="element_colsm" name="element_colsm">
+                <option value=""></option>
+                <option value="col-sm-1">1</option>
+                <option value="col-sm-2">2</option>
+                <option value="col-sm-3">3</option>
+                <option value="col-sm-4">4</option>
+                <option value="col-sm-5">5</option>
+                <option value="col-sm-6">6</option>
+                <option value="col-sm-7">7</option>
+                <option value="col-sm-8">8</option>
+                <option value="col-sm-9">9</option>
+                <option value="col-sm-10">10</option>
+                <option value="col-sm-11">11</option>
+                <option value="col-sm-12">12</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+    </div>
+    <!-- element end -->
+
+
+
  </div>
 
- <div class="d-flex justify-content-center align-items-center p-2 m-2 flex-column">
-   <div class="style_viewercss  border border-secondary p-2 bg-light flex-fill" id="style_viewer">
-     1
-   </div>
- </div>
-
-</div>
   </div>
-</div>
-
-
-
-
+  </div>
 </div>
 <!-- NEW -->
 
@@ -1555,9 +2834,51 @@ const playSound = (selector)=>{
   const selectedSound = document.querySelector(`${selector}`);
   selectedSound.volume = 0.1;
   // important for on time sound like it play from begning and ignore previous
+  // Show loading animation.
   selectedSound.currentTime = 0;
-  selectedSound.play();
+  var playPromise = selectedSound.play();
 
+  if (playPromise !== undefined) {
+      playPromise.then(_ => {
+      // Automatic playback started!
+      // Show playing UI.
+      // We can now safely pause video...
+      video.pause();
+    })
+    .catch(error => {
+      // Auto-play was prevented
+      // Show paused UI.
+    });
+  }
+};
+
+
+
+
+
+const toggleEditorWait = (editorWaitParm)=>{
+  const editEnableBtn = document.querySelector('#edit_mode_container button');
+  const editEnableSpan = document.querySelector('#edit_mode_container span');
+  const editEnableBtnElm = document.querySelector('#edit_mode_elm button');
+  const editEnableSpanElm = document.querySelector('#edit_mode_elm span');
+
+  const setupElmConts = document.getElementById('setup_elm_conts');
+  const editorWaitGif = document.getElementById('editor_wait_gif');
+  if (editorWaitParm == true){
+    editEnableBtn.style.display = "none";
+    editEnableSpan.style.display = "none";
+    editEnableBtnElm.style.display = "none";
+    editEnableSpanElm.style.display = "none";
+    setupElmConts.style.display = "none";
+    editorWaitGif.style.display = "block";
+  } else {
+    editEnableBtn.style.display = "block";
+    editEnableSpan.style.display = "block";
+    editEnableBtnElm.style.display = "block";
+    editEnableSpanElm.style.display = "block";
+    setupElmConts.style.display = "block";
+    editorWaitGif.style.display = "none";
+  }
 }
 
 
@@ -1790,6 +3111,15 @@ const displayErrorAjaxMap = (error_msg)=>{
   </div>`;
 }
 
+const displayAjaxEditorMsg = (msg, type='succss')=>{
+  const mapErrorCont = document.querySelector("#editor_error_cont");
+  mapErrorCont.innerHTML = `
+  <div class="alert alert-${type} alert-dismissible fade show">
+    <p>${msg}</p>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>`;
+}
+
 
 function addSlot(slot_id, start_from, end_it, period_title, empty){
   let slot_input = '';
@@ -1838,6 +3168,7 @@ function addPeriod(period_id, period_title){
   return periodId;
 }
 async function getDayPeriodsAndSlots(event){
+  backEveryThingMap();
   // send ajax request to get periods and slots data
   const selectedDay = event.target.value;
   const currentCalId = event.target.getAttribute("data-cal-id");
@@ -2057,7 +3388,7 @@ allMonthArrows.forEach( (monthArrow)=>{
 // submit year form
 
 const yearSelector = document.getElementById("year");
-const yearForm = document.getElementById("year_form");
+const yearForm = document.getElementById("year_select_form");
 yearSelector.addEventListener("change", (event)=>{
   if (event.target.value){
     yearForm.submit();
@@ -2189,22 +3520,229 @@ $(document).ready(function(){
 
 /* UX jquery for aside nav for style controller My WP */
 
+const styleViewer = document.querySelector("#style_viewer");
+const enableEditModeMsg = document.querySelector("#enable_edit_modemsg");
+const enableEditMode = document.querySelector("#enable_edit_mode");
+const editModeContainer = document.querySelector("#edit_mode_container");
+let editModeStatus = false;
+function startEditMode(event){
+  styleViewer.innerHTML = '';
+  if (editModeStatus){
+    enableEditModeMsg.innerText = "(OFF)";
+    event.target.innerText = "Start Edit Containers";
+    removeStyleViewerEvent();
+    editModeStatus = false;
+  } else {
+    enableEditModeMsg.innerText = "(ON)";
+    event.target.innerText = "Stop Edit Containers";
+    addStyleViewerEvent();
+    editModeStatus = true;
+  }
+}
+
+// elements edit mode
+
+const enableEditModeMsgElm = document.querySelector("#enable_edit_modemsg_elm");
+const enableEditModeElm = document.querySelector("#enable_edit_mode_elm");
+const editModeElm = document.querySelector("#edit_mode_elm");
+let editModeElmStatus = false;
+function startEditModeElm(event){
+  styleViewer.innerHTML = '';
+  if (editModeElmStatus){
+    enableEditModeMsgElm.innerText = "(OFF)";
+    event.target.innerText = "Start Edit Elements";
+    removeStyleViewerEventElm();
+    editModeElmStatus = false;
+  } else {
+    enableEditModeMsgElm.innerText = "(ON)";
+    event.target.innerText = "Stop Edit Elements";
+    addStyleViewerEventElm();
+    editModeElmStatus = true;
+  }
+}
+
+enable_edit_mode_elm.addEventListener("click", startEditModeElm);
+
+
 
 /* Style Editor start */
 const allElements = document.querySelectorAll("[data-editor-type='element']");
 const allContainers = document.querySelectorAll("[data-editor-type='container']");
+const setupLoadedContainers = document.querySelector("#setup_loaded_containers");
+const setupLoadedElements = document.querySelector("#setup_element_btn");
 
-const elements = [];
-allElements.forEach( (elm,index)=>{
-  if (elm.hasAttribute('id')){
-    elements.push(elm);
+
+const calidStyle = document.querySelector("#calid_editor_style");
+
+// send container data ajax
+async function sendContainerData(){
+  const containersData = [];
+  const notSavedConts = document.querySelectorAll(".not_saved[data-editor-type='container']");
+  notSavedConts.forEach((cont)=>{
+      let dataGroup = '';
+      if (cont.hasAttribute("data-editor-group")){
+        dataGroup = cont.getAttribute("data-editor-group");
+      }
+      containerObj = {
+        element_id: cont.getAttribute("id"),
+        html_class: cont.getAttribute("data-editor-class"),
+        data_group: dataGroup,
+        c_cal_id: calidStyle.value
+      };
+      containersData.push(containerObj);
+    });
+  toggleEditorWait(true);
+  const serverResponse = await postData('',{setup_containers: containersData});
+  toggleEditorWait(false);
+  if (serverResponse.hasOwnProperty('code') && serverResponse.hasOwnProperty('total') && serverResponse.code == 200){
+    const messageR = serverResponse.message  + ' Total: ' + serverResponse.total + ' Will restart after 5 seconds to load the new style';
+    displayAjaxEditorMsg(messageR, 'success');
+    setTimeout(()=>{
+      location.reload();
+    }, 7000);
+    return true;
+  } else {
+    displayAjaxEditorMsg(serverResponse.message, 'danger');
+    return false;
   }
-});
+}
 
-console.log(elements.length);
-console.log(allElements.length);
+setupLoadedContainers.addEventListener("click", sendContainerData);
+// elements data ajax
+// send container data ajax
+let element_counter = 7;
+
+async function sendElementData(){
+  const elementObjects = [];
+  const notSavedConts = document.querySelectorAll(".not_saved_element[data-editor-type='element']");
+  notSavedConts.forEach((cont)=>{
+      let dataGroup = '';
+      if (cont.hasAttribute("data-editor-group")){
+        dataGroup = cont.getAttribute("data-editor-group");
+      }
+      elemObject = {
+        element_id: cont.getAttribute("id"),
+        html_class: cont.getAttribute("data-editor-class"),
+        data_group: dataGroup,
+        c_cal_id: calidStyle.value
+      };
+      elementObjects.push(elemObject);
+    });
+  toggleEditorWait(true);
+  const serverResponse = await postData('',{setup_elements: elementObjects});
+  toggleEditorWait(false);
+  if (!serverResponse){
+    displayAjaxEditorMsg('Unkown Error', 'danger');
+    return false;
+  }
+  if (serverResponse.hasOwnProperty('code') && serverResponse.hasOwnProperty('total') && serverResponse.code == 200){
+    element_counter = 7;
+    let servMessage = serverResponse.message  + ' Total: ' + serverResponse.total  + ' Will restart after 5 seconds to load the new style';
+    displayAjaxEditorMsg(servMessage, 'success');
+    setTimeout(()=>{
+      location.reload();
+    }, 7000);
+    return true;
+  } else {
+    displayAjaxEditorMsg(serverResponse.message, 'danger');
+    return false;
+  }
+}
+
+setupLoadedElements.addEventListener("click", sendElementData);
+
+enableEditMode.addEventListener("click", startEditMode);
+
+/* view element in viewer */
+let elementInView = null;
+function loadContainerInView(event){
+  const elementInView = event.target;
+  styleViewer.innerHTML = elementInView.outerHTML;
+}
+const allLoadedContainers = document.querySelectorAll("div[data-editor-type='container']:not(.not_saved)");
+
+// this for good preformance as it only make this heavy event when edit on and remove it total not only return it false when edit of
+function addStyleViewerEvent(){
+  allLoadedContainers.forEach( (loadedCont)=>{
+    loadedCont.addEventListener("mouseenter", loadContainerInView);
+  });
+}
+
+function removeStyleViewerEvent(){
+  allLoadedContainers.forEach( (loadedCont)=>{
+    loadedCont.removeEventListener("mouseenter", loadContainerInView);
+  });
+}
+
+
+const allLoadedElements = document.querySelectorAll("[data-editor-type='element']:not(.not_saved_element)");
+
+function addStyleViewerEventElm(){
+  allLoadedElements.forEach( (loadedElm)=>{
+    loadedElm.addEventListener("mouseenter", loadContainerInView);
+  });
+}
+
+function removeStyleViewerEventElm(){
+  allLoadedElements.forEach( (loadedElm)=>{
+    loadedElm.removeEventListener("mouseenter", loadContainerInView);
+  });
+}
+
+
+
+
+
+/* view element in viewer end */
 
 /* style editor end */
+// get message from php bs function to know the undefined elements
+function loadUndefinedContainerScore(setupBtnselector, targetTxtid, targetSelector, type){
+  const setupBtn = document.querySelector(setupBtnselector);
+  const undefinedContTxt = document.querySelector(targetTxtid);
+  const totalUndefined = document.querySelectorAll(targetSelector).length;
+  let appStatusColor = 'bg-primary';
+  if (totalUndefined == 0){ appStatusColor = 'bg-success'; }
+  if (totalUndefined > 0 && totalUndefined < 100 ){ appStatusColor = 'bg-primary'; }
+  if (totalUndefined > 100 && totalUndefined < 700 ){ appStatusColor = 'bg-warning'; }
+  if (totalUndefined > 700 ){ appStatusColor = 'bg-danger'; }
+  undefinedContTxt.innerText = totalUndefined;
+  if (!undefinedContTxt.classList.contains('bg-primary')){
+    undefinedContTxt.classList.remove('bg-primary');
+  }
+  if (!undefinedContTxt.classList.contains('bg-success')){
+    undefinedContTxt.classList.remove('bg-success');
+  }
+  if (!undefinedContTxt.classList.contains('bg-primary')){
+    undefinedContTxt.classList.remove('bg-primary');
+  }
+  if (!undefinedContTxt.classList.contains('bg-warning')){
+    undefinedContTxt.classList.remove('bg-warning');
+  }
+  if (!undefinedContTxt.classList.contains('bg-danger')){
+    undefinedContTxt.classList.remove('bg-danger');
+  }
+  undefinedContTxt.classList.add(appStatusColor);
+
+  if (totalUndefined > 0){
+    setupBtn.style.display = "block";
+  }
+
+  if (totalUndefined == 1){
+    const messageTxt = type == 'container' ? 'Setup This Container' : 'Setup This Element';
+    setupBtn.innerText = messageTxt;
+  } else {
+    const messageTxt = type == 'container' ? 'Setup These Containers' : 'Setup These Elements';
+    setupBtn.innerText = messageTxt;
+  }
+
+  if (totalUndefined == 0){
+    editModeContainer.style.display = "block";
+  }
+}
+
+loadUndefinedContainerScore("#setup_loaded_containers", "#total_undefined_containers", ".not_saved[data-editor-type='container']");
+loadUndefinedContainerScore("#setup_element_btn", "#total_undefined_elements_txt", ".not_saved_element[data-editor-type='element']");
 
 });
 

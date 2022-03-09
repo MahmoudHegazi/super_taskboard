@@ -16,10 +16,11 @@ class ElementService {
     $this->element_mapper = new ElementMapper($pdo);
   }
   // Add New Day
-  public function add($element_id, $class_name, $cal_id, $default_bootstrap='', $default_style = '', $group=NULL, $bootstrap_classes='', $innerHTML=NULL, $innerText=NULL, $data=NULL){
+  public function add($element_id, $class_name, $cal_id, $type, $default_bootstrap='', $default_style = '', $group=NULL, $bootstrap_classes='', $innerHTML=NULL, $innerText=NULL, $data=NULL){
     $element_obj = new Element();
-    $element_obj->init($element_id, $class_name, $cal_id, $default_bootstrap, $default_style, $group, $bootstrap_classes, $innerHTML, $innerText, $data);
-    return $this->element_mapper->insert($element_obj);
+    $element_obj->init($element_id, $class_name, $cal_id, $type, $default_bootstrap, $default_style, $group, $bootstrap_classes, $innerHTML, $innerText, $data);
+    $lastid = $this->element_mapper->insert($element_obj);
+    return $lastid;
   }
 
   // Remove  day
@@ -37,6 +38,7 @@ class ElementService {
       $element_row['element_id'],
       $element_row['class_name'],
       $element_row['cal_id'],
+      $element_row['type'],
       $element_row['default_bootstrap'],
       $element_row['default_style'],
       $element_row['data_group'],
@@ -65,6 +67,7 @@ class ElementService {
           $element_rows[$i]['element_id'],
           $element_rows[$i]['class_name'],
           $element_rows[$i]['cal_id'],
+          $element_rows[$i]['type'],
           $element_rows[$i]['default_bootstrap'],
           $element_rows[$i]['default_style'],
           $element_rows[$i]['data_group'],
@@ -97,7 +100,7 @@ class ElementService {
 
     $element = new Element();
     for ($i=0; $i<count($element_data_list); $i++){
-      if (is_array($element_data_list[$i]) && count($element_data_list[$i]) == 10){
+      if (is_array($element_data_list[$i]) && count($element_data_list[$i]) == 11){
          $element->init(
            $element_data_list[$i][0],
            $element_data_list[$i][1],
@@ -108,7 +111,8 @@ class ElementService {
            $element_data_list[$i][6],
            $element_data_list[$i][7],
            $element_data_list[$i][8],
-           $element_data_list[$i][9]
+           $element_data_list[$i][9],
+           $element_data_list[$i][10]
          );
          $elementid = $this->element_mapper->insert($element);
          array_push($element_ids, $elementid);
@@ -147,6 +151,7 @@ class ElementService {
         $item['element_id'],
         $item['class_name'],
         $item['cal_id'],
+        $item['type'],
         $item['default_bootstrap'],
         $item['default_style'],
         $item['data_group'],
@@ -169,6 +174,7 @@ class ElementService {
       $element_row['element_id'],
       $element_row['class_name'],
       $element_row['cal_id'],
+      $element_row['type'],
       $element_row['default_bootstrap'],
       $element_row['default_style'],
       $element_row['data_group'],
@@ -181,14 +187,15 @@ class ElementService {
     return $element;
   }
 
-  public function getElement($element_id){
-    $element_row = $this->element_mapper->get_element($element_id);
+  public function getElement($element_id, $type='container'){
+    $element_row = $this->element_mapper->get_element($element_id, $type);
     if (!isset($element_row['id']) || empty($element_row['id'])){return array();}
     $element = new Element();
     $element->init(
       $element_row['element_id'],
       $element_row['class_name'],
       $element_row['cal_id'],
+      $element_row['type'],
       $element_row['default_bootstrap'],
       $element_row['default_style'],
       $element_row['data_group'],
@@ -212,6 +219,7 @@ class ElementService {
           $element_rows[$i]['element_id'],
           $element_rows[$i]['class_name'],
           $element_rows[$i]['cal_id'],
+          $element_rows[$i]['type'],
           $element_rows[$i]['default_bootstrap'],
           $element_rows[$i]['default_style'],
           $element_rows[$i]['data_group'],
@@ -235,8 +243,8 @@ class ElementService {
 
 
 
-  global $pdo;
-  $element_service = new ElementService($pdo);
+  //global $pdo;
+  //$element_service = new ElementService($pdo);
   //$elmid = $element_service->add('new_elm12','new_test2', 290, '', '', NULL, '', NULL, NULL, NULL);
   //$removed = $element_service->remove($elmid);
   /*
