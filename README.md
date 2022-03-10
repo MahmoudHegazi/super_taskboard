@@ -3,6 +3,19 @@
 
 This is a CMS for creating fully customized task boards and calendars to suit your needs, it also gives you full control over new calendars created, edit styles of any element, add custom CSS styles, control the application based on the calendar used, edit title, favicon, background images, (This tool to create and manage different task board with secure login and registration with Remember me and advanced secure against most known hacking types such as XSS, SQL injection, password guessing, remote attack, notification in case the user is hacked and get information about the hacker's computer, on Example: IP address, country, type of operating system), with best UX and good performance and using New custom technique created for this app PHP custom  MVC if you study and practice how to use the app you will create stuning calendars. as this pure PHP it work faster and make it easy to any php developer to edit it and update it
 
+### New BS5 Full Calendar Layeout style Editor
+
+(Full Control with all BS5 main options to edit any element or container in the page easy to use and using AJAX for fast edit and always get good result also
+for important point which is none developer users who not know bootstrap they can now easly edit options and view on time with ajax the result also using strong sheme
+of database with ENUM to make sure every part under control plus using advanced technique to zip very large table with all it's operations read, add, edit, delete into one
+single string column on the element which reduce db calls and alot of functions and keep everything in core dynamic and simple (Note this styles is unqiue for each calendar you can have unlimted calendar with total diffrent sizes and total diffrent looking that fit any web app in the world + the app has very big setup page that let you control other thing like web app title, icon, images even signup and login images beside some styles for group componets for example change style of all slots or change style of all periods
+but this using styles with another strong service to handle the styles dynamic this app can added into any app also it has strong login system and secured you can replace 
+your own with it, and as it MVC app can easly added into your web app and work smooth
+
+
+![image](https://user-images.githubusercontent.com/55125302/157669246-a763defc-9937-4746-8124-5d2c3736e1f8.png)
+
+
 ![image](https://user-images.githubusercontent.com/55125302/156524210-1a57a3df-e514-4a43-ad81-57c3dbadaa59.png)
 ![image](https://user-images.githubusercontent.com/55125302/156803898-6f7d2fd1-c306-450a-aee2-4fce9d83de89.png)
 ![image](https://user-images.githubusercontent.com/55125302/156524645-9444798e-319f-43c7-a024-97c7584cf488.png)
