@@ -25,10 +25,6 @@ and second is element has everything related to container without the layout opt
 
 
 
-
-![image](https://user-images.githubusercontent.com/55125302/157669246-a763defc-9937-4746-8124-5d2c3736e1f8.png)
-
-
 ![image](https://user-images.githubusercontent.com/55125302/156524210-1a57a3df-e514-4a43-ad81-57c3dbadaa59.png)
 ![image](https://user-images.githubusercontent.com/55125302/156803898-6f7d2fd1-c306-450a-aee2-4fce9d83de89.png)
 ![image](https://user-images.githubusercontent.com/55125302/156524645-9444798e-319f-43c7-a024-97c7584cf488.png)
