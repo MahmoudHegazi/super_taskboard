@@ -20,8 +20,9 @@ and second is element has everything related to container without the layout opt
 1. ![image](https://user-images.githubusercontent.com/55125302/157671182-98820d11-1528-4f8d-aa00-ee9b012f9e91.png)
 2. ![image](https://user-images.githubusercontent.com/55125302/157671239-50e5c881-e6e6-47e1-a2e7-28e0cad3a036.png)
 3. after click you enable the listener now when you move your mouse over any container it will loaded automatic into view and u will see it image if you need select this container or element and start edit it just right click which will pause the mouse over and freeze everything until you finish all edits then you click resume to back on last elemnt and for better UX clear the selected elements data and you will have the mouse over event that let you add elements 
-![image](https://user-images.githubusercontent.com/55125302/157671866-533b11bb-37ab-4346-b3e9-a7181cfbfff8.png)
-![image](https://user-images.githubusercontent.com/55125302/157671986-cd7656ba-ccf7-4b1c-b3bc-7f0b42505541.png)
+4. ![image](https://user-images.githubusercontent.com/55125302/157671866-533b11bb-37ab-4346-b3e9-a7181cfbfff8.png)
+5. ![image](https://user-images.githubusercontent.com/55125302/157672151-af0fc7ca-1e62-4a80-937c-01f6ab8228f6.png)
+
 
 
 
