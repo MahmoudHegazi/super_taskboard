@@ -1,5 +1,6 @@
 # What is that
 (The meaning of Dynamic)
+you need to learn how to use this app to get a good final result but you just can use default and check out the options and unlimted features.
 
 This is a CMS for creating fully customized task boards and calendars to suit your needs, it also gives you full control over new calendars created, edit styles of any element, add custom CSS styles, control the application based on the calendar used, edit title, favicon, background images, (This tool to create and manage different task board with secure login and registration with Remember me and advanced secure against most known hacking types such as XSS, SQL injection, password guessing, remote attack, notification in case the user is hacked and get information about the hacker's computer, on Example: IP address, country, type of operating system), with best UX and good performance and using New custom technique created for this app PHP custom  MVC if you study and practice how to use the app you will create stuning calendars. as this pure PHP it work faster and make it easy to any php developer to edit it and update it
 
@@ -11,6 +12,17 @@ of database with ENUM to make sure every part under control plus using advanced 
 single string column on the element which reduce db calls and alot of functions and keep everything in core dynamic and simple (Note this styles is unqiue for each calendar you can have unlimted calendar with total diffrent sizes and total diffrent looking that fit any web app in the world + the app has very big setup page that let you control other thing like web app title, icon, images even signup and login images beside some styles for group componets for example change style of all slots or change style of all periods
 but this using styles with another strong service to handle the styles dynamic this app can added into any app also it has strong login system and secured you can replace 
 your own with it, and as it MVC app can easly added into your web app and work smooth
+
+### how to use edits
+first calpress has two types of elements [container and element] container is flex container and has all container related classes for reduce the bad looking but keep dynamic
+and second is element has everything related to container without the layout options like flex, justify-content-center , etc also it not flex always it child of flex or flex and grid element which let u not out of calendar desgin but have your own style professionaly
+
+1. ![image](https://user-images.githubusercontent.com/55125302/157671182-98820d11-1528-4f8d-aa00-ee9b012f9e91.png)
+2. ![image](https://user-images.githubusercontent.com/55125302/157671239-50e5c881-e6e6-47e1-a2e7-28e0cad3a036.png)
+3. after click you enable the listener now when you move your mouse over any container it will loaded automatic into view and u will see it image if you need select this container or element and start edit it just right click which will pause the mouse over and freeze everything until you finish all edits then you click resume to back on last elemnt and for better UX clear the selected elements data and you will have the mouse over event that let you add elements 
+![image](https://user-images.githubusercontent.com/55125302/157671866-533b11bb-37ab-4346-b3e9-a7181cfbfff8.png)
+![image](https://user-images.githubusercontent.com/55125302/157671986-cd7656ba-ccf7-4b1c-b3bc-7f0b42505541.png)
+
 
 
 ![image](https://user-images.githubusercontent.com/55125302/157669246-a763defc-9937-4746-8124-5d2c3736e1f8.png)
