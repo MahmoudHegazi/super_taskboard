@@ -2,6 +2,9 @@
 (The meaning of Dynamic Bootstrap5/PHP/ES6/CSS3/MVC/AJAX/HTML5/MYSQL/PDO/OOP)
 you need to learn how to use this app to get a good final result but you just can use default and check out the options and unlimted features.
 
+This tool to create a calendar or to-do board for any booking or schedule with full control on everything it like wordpress for calendar but with options only for styles can 
+used by anyone and with BS5, so if you know BS5 you will make good result
+
 This is a CMS for creating fully customized task boards and calendars to suit your needs, it also gives you full control over new calendars created, edit styles of any element, add custom CSS styles, control the application based on the calendar used, edit title, favicon, background images, (This tool to create and manage different task board with secure login and registration with Remember me and advanced secure against most known hacking types such as XSS, SQL injection, password guessing, remote attack, notification in case the user is hacked and get information about the hacker's computer, on Example: IP address, country, type of operating system), with best UX and good performance and using New custom technique created for this app PHP custom  MVC if you study and practice how to use the app you will create stuning calendars. as this pure PHP it work faster and make it easy to any php developer to edit it and update it
 
 ### New BS5 Full Calendar Layeout style Editor
