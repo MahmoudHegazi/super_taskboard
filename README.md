@@ -58,6 +58,7 @@ every part in calendar is a single object and has it's service, class/modal and 
 1. adding new tool to add another type of reservation system which edit the slots dates one by one (1,2,3),(4,5,6)(7,8,9) and not (1,2,3)(1,2,3)(1,2,3)
 2. this will create diffrent system for example normal calendars or reservation can handled in one slot perdate 
 3. second type is like cenima or cafe that has main datetime event/period and contains many zero or many slots per events but all in same time so it always (1,2,3)
+![image](https://user-images.githubusercontent.com/55125302/158426270-d8f17835-8cd3-4426-98a8-b007d363dc52.png)
 
 ![image](https://user-images.githubusercontent.com/55125302/158420289-3e5f17d2-d5ad-4e6b-aca6-ab81638db563.png)
 
