@@ -1,20 +1,20 @@
 <?php
 ob_start();
-require_once (dirname(__FILE__, 2) . '\config.php');
-require_once (dirname(__FILE__, 2) . '\functions.php');
-require_once (dirname(__FILE__, 2) . '\services\CalendarService.php');
-require_once (dirname(__FILE__, 2) . '\services\YearService.php');
-require_once (dirname(__FILE__, 2) . '\services\MonthService.php');
-require_once (dirname(__FILE__, 2) . '\services\DayService.php');
-require_once (dirname(__FILE__, 2) . '\services\PeriodService.php');
-require_once (dirname(__FILE__, 2) . '\services\SlotService.php');
-require_once (dirname(__FILE__, 2) . '\services\ReservationService.php');
-require_once (dirname(__FILE__, 2) . '\services\UserService.php');
-require_once (dirname(__FILE__, 2) . '\services\StyleService.php');
-require_once (dirname(__FILE__, 2) . '\services\ElementService.php');
-require_once (dirname(__FILE__, 2) . '\models\Calendar.php');
-require_once (dirname(__FILE__, 2) . '\services\BootstrapContainerService.php');
-require_once (dirname(__FILE__, 2) . '\services\BootstrapElementService.php');
+require_once (dirname(__FILE__, 2) . '/config.php');
+require_once (dirname(__FILE__, 2) . '/functions.php');
+require_once (dirname(__FILE__, 2) . '/services/CalendarService.php');
+require_once (dirname(__FILE__, 2) . '/services/YearService.php');
+require_once (dirname(__FILE__, 2) . '/services/MonthService.php');
+require_once (dirname(__FILE__, 2) . '/services/DayService.php');
+require_once (dirname(__FILE__, 2) . '/services/PeriodService.php');
+require_once (dirname(__FILE__, 2) . '/services/SlotService.php');
+require_once (dirname(__FILE__, 2) . '/services/ReservationService.php');
+require_once (dirname(__FILE__, 2) . '/services/UserService.php');
+require_once (dirname(__FILE__, 2) . '/services/StyleService.php');
+require_once (dirname(__FILE__, 2) . '/services/ElementService.php');
+require_once (dirname(__FILE__, 2) . '/models/Calendar.php');
+require_once (dirname(__FILE__, 2) . '/services/BootstrapContainerService.php');
+require_once (dirname(__FILE__, 2) . '/services/BootstrapElementService.php');
 
 /*
 setlocale(LC_TIME, 'sr_BA');
@@ -85,6 +85,8 @@ class IndexController {
   // build the pdo for global use in object only
   public function __construct(PDO $pdo, $selected_month=null, $type='GET', $current_year=NULL, $logged_userid=NULL)
   {
+
+
     if (is_null($logged_userid)){
       throw new Exception( "You Have No Premssion To access This Page" );
     }
@@ -157,17 +159,17 @@ class IndexController {
     $this->set_current_styles($current_styles);
 
 
-    $current_days = $this->return_current_days($current_month->get_id());
+    $current_days = $this->return_current_days($current_month->get_id(), $used_cal->get_id());
     if (!$current_days && empty($current_days)){
       throw new Exception( "We Can not Load the current dats of calendar Error Error:03" );
     }
+
     $this->set_current_days($current_days);
     //$this->set_current_weeks(array_distribution($this->monday_start_mange($current_days), 7, 5, $default=false));
 
 
-    $projectData = $this->return_project_data($current_days);
+    $projectData = $this->return_project_data($current_days, $used_cal->get_id());
     $this->set_current_weeks(array_distribution($projectData, 7, 5, $default=false));
-
     if ($type == 'GET'){
       $this->set_request_secert($this->getnerate_request_secert());
       $_SESSION['supcal_token'] = $this->get_request_secert();
@@ -461,9 +463,10 @@ class IndexController {
     }
   }
 
-  public function return_current_days($month_id){
+  public function return_current_days($month_id, $cal_id){
+
     if (!is_null($month_id) && isset($month_id) && isset($this->day_service)){
-      $current_days = $this->day_service->get_all_days_where('month_id', $month_id);
+      $current_days = $this->day_service->get_all_days_where($cal_id, 'month_id', $month_id);
       $current_days = !empty($current_days) ? $current_days : array();
       return $current_days;
     } else {
@@ -527,10 +530,15 @@ class IndexController {
     }
   }
 
+  public function get_day_cal_id($dayid){
+    $getcal = $this->day_service->get_day_by_id_force($dayid);
+    return $getcal;
+  }
+
   // this function very important as it will make weeks day start right with monday start required
   // and will give final easy and direct weeks and can later add previous days which not good but can added
   // update to get previous days
-  public function monday_start_mange($current_days){
+  public function monday_start_mange($current_days, $cal_id){
     if (empty($current_days) || !isset($this->day_service)){return array();}
     $result = $current_days;
     // if changed month name take care of this do not change inital names
@@ -560,9 +568,9 @@ echo date("Y");
 */
 
 
-  public function return_day_periods($day_id){
+  public function return_day_periods($day_id, $calid){
     if (!isset($this->period_service) || !is_numeric($day_id)){return array();}
-    return $this->period_service->get_day_periods($day_id);
+    return $this->period_service->get_day_periods($day_id, $calid);
   }
 
   public function return_period_slots($period_id){
@@ -571,9 +579,9 @@ echo date("Y");
     return $data;
   }
 
-  public function return_project_data($current_days){
+  public function return_project_data($current_days, $cal_id){
     $projectData = array();
-    $view_days = $this->monday_start_mange($current_days);
+    $view_days = $this->monday_start_mange($current_days, $cal_id);
     for ($d=0; $d<count($view_days); $d++){
       // day data and inital day object same as before nothing changed
       $day_obj = $view_days[$d];
@@ -581,7 +589,7 @@ echo date("Y");
         // this happend 1 per live when u select first year which has no monday so it will add empty days to complete the week 7 days begin and end
         continue;
       }
-      $day_periods = $this->return_day_periods($day_obj->get_id());
+      $day_periods = $this->return_day_periods($day_obj->get_id(), $cal_id);
       $day_array = array ('day'=>$day_obj, 'day_data'=>array());
       for ($p=0; $p<count($day_periods); $p++){
         // get periods of day if any cascadse and get it's data and it's slots to
@@ -635,8 +643,9 @@ echo date("Y");
       return array('success'=>false, 'message'=>'Slot Selected Not Found Reservation Can not Added.');
     }
 
-    $get_reservation = $this->reservation_service->get_reservation_by_slot($slot_id);
+
     if (!empty($get_reservation)){
+      /// herea
       if ($get_slot->get_empty() == 1){
         $update_slot = $this->slot_service->update_one_column('empty', 0, $get_slot->get_id());
       };
@@ -671,18 +680,28 @@ echo date("Y");
     }
 
     public function handle_add_reservation($post_obj, $session_obj, $index_controller_obj){
-      $check_request_data = isset($index_controller) &&
+      $check_request_data = isset($index_controller_obj) &&
       isset($post_obj['reservation_slot_id']) && !empty($post_obj['reservation_slot_id']) &&
       isset($post_obj['secuirty_token']) && !empty($post_obj['secuirty_token']) &&
-      isset($post_obj['reservation_name']) && isset($post_obj['reservation_comment']) &&
-      isset($post_obj['loggeduid']) && isset($post_obj['loggeduid']);
+      isset($post_obj['reservation_name']) && isset($post_obj['reservation_comment']);
 
-      if ($check_request_data){
+
+      $check_admin_map = isset($post_obj['admin_select_userid_add']) && !empty($post_obj['admin_select_userid_add']) && is_numeric($post_obj['admin_select_userid_add']);
+      $check_session_uid = isset($session_obj['logged_id']) && !empty($session_obj['logged_id']);
+      $reserv_uid = $check_admin_map ? test_input($post_obj['admin_select_userid_add']) : $check_session_uid ? test_input($session_obj['logged_id']) : 0;
+
+
+      if (!$check_request_data){
         return array('success'=>false, 'Can not Add reservation missing required data.');
+      }
+
+      if (!$reserv_uid && $check_session_uid){
+        return array('success'=>false, 'Invalid user id please make sure you logged still logged in refresh page');
       }
       /* secuirty */
       $request_token = test_input($post_obj['secuirty_token']);
       $session_token = $session_obj['supcal_token'];
+
 
       if (!isset($session_obj['supcal_token']) || empty($session_obj['supcal_token'])){
         return array('success'=>false, 'Access Deined.');
@@ -695,28 +714,27 @@ echo date("Y");
       $admin_select_user = isset($post_obj['admin_select_userid_add']) && !empty($post_obj['admin_select_userid_add']);
       //print_r($post_obj['admin_select_userid_add']);
       //die();
-      $logged_id = $session_obj['logged_id'];
-      $logged_userid = test_input($post_obj['loggeduid']);
-      $is_admin_user = $index_controller_obj->return_current_logged_role($logged_id) === 'admin';
-      if ($is_admin_user){
-        $logged_userid = test_input($post_obj['admin_select_userid_add']);
-      } else if ($is_admin_user == False && (!is_numeric($post_obj['loggeduid']) || $post_obj['loggeduid'] < 1)) {
-        return array('success'=>false, 'Invalid user id please make sure you logged still logged in refresh page');
+      // session user id incase no admin
+      $session_logged_id = isset($session_obj['logged_id']) && !empty($session_obj['logged_id']) ? test_input($session_obj['logged_id']) : 0;
+      $admin_select_uid = isset($post_obj['admin_select_userid_add']) && !empty($post_obj['admin_select_userid_add']) ? test_input($post_obj['admin_select_userid_add']) : 0;
+
+      $logged_userid = $session_logged_id;
+      $is_admin_user = $index_controller_obj->return_current_logged_role($session_logged_id) === 'admin';
+      if ($is_admin_user && $admin_select_uid){
+        $logged_userid = $admin_select_uid;
+      } else if (!$is_admin_user && $session_logged_id) {
+        $logged_userid = $session_logged_id;
       } else {
-        $logged_userid = $logged_userid === $logged_id ? $logged_userid : $logged_id;
+        return array('success'=>false, 'Invalid user id and premsions');
       }
 
       /* secuirty end */
-
       $reservation_slot_id = test_input($post_obj['reservation_slot_id']);
       $reservation_name = !empty($post_obj['reservation_name']) ? test_input($post_obj['reservation_name']) : '';
       $reservation_notes = !empty($post_obj['reservation_comment']) ? test_input($post_obj['reservation_comment']) : '';
-
       /* this for admin ads if rule is admin let him select user without effect anything */
-
       $new_reservation = $index_controller_obj->add_reservation($reservation_slot_id, $logged_userid, $reservation_name, $reservation_notes);
       return $new_reservation;
-
   }
 
   ###################### Post Handler ############################
@@ -750,6 +768,7 @@ echo date("Y");
       header("Location: " . $redirect_url);
       die();
     }
+
     // edit reservation
     $is_edit_reservation = isset($post_obj['edit_reservation_id']) && !empty($post_obj['edit_reservation_id']) &&
     isset($post_obj['edit_reservation_name']) && !empty($post_obj['edit_reservation_name']) &&
@@ -776,23 +795,6 @@ echo date("Y");
       header("Location: " . $redirect_url);
       die();
     }
-
-    // pause, cancel, open the reservation change status
-    $is_status_change_reservation = isset($index_controller) &&
-    isset($post_obj['cp_reservation_id']) && !empty($post_obj['cp_reservation_id']) &&
-    isset($post_obj['cp_reservation_slotid']) && !empty($post_obj['cp_reservation_slotid']) &&
-    isset($post_obj['cp_reservation_status']) && !empty($post_obj['cp_reservation_status']);
-
-    if ($is_status_change_reservation){
-
-      $status_change_reservation_data = $this->user_pause_cancel_reservation($index_controller, $post_obj, $session_obj);
-      $_SESSION['message'] = $status_change_reservation_data['message'];
-      $_SESSION['success'] = $status_change_reservation_data['success'];
-      header("Location: " . $redirect_url);
-      die();
-    }
-
-
 
     // this bridge for direct post AJAX requests to AJAX handler
     try{
@@ -836,7 +838,14 @@ echo date("Y");
         print_r(json_encode($data));
         die();
       }
-      $dayperiods = $this->return_day_periods($dayid);
+
+      if (!isset($selected_calid) || empty($selected_calid) || !is_numeric($selected_calid)){
+        $data = array('code'=>404, 'data'=>array(), 'message'=>'No calendar Id provided in request make sure you not deleted all calendars from setup and not restart the page yet');
+        print_r(json_encode($data));
+        die();
+      }
+
+      $dayperiods = $this->return_day_periods($dayid, $selected_calid);
       for ($i=0; $i<count($dayperiods); $i++){
         if (isset($dayperiods[$i]) && !empty($dayperiods[$i])){
           // for secuirty objects data is private and fast for ajax send needed only
@@ -897,6 +906,14 @@ echo date("Y");
           $elmid = test_input($dataRow['element_id']);
           $elmclass = test_input($dataRow['html_class']);
           $c_cal_id = test_input($dataRow['c_cal_id']);
+
+          if (!isset($c_cal_id) || empty($c_cal_id)){
+            print_r(
+              json_encode(array('code'=> 404, 'message'=> 'Sorry no Calendar exist you may deleted it from setup page'))
+            );
+            die();
+          }
+
           $data_group = isset($dataRow['data_group']) && !empty($dataRow['data_group']) ? test_input($dataRow['data_group']) : NULL;
           $is_elmexist = $index_controller->element_service->getElement($elmid, $type='container');
           if (empty($is_elmexist) || $is_elmexist == false){
@@ -953,11 +970,18 @@ echo date("Y");
             $e_elmid = test_input($elmRow['element_id']);
             $e_elmclass = test_input($elmRow['html_class']);
             $e_c_cal_id = test_input($elmRow['c_cal_id']);
+            if (!isset($e_c_cal_id) || empty($e_c_cal_id)){
+              print_r(
+                json_encode(array('code'=> 404, 'message'=> 'Sorry no Calendar exist you may deleted it from setup page'))
+              );
+              die();
+            }
             $e_data_group = isset($elmRow['data_group']) && !empty($elmRow['data_group']) ? test_input($elmRow['data_group']) : NULL;
             $e_is_elmexist = $index_controller->element_service->getElement($e_elmid, $type='element');
             if (empty($e_is_elmexist) || $e_is_elmexist == false){
               $e_newelm_id = $index_controller->element_service->add($e_elmid, $e_elmclass, $e_c_cal_id, 'element', $default_bootstrap='', $default_style = '', $group=$e_data_group, $bootstrap_classes='', $innerHTML=NULL, $innerText=NULL, $data=NULL);
               try {
+                // note you can add default styles for any element in the app from here if
                 $new_bs_elmid = $index_controller->bootstrap_element_service->add(
                   $e_newelm_id, $e_c_cal_id, $bg='', $text_color='', $p='', $m='', $border='', $border_size='', $border_color='', $border_round='', $width='', $height='',
                   $m_t='', $m_b='', $m_r='', $m_l='', $p_t='', $p_b='', $p_r='', $p_l='', $visibility='', $box_shadow='', $flex_fill='', $flex_grow='', $ms_auto='',
@@ -981,6 +1005,173 @@ echo date("Y");
         );
         die();
     }
+
+    // load bs continaers styles
+    $is_add_bs_container = isset($index_controller) && isset($data['bs_container_load_elmid']);
+    if ($is_add_bs_container){
+      $selectors_elmid = test_input($data['bs_container_load_elmid']);
+      $bs_data = $index_controller->loadContainerBSData($selectors_elmid);
+      if (isset($bs_data) && !empty($bs_data)){
+        print_r(json_encode(array('code'=>200, 'data'=>$bs_data)));
+        die();
+      } else {
+        print_r(json_encode(array('code'=>404, 'data'=>$bs_data, 'message'=>$selectors_elmid)));
+        die();
+      }
+    }
+
+    // load bs element styles classes
+    $is_add_bs_element = isset($index_controller) && isset($data['bs_element_load_elmid']);
+    if ($is_add_bs_element){
+      $selectors_elmid = test_input($data['bs_element_load_elmid']);
+      $bs_data = $index_controller->loadElementBSData($selectors_elmid);
+      if (isset($bs_data) && !empty($bs_data)){
+        print_r(json_encode(array('code'=>200, 'data'=>$bs_data)));
+        die();
+      } else {
+        print_r(json_encode(array('code'=>404, 'data'=>$bs_data, 'message'=>$selectors_elmid)));
+        die();
+      }
+    }
+
+    // update bs styles
+    $is_updatebs_style = isset($index_controller) && isset($data['updateBsId']) && isset($data['updateBsname']) && isset($data['updateBSvalue']);
+    if ($is_updatebs_style){
+      if (empty($data['updateBsId']) || empty($data['updateBsname'])){
+        print_r(json_encode(array('code'=>400, 'data'=>array(), 'message'=>'can not update style missing Name Or Id of current element')));
+        die();
+      }
+      $bsid = test_input($data['updateBsId']);
+      $bs_column = test_input($data['updateBsname']);
+      $bs_value = empty($data['updateBSvalue']) ? '' : test_input($data['updateBSvalue']);
+      $elm_id = $index_controller->bootstrap_container_service->get_bs_element_id($bsid);
+      if (!$elm_id || empty($elm_id)){
+        print_r(json_encode(array('code'=>404, 'data'=>array() , 'message'=>'element not found please install it')));
+        die();
+      }
+
+      // this method help to validate the column name as this not normal handle column by column it dynamic  and give u best dynamic to add new easy column
+      $valid_column_name = $index_controller->bootstrap_container_service->is_valid_key($bs_column);
+      if ($valid_column_name == false){
+        print_r(json_encode(array('code'=>400, 'data'=>array() , 'message'=>'The select column name provided unkown by the system please add it to database')));
+        die();
+      }
+      // this method to complete the dynamic and handle errors u maybe decide add new bootstrap options and not know rules so it handle everything also this help the core function which update unkown columns with unkown unum values without do it randomly it cover evey coomon issues and keep dynamic
+      $valid_enum_value = $index_controller->bootstrap_container_service->is_valid_column_enum_value($bs_column, $bs_value);
+      if (!$valid_enum_value){
+        print_r(json_encode(array('code'=>400, 'data'=>array() , 'message'=>'The select option value provided unkown by the system please add it to the column enum values but you must know BS5 if unkown bs nothing happends.')));
+        die();
+      }
+
+      $old = $index_controller->bootstrap_container_service->get_column_value($bs_column, $bsid);
+      $update_col = $index_controller->bootstrap_container_service->update_one_column($bs_column, $bs_value, $bsid);
+      if ($update_col){
+        // this is how the idea built on big table with simple async with string column
+        $asyncd_elm = $index_controller->async_element_bs($index_controller, $elm_id, 'container');
+        if (empty($asyncd_elm)){
+          print_r(json_encode(array('code'=>400, 'data'=>array() , 'message'=>'The select option value provided unkown by the system please add it to the column enum values but you must know BS5 if unkown bs nothing happends.')));
+          die();
+        }else {
+          $message = 'Updated ' . $bs_column . 'Successfully';
+          print_r(json_encode(
+              array('code'=>200,
+              'data'=>array(
+                'new'=>$bs_value,
+                'old'=>$old,
+                'bsid'=>$bsid,
+                'col'=>$bs_column
+              ),'message'=>$message
+            )));
+          die();
+        }
+      } else {
+        print_r(json_encode(array('code'=>422, 'data'=>array('new'=>'', 'old'=>'') , 'message'=>'unkown error happend')));
+        die();
+      }
+    }
+
+    // update bs element style classes
+    $is_updatebs_style = isset($index_controller) && isset($data['updateElmBsId']) && isset($data['updateElmBsname']) && isset($data['updateElmBSvalue']);
+    if ($is_updatebs_style){
+
+      if (empty($data['updateElmBsId']) || empty($data['updateElmBsname'])){
+        print_r(json_encode(array('code'=>400, 'data'=>array(), 'message'=>'can not update style missing Name Or Id of current element')));
+        die();
+      }
+
+      $bsid = test_input($data['updateElmBsId']);
+      $bs_column = test_input($data['updateElmBsname']);
+      $bs_value = empty($data['updateElmBSvalue']) ? '' : test_input($data['updateElmBSvalue']);
+      $elm_id = $index_controller->bootstrap_element_service->get_bs_element_id($bsid);
+      if (!$elm_id || empty($elm_id)){
+        print_r(json_encode(array('code'=>404, 'data'=>array() , 'message'=>'element not found please install it')));
+        die();
+      }
+
+      // this method help to validate the column name as this not normal handle column by column it dynamic  and give u best dynamic to add new easy column
+      $valid_column_name = $index_controller->bootstrap_element_service->is_valid_key($bs_column);
+      if ($valid_column_name == false){
+        print_r(json_encode(array('code'=>400, 'data'=>array() , 'message'=>'The select column name provided unkown by the system please add it to database')));
+        die();
+      }
+      // this method to complete the dynamic and handle errors u maybe decide add new bootstrap options and not know rules so it handle everything also this help the core function which update unkown columns with unkown unum values without do it randomly it cover evey coomon issues and keep dynamic
+      $valid_enum_value = $index_controller->bootstrap_element_service->is_valid_column_enum_value($bs_column, $bs_value);
+      if (!$valid_enum_value){
+        print_r(json_encode(array('code'=>400, 'data'=>array() , 'message'=>'The select option value provided unkown by the system please add it to the column enum values but you must know BS5 if unkown bs nothing happends.')));
+        die();
+      }
+      $old = $index_controller->bootstrap_element_service->get_column_value($bs_column, $bsid);
+      $update_col = $index_controller->bootstrap_element_service->update_one_column($bs_column, $bs_value, $bsid);
+      if ($update_col){
+        // this is how the idea built on big table with simple async with string column
+        $asyncd_elm = $index_controller->async_element_bs($index_controller, $elm_id, 'element');
+        if (empty($asyncd_elm)){
+          print_r(json_encode(array('code'=>400, 'data'=>array() , 'message'=>'The select option value provided unkown by the system please add it to the column enum values but you must know BS5 if unkown bs nothing happends.')));
+          die();
+        }else {
+          $message = 'Updated ' . $bs_column . 'Successfully';
+          print_r(json_encode(
+              array('code'=>200,
+              'data'=>array(
+                'new'=>$bs_value,
+                'old'=>$old,
+                'bsid'=>$bsid,
+                'col'=>$bs_column
+              ),'message'=>$message
+            )));
+          die();
+        }
+      } else {
+        print_r(json_encode(array('code'=>422, 'data'=>array('new'=>'', 'old'=>'') , 'message'=>'unkown error happend')));
+        die();
+      }
+    }
+
+    $is_back_all_bs_default = isset($index_controller) && isset($data['backbs_default_id']);
+    if ($is_back_all_bs_default){
+      $cal_id = test_input($data['backbs_default_id']);
+      if (empty($cal_id)){
+        print_r(
+          json_encode(array('code'=> 400, 'message'=> 'no calendar id sent'))
+        );
+        die();
+      } else {
+        $deleted_cal_elms = $index_controller->element_service->delete_all_cal_elements($cal_id);
+        if ($deleted_cal_elms){
+          print_r(
+            json_encode(array('code'=> 200, 'message'=> 'Calendar bootstrap classes have been successfully reset'))
+          );
+          die();
+        } else {
+          print_r(
+            json_encode(array('code'=> 422, 'message'=> 'Unable to reset bootstrap style classes To HTML elements found installed in system Try to install the elements first then try again.'))
+          );
+          die();
+        }
+      }
+    }
+
+
 
     print_r(
       json_encode(array('code'=> 422, 'message'=> 'unkown request'))
@@ -1033,44 +1224,6 @@ echo date("Y");
       }
     return $result;
   }
-
-  public function user_pause_cancel_reservation($index_controller, $post_obj, $session_obj){
-
-      $result = array('success'=>False, 'message'=>'');
-      if (!isset($index_controller->reservation_service) || !isset($index_controller->slot_service)){
-        return $result;
-      }
-      $target_reservation_id = test_input($post_obj['cp_reservation_id']);
-      $target_slot_id = test_input($post_obj['cp_reservation_slotid']);
-      $new_reservation_status = test_input($post_obj['cp_reservation_status']);
-      $new_reservation_status = $new_reservation_status === 'cancel_forever' ? 'canceled' : 'paused';
-      $logged_id = $session_obj['logged_id'];
-      $is_admin_user = $index_controller->return_current_logged_role($logged_id) === 'admin';
-
-      $reservation = $index_controller->reservation_service->get_reservation_by_id($target_reservation_id);
-      if (!isset($reservation) || empty($reservation)){
-        $result = array('success'=>False, 'message'=>'Reservation Not Found Or Deleted.');
-        return $result;
-      }
-      $is_owned_reserv = $logged_id === $reservation->get_user_id();
-      if ($is_owned_reserv || $is_admin_user){
-        $update_slot = $index_controller->slot_service->update_one_column('empty', 1, $target_slot_id);
-        $update_reservation = $index_controller->reservation_service->update_one_column('status', $new_reservation_status, $target_reservation_id);
-        if ($update_slot && $update_reservation){
-          $result = array('success'=>True, 'message'=>'Reservation '.$new_reservation_status.' Successfully');
-          return $result;
-        } else {
-          $result = array('success'=>False, 'message'=>'Can not '.$new_reservation_status.' Reservation');
-          return $result;
-        }
-      } else {
-        $result = array('success'=>False, 'message'=>'You Have No Premssions To Remove this Reservation');
-      }
-    return $result;
-  }
-
-
-
 
   public function edit_reservation_handle($index_controller, $post_obj, $session_obj){
 
@@ -1158,9 +1311,8 @@ SELECT * FROM style JOIN period ON style.class_id=period.id JOIN day ON period.d
 UPDATE style style JOIN period ON style.class_id=period.id JOIN day ON period.day_id=day.id JOIN month ON month.id = day.month_id JOIN year ON year.id = month.year_id JOIN calendar ON calendar.id = year.cal_id set style = 'background: red !important;' WHERE style.cal_id=289 AND style.custom=0 AND period.period_index = 2
 */
 
-
-
-
+  // this part is very important and by changing it u change the app optiobs and get diffrent good results for example which heighest proity style and how styles loaded is fast or load everything also if needed cache method will writen here ex after full styles edites u need create small css file and not load from db
+  // you have to study this app in order to make good calendars
   public function load_current_styles($year, $month, $cal_id){
     $this->set_used_styles_periods(array());
     $this->set_used_styles_slots(array());
@@ -1170,17 +1322,16 @@ UPDATE style style JOIN period ON style.class_id=period.id JOIN day ON period.da
     $current_periods_styles = $this->get_periods_styles($year, $month, $cal_id);
     $current_slots_styles = $this->get_slots_styles($year, $month, $cal_id);
     $styles = '';
-
     for ($pindex=0; $pindex<count($current_periods_styles); $pindex++){
       $style_role = $current_periods_styles[$pindex]->get_style();
       $classname = $current_periods_styles[$pindex]->get_classname();
       $element_id = $current_periods_styles[$pindex]->get_element_id();
       $custom = $current_periods_styles[$pindex]->get_custom();
 
-
       if (!empty($style_role) && $custom == 0){
         $important_check = strpos($style_role, '!important') !== false;
         if (!$important_check){
+          // here can override css Specificity I can ignore important or control it or change parts of style editors like main styles override everything and custom style more stronger than main becuase it use id so if u used important now u can override the main but still smaller than bs which is after main (color has focus )
           $style_role = substr($style_role, 0, -1) . ' !important;';
         }
 
@@ -1197,7 +1348,8 @@ UPDATE style style JOIN period ON style.class_id=period.id JOIN day ON period.da
 
         $important_check = strpos($style_role, '!important') !== false;
         if (!$important_check){
-          $style_role = substr($style_role, 0, -1) . ' !important;';
+          // better to add important here but leave for css users
+          $style_role = substr($style_role, 0, -1) . '';
         }
 
         $style_block = '
@@ -1228,6 +1380,13 @@ UPDATE style style JOIN period ON style.class_id=period.id JOIN day ON period.da
         $style_block =  '
         .' . $classname . '{' . $style_role . '}
         ';
+        // custom for call flex desgin control color of slots (note this style for slots and periods only)
+        if (strpos($style_role, 'color:') !== false && strpos($element_id, 'slot') !== false){
+          $style_block .=  '
+          .' . $classname . ' * {' . $style_role . '}
+          ';
+        }
+
         if (in_array($style_block, $used_slots)){
           continue;
         } else {
@@ -1277,6 +1436,10 @@ UPDATE style style JOIN period ON style.class_id=period.id JOIN day ON period.da
   }
 
   public function getElement($element_id, $type='container'){
+    $used_cal = $this->calendar_service->get_used_calendar('used', 1);
+    $calid = isset($used_cal) && !empty($used_cal) ? $used_cal->get_id() : 0;
+    if (!$calid){return false;}
+
     $element = $this->element_service->getElement($element_id, $type);
     if (!isset($element) || empty($element)){
       return false;
@@ -1284,6 +1447,78 @@ UPDATE style style JOIN period ON style.class_id=period.id JOIN day ON period.da
       return $element;
     }
   }
+
+  public function getElementId($element_id, $type='container'){
+    $element = $this->element_service->getElementId($element_id, $type);
+    if (!isset($element) || empty($element)){
+      return false;
+    } else {
+      return $element;
+    }
+  }
+
+
+
+  public function getBsElementId($element_id, $type){
+
+    if ($type == 'container'){
+      $containerid = $this->getElementId($element_id, $type);
+      if (isset($containerid) && !empty($containerid)){
+        $bsContainerid = $this->bootstrap_container_service->get_bscontainerid_by_element($containerid);
+        return $bsContainerid;
+      } else {
+        return false;
+      }
+    } else {
+      $containerid = $this->getElementId($element_id, $type);
+      if (isset($containerid) && !empty($containerid)){
+        $bsElementid = $this->bootstrap_element_service->get_bselm_id_by_element($containerid);
+        return $bsElementid;
+      } else {
+        return false;
+      }
+    }
+  }
+
+  public function getBsId($inC, $element_id, $type){
+    $bsElementId = $inC->getBsElementId($element_id, $type);
+    if (isset($bsElementId) && !empty($bsElementId)){
+      return 'data-bs-id="' . $bsElementId . '"';
+    } else {
+      return '';
+    }
+  }
+
+  public function loadContainerBSData($bs_id){
+    $bs_container = $this->bootstrap_container_service->get_public_bs_container_by_id($bs_id);
+    if (!isset($bs_container) || empty($bs_container)){
+      return array();
+    }
+    return $bs_container;
+  }
+
+  public function loadElementBSData($bs_id){
+    $bs_element = $this->bootstrap_element_service->get_public_bs_element_by_id($bs_id);
+    if (!isset($bs_element) || empty($bs_element)){
+      return array();
+    }
+    return $bs_element;
+  }
+
+
+  public function async_element_bs($index_controller, $elm_id, $type='container'){
+    if ($type == 'element'){
+      $bootstrap_class_string = $index_controller->bootstrap_element_service->get_bootstrap_classes_by_element($elm_id);
+      $updated = $index_controller->element_service->update_one_column('bootstrap_classes', $bootstrap_class_string, $elm_id);
+      return $updated;
+    } else {
+      $bootstrap_class_string = $index_controller->bootstrap_container_service->get_bootstrap_classes_by_element($elm_id);
+      $updated = $index_controller->element_service->update_one_column('bootstrap_classes', $bootstrap_class_string, $elm_id);
+      return $updated;
+    }
+  }
+
+
 
   public function get_elements_ids($cal_id){
 

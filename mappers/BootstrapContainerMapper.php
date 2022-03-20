@@ -59,10 +59,29 @@ class BootstrapContainerMapper {
   function read_one($container_id){
     $pdo = $this->getPDO();
     $stmt = $pdo->prepare("SELECT * FROM bootstrap_container WHERE id=:container_id");
-    $stmt->bindParam(':id', $container_id, PDO::PARAM_INT);
+    $stmt->bindParam(':container_id', $container_id, PDO::PARAM_INT);
     $stmt->execute();
     $data = $stmt->fetch();
     return $data;
+  }
+
+  function getid($container_id){
+    $pdo = $this->getPDO();
+    $stmt = $pdo->prepare("SELECT element_id FROM bootstrap_container WHERE id=:container_id");
+    $stmt->bindParam(':container_id', $container_id, PDO::PARAM_INT);
+    $stmt->execute();
+    $data = $stmt->fetch(PDO::FETCH_ASSOC);
+    return $data;
+  }
+
+
+  function read_one_column($col, $id){
+      $pdo = $this->getPDO();
+      $stmt = $pdo->prepare("SELECT " . $col . " FROM bootstrap_container WHERE id = :id LIMIT 1");
+      $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+      $stmt->execute();
+      $data = $stmt->fetch(PDO::FETCH_ASSOC);
+      return $data;
   }
 
   function update($bootstrap_container){
@@ -131,11 +150,44 @@ class BootstrapContainerMapper {
     $stmt= $pdo->prepare($sql);
     return $stmt->execute([$value, $id]);
   }
+  function show_column_names(){
+    $pdo = $this->getPDO();
+    $stmt = $pdo->prepare("SELECT * FROM bootstrap_container LIMIT 1");
+    $stmt->execute();
+    $data = $stmt->fetch(PDO::FETCH_ASSOC);
+    return $data;
+  }
+  function is_valid_column_enum_value($column, $value){
+    try {
+      $column_enums = [];
+      $pdo = $this->getPDO();
+      $sql = 'SHOW COLUMNS FROM bootstrap_container WHERE field="'.$column.'"';
+      $row = $pdo->query($sql)->fetch(PDO::FETCH_ASSOC);
+
+      foreach(explode("','",substr($row['Type'],6,-2)) as $option) {
+         $column_enums[] = $option;
+       }
+      return in_array($value, $column_enums);
+    }
+    catch( Exception $e ) {
+      return 0;
+    }
+  }
 
   function get_total_calendar_bscontainers($cal_id){
+    $pdo = $this->getPDO();
     $sql = 'SELECT COUNT(id) from bootstrap_container WHERE cal_id= :cal_id';
     $statement = $pdo->prepare($sql);
     $statement->bindParam(':cal_id', $value, PDO::PARAM_STR);
+    $statement->execute();
+    return $statement->fetch();
+  }
+
+  function get_bsid_by_element($element_id){
+    $pdo = $this->getPDO();
+    $sql = 'SELECT id FROM bootstrap_container WHERE element_id =:element_id LIMIT 1';
+    $statement = $pdo->prepare($sql);
+    $statement->bindParam(':element_id', $element_id, PDO::PARAM_INT);
     $statement->execute();
     return $statement->fetch();
   }

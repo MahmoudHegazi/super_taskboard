@@ -1,0 +1,28 @@
+body,html{height:100%;width:auto;margin:auto;padding:auto;}
+.main_page{height:100%;width:100%;max-width: 100% !important;}
+.aside_bg{z-index:-1;}
+.sign_up_btn{min-width: 46% !important;}
+.login_btn{min-width: 46% !important;}
+div.aside_menu_class{overflow: hidden !important;}
+@media only screen and (max-width: 600px) {
+.aside_menu_class {display:none !important;}
+.main_content_class {width:100% !important;}
+.btns_container{display:flex !important; flex-flow:column;}
+/* .sign_up_btn{display:block !mportant;margin-bottom:5px;width:100% !important;} */
+.sign_up_btn{width:100% !important;margin-bottom:10px !important;}
+.login_btn{width:100% !important;}
+}
+
+.aside_bg{
+    /* Full height */
+    height: 100%;
+    /* Center and scale the image nicely */
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+.max_width_200{
+  max-height:200px !important;
+}
+.shadow_sign_title{box-shadow: 0 4px 8px 0 rgba(0, 55, 50, 0.2), 0 6px 20px 0 rgb(80 201 80 / 80%);}
+.shadow_sign_title1{box-shadow: 0 4px 8px 0 rgb(233 52 167 / 61%), 0 6px 20px 0 rgb(80 201 80 / 80%);}

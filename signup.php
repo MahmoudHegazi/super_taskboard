@@ -33,7 +33,36 @@
    }
    catch( Exception $e ) {
      $error_message = $e->getMessage();
-     $error = true;
+     echo '
+       <!DOCTYPE html>
+       <html>
+       <head>
+       <meta charset="UTF-8">
+       <meta name="viewport" content="width=device-width, initial-scale=1">
+       <link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css">
+       <script src="assets/bootstrap/js/bootstrap.bundle.min.js"></script>
+       <title>No Calendar Found</title>
+       </head>
+       <body>
+       <div class="alert alert-danger">
+         <p class="text-center"><strong>Warning!</strong> '.
+         $error_message
+         .
+         '
+           <!-- check if admin and display link to setup -->
+           <div class="d-flex justify-content-center align-items-center">
+             <a href="setup.php" class="btn btn-outline-primary">Go To Setup</a>
+             <a href="index.php" class="btn btn-outline-primary">Go To Home</a>
+             <a href="reports.php" class="btn btn-outline-primary">Go To Reports</a>
+             <a href="signup.php" class="btn btn-outline-primary">Go To Signup</a>
+             <a href="login.php" class="btn btn-outline-primary">Go To Login</a>
+           </div>
+         </p>
+      </div>
+      </body>
+      </html>
+      ';
+      die();
    }
 
    // send internal post request to signup Controller class
@@ -44,11 +73,6 @@
      die();
    }
 
-
-
-
-
-
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -57,39 +81,12 @@
       <title><?php echo defined('TITLE') ? TITLE : 'Super Calendar'; ?></title>
       <link rel="icon" href="<?php echo $default_logo; ?>">
       <meta name="viewport" content="width=device-width, initial-scale=1">
-      <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-      <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+      <script src="assets/js/jquery-3.5.1.min.js"></script>
+      <link rel="stylesheet" href="assets/font-awesome-4.7.0/css/font-awesome.min.css">
+      <link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css">
+      <script src="assets/bootstrap/js/bootstrap.bundle.min.js"></script>
+      <link href="assets/css/signup.css" rel="stylesheet">
    </head>
-   <style>
-      body,html{height:100%;width:auto;margin:auto;padding:auto;}
-      .main_page{height:100%;width:100%;max-width: 100% !important;}
-      .aside_bg{z-index:-1;}
-      .sign_up_btn{min-width: 46% !important;}
-      .login_btn{min-width: 46% !important;}
-      div.aside_menu_class{overflow: hidden !important;}
-      @media only screen and (max-width: 600px) {
-      .aside_menu_class {display:none !important;}
-      .main_content_class {width:100% !important;}
-      .btns_container{display:flex !important; flex-flow:column;}
-      /* .sign_up_btn{display:block !mportant;margin-bottom:5px;width:100% !important;} */
-      .sign_up_btn{width:100% !important;margin-bottom:10px !important;}
-      .login_btn{width:100% !important;}
-      }
-
-      .aside_bg{
-          /* Full height */
-          height: 100%;
-          /* Center and scale the image nicely */
-          background-position: center;
-          background-repeat: no-repeat;
-          background-size: cover;
-      }
-      .max_width_200{
-        max-height:200px !important;
-      }
-      .shadow_sign_title{box-shadow: 0 4px 8px 0 rgba(0, 55, 50, 0.2), 0 6px 20px 0 rgb(80 201 80 / 80%);}
-      .shadow_sign_title1{box-shadow: 0 4px 8px 0 rgb(233 52 167 / 61%), 0 6px 20px 0 rgb(80 201 80 / 80%);}
-   </style>
    <body>
       <!-- Control the column width, and how they should appear on different devices -->
 

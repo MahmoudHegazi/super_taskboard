@@ -53,9 +53,20 @@ class ElementMapper {
       return $data;
     }
 
-    function get_element($element_id, $type='container'){
+    function get_element($element_id, $type='container', $calid){
       $pdo = $this->getPDO();
-      $stmt = $pdo->prepare("SELECT * FROM element WHERE element_id=:element_id AND type=:type");
+      $stmt = $pdo->prepare("SELECT * FROM element WHERE element_id=:element_id AND type=:type AND cal_id=:calid");
+      $stmt->bindParam(':element_id', $element_id, PDO::PARAM_STR);
+      $stmt->bindParam(':type', $type, PDO::PARAM_STR);
+      $stmt->bindParam(':calid', $calid, PDO::PARAM_INT);
+      $stmt->execute();
+      $data = $stmt->fetch();
+      return $data;
+    }
+
+    function get_elementid($element_id, $type='container'){
+      $pdo = $this->getPDO();
+      $stmt = $pdo->prepare("SELECT id FROM element WHERE element_id=:element_id AND type=:type");
       $stmt->bindParam(':element_id', $element_id, PDO::PARAM_STR);
       $stmt->bindParam(':type', $type, PDO::PARAM_STR);
       $stmt->execute();
@@ -117,6 +128,15 @@ class ElementMapper {
       $pdo = $this->getPDO();
       $statement = $pdo->prepare('DELETE FROM element WHERE id > 0');
       return $statement->execute();
+    }
+
+    function delete_all_cal_elements($cal_id){
+      $pdo = $this->getPDO();
+      $sql = 'DELETE FROM element WHERE id > 0 AND cal_id = :cal_id';
+      $statement = $pdo->prepare($sql);
+      $statement->bindParam(':cal_id', $cal_id, PDO::PARAM_INT);
+      $statement->execute();
+      return $statement;
     }
 
     function update_column($column, $value, $id){

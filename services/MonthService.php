@@ -1,7 +1,7 @@
 <?php
-require_once(dirname(__FILE__, 2) . '\config.php');
-require_once(dirname(__FILE__, 2) . '\mappers\MonthMapper.php');
-require_once(dirname(__FILE__, 2) . '\models\Month.php');
+require_once(dirname(__FILE__, 2) . '/config.php');
+require_once(dirname(__FILE__, 2) . '/mappers/MonthMapper.php');
+require_once(dirname(__FILE__, 2) . '/models/Month.php');
 
 
 class MonthService {

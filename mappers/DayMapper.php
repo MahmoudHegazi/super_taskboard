@@ -39,6 +39,15 @@ class DayMapper {
       $data = $stmt->fetch();
       return $data;
     }
+    function read_one_by_force($day_id){
+      $pdo = $this->getPDO();
+      $stmt = $pdo->prepare("SELECT calendar.id FROM day JOIN month ON day.month_id = month.id JOIN year ON
+      month.year_id = year.id JOIN calendar ON year.cal_id = calendar.id WHERE day.id=:day_id");
+      $stmt->bindParam(':day_id', $day_id, PDO::PARAM_INT);
+      $stmt->execute();
+      $data = $stmt->fetch();
+      return $data;
+    }
 
     function get_dayid_by_date($day_date, $cal_id){
       $pdo = $this->getPDO();
@@ -124,20 +133,26 @@ class DayMapper {
     }
 
 
-    function get_days_where($column, $value, $limit='', $and_column='', $and_val=''){
-      $limit  = $limit != '' ? 'ORDER BY id LIMIT ' . $limit : ' ORDER BY id';
+    function get_days_where($calid, $column, $value, $limit='', $and_column='', $and_val=''){
+      $limit  = $limit != '' ? ' ORDER BY day.id LIMIT ' . $limit : ' ORDER BY day.id';
       $pdo = $this->getPDO();
-      $data;
       if ($and_column != '' && $and_val != ''){
-
-        $sql = "SELECT * FROM day WHERE ".$column."=? AND ".$and_column."=?" . $limit;
-        $stmt = $pdo->prepare($sql);
-        $data = $stmt->execute([$value, $and_val]);
+        $mysql1 = "SELECT day.* FROM day JOIN month ON day.month_id = month.id JOIN year ON
+        month.year_id = year.id JOIN calendar ON year.cal_id = calendar.id WHERE
+        day.".$column."=:value AND ". $and_column ."=:and_val AND calendar.id=:calid".$limit;
+        $stmt = $pdo->prepare($mysql1);
+        $stmt->bindValue(':value', (int) $value, PDO::PARAM_INT);
+        $stmt->bindValue(':and_val', (int) $calid, PDO::PARAM_INT);
+        $stmt->bindValue(':calid', (int) $value, PDO::PARAM_INT);
+        $data = $stmt->execute();
       } else {
-
-        $sql = "SELECT * FROM day WHERE ".$column."=?".$limit;
-        $stmt = $pdo->prepare($sql);
-        $data = $stmt->execute([$value]);
+        $mysql1 = "SELECT day.* FROM day JOIN month ON day.month_id = month.id JOIN year ON
+        month.year_id = year.id JOIN calendar ON year.cal_id = calendar.id WHERE
+        day.".$column."=:value AND calendar.id=:calid".$limit;
+        $stmt = $pdo->prepare($mysql1);
+        $stmt->bindValue(':value', (int) $value, PDO::PARAM_INT);
+        $stmt->bindValue(':calid', (int) $calid, PDO::PARAM_INT);
+        $data = $stmt->execute();
       }
       if ($data){
         return $stmt->fetchAll();
@@ -146,5 +161,5 @@ class DayMapper {
       }
     }
 
-
 }
+//SELECT calendar.id FROM period JOIN day ON day.id = period.day_id JOIN month on day.month_id = month.id JOIN year ON year.id = month.year_id JOIN calendar ON year.cal_id = calendar.id WHERE period.id=287202

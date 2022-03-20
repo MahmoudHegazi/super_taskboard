@@ -1,10 +1,10 @@
 <?php
 ob_start();
-require_once (dirname(__FILE__, 2) . '\config.php');
-require_once (dirname(__FILE__, 2) . '\functions.php');
-require_once (dirname(__FILE__, 2) . '\services\UserService.php');
-require_once (dirname(__FILE__, 2) . '\services\CalendarService.php');
-require_once (dirname(__FILE__, 2) . '\models\User.php');
+require_once (dirname(__FILE__, 2) . '/config.php');
+require_once (dirname(__FILE__, 2) . '/functions.php');
+require_once (dirname(__FILE__, 2) . '/services/UserService.php');
+require_once (dirname(__FILE__, 2) . '/services/CalendarService.php');
+require_once (dirname(__FILE__, 2) . '/models/User.php');
 
 
 $redirect_url = isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '';
@@ -128,7 +128,7 @@ class SignupController {
      // Secure form from remote attack
      if (!isset($session_obj['request_token']) || !isset($post_obj['request_token']) || empty($post_obj['request_token']) || empty($session_obj['request_token']) || ($session_obj['request_token'] != $post_obj['request_token'])){
        //return error 00;
-       $this->redirect_user_with_message($redirect_url, 'Your request is denied Noob.', false);
+       $this->redirect_user_with_message($redirect_url, 'No Calendars At System Come back soon.', false);
        die();
      }
 

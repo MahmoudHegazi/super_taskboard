@@ -1,7 +1,7 @@
 <?php
-require_once(dirname(__FILE__, 2) . '\config.php');
-require_once(dirname(__FILE__, 2) . '\mappers\ReservationMapper.php');
-require_once(dirname(__FILE__, 2) . '\models\Reservation.php');
+require_once(dirname(__FILE__, 2) . '/config.php');
+require_once(dirname(__FILE__, 2) . '/mappers/ReservationMapper.php');
+require_once(dirname(__FILE__, 2) . '/models/Reservation.php');
 
 
 class ReservationService {
@@ -47,6 +47,7 @@ class ReservationService {
     );
     $reservation->set_id($reservation_row['id']);
     $reservation->set_reservation_date($reservation_row['reservation_date']);
+    $reservation->set_status($reservation_row['status']);
     return $reservation;
   }
 
@@ -65,6 +66,7 @@ class ReservationService {
     );
     $reservation->set_id($reservation_row['id']);
     $reservation->set_reservation_date($reservation_row['reservation_date']);
+    $reservation->set_status($reservation_row['status']);
     return $reservation;
   }
 
@@ -86,6 +88,7 @@ class ReservationService {
         );
         $reservation->set_id($reservation_rows[$i]['id']);
         $reservation->set_reservation_date($reservation_rows[$i]['reservation_date']);
+        $reservation->set_status($reservation_rows[$i]['status']);
         array_push($reservation_list, $reservation);
     }
     return $reservation_list;

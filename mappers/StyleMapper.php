@@ -97,11 +97,11 @@ class StyleMapper {
 
       $periods_sql = "SELECT style.* FROM style JOIN period ON period.id = style.class_id JOIN day
       ON period.day_id = day.id JOIN month ON day.month_id = month.id JOIN year ON month.year_id = year.id
-      WHERE year.year=? AND month.month=? AND style.cal_id=?";
+      WHERE year.year=? AND month.month=? AND style.cal_id=? AND style.active=1";
 
       $slots_sql = "SELECT style.* FROM style JOIN slot ON slot.id = style.class_id JOIN
       period ON slot.period_id = period.id JOIN day ON period.day_id = day.id JOIN month ON
-      day.month_id = month.id JOIN year ON month.year_id = year.id WHERE year.year=? AND month.month=? AND style.cal_id=?";
+      day.month_id = month.id JOIN year ON month.year_id = year.id WHERE year.year=? AND month.month=? AND style.cal_id=? AND style.active=1";
 
       if ($class_type == 'slot'){
         $stmt = $pdo->prepare($slots_sql);

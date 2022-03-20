@@ -117,11 +117,12 @@ class PeriodMapper {
     }
   }
 
-  function get_periods_by_day($day_id){
+  function get_periods_by_day($day_id, $calid){
     $pdo = $this->getPDO();
-    $sql = "SELECT * FROM period WHERE day_id=? ";
+
+    $sql = "SELECT period.* FROM period JOIN day ON period.day_id = day.id JOIN month ON day.month_id = month.id JOIN year ON month.year_id = year.id JOIN calendar ON year.cal_id = calendar.id WHERE day.id =? AND calendar.id=?";
     $stmt = $pdo->prepare($sql);
-    $data = $stmt->execute([$day_id]);
+    $data = $stmt->execute([$day_id, $calid]);
     if ($data){
       return $stmt->fetchAll();
     } else {

@@ -1,7 +1,7 @@
 <?php
-require_once(dirname(__FILE__, 2) . '\config.php');
-require_once(dirname(__FILE__, 2) . '\mappers\UserMapper.php');
-require_once(dirname(__FILE__, 2) . '\models\User.php');
+require_once(dirname(__FILE__, 2) . '/config.php');
+require_once(dirname(__FILE__, 2) . '/mappers/UserMapper.php');
+require_once(dirname(__FILE__, 2) . '/models/User.php');
 
 class UserService {
   protected $pdo;
@@ -47,12 +47,12 @@ class UserService {
     $secure = $unique_check  ? true : false;
     $message = $secure ? $message : 'Password Must contains at least 3 unqiue characters';
 
+
     $secure = strtolower($pass) != strtolower($username) ? true : false;
     $message = $secure ? $message : 'The password cannot be the same as the username';
 
     $secure = strtolower($pass) != strtolower($email) ? true : false;
     $message = $secure ? $message : 'The password cannot be the same as the Email';
-
     return array('secure'=> $secure, 'message'=>$message);
 
   }

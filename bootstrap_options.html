@@ -1,0 +1,1379 @@
+<!-- active_aside NEW -->
+<div class="active_aside bg-light" id="aside_style_controller">
+
+   <div class="container-fluid editor_part">
+   <h4 class="p-3 mt-2 mb-4 text-center border border-secondary rounded bg-dark text-white style_editor_title " data-bs-original-title="Close The Style Editor">
+      <i class="fa fa-magic magic_icon toggle_asside"></i> <span>Style Editor</span>
+   </h4>
+   <div id="editor_error_cont"></div>
+
+   <div class="container-fluid">
+
+     <div class="d-flex justify-content-between align-items-center mt-2 mb-2">
+       <button data-bs-toggle="modal" data-bs-target="#resetbootstrapModal" class="btn btn-success mt-2 btn-small mr-2">Reset All Bootstrap</button>
+     </div>
+
+     <div class="d-flex justify-content-between align-items-center mt-2 mb-2" id="edit_mode_container">
+       <button class="btn btn-success mt-2 btn-small mr-2" id="enable_edit_mode">Start Edit Containers</button>  <span id="enable_edit_modemsg">(OFF)</span>
+     </div>
+     <div class="d-flex justify-content-between align-items-center mt-2 mb-2" id="edit_mode_elm">
+       <button class="btn btn-success mt-2 btn-small mr-2" id="enable_edit_mode_elm">Start Edit Elements</button>  <span id="enable_edit_modemsg_elm">(OFF)</span>
+     </div>
+     <div class="d-flex justify-content-center align-items-center flex-column bg-secondary p-2">
+       <img id="editor_wait_gif" src="assets/images/load_circle_ux.gif" width="150" height="150" style="display:none;" />
+     </div>
+
+     <div id="setup_elm_conts">
+       <div class="d-flex justify-content-center align-items-center flex-column bg-secondary p-2">
+         <span class="text-white">Undefined Containers: <span id="total_undefined_containers" class="badge p-2"></span></span>
+         <button class="btn btn-primary mt-2" style="display:none;" id="setup_loaded_containers">Setup These Containers</button>
+       </div>
+
+       <div class="d-flex justify-content-center align-items-center flex-column bg-secondary p-2">
+         <span class="text-white">Undefined Elements: <span id="total_undefined_elements_txt" class="badge p-2"></span></span>
+         <button class="btn btn-primary mt-2" style="display:none;" id="setup_element_btn">Setup These Elements</button>
+       </div>
+     </div>
+
+
+
+     <div class="w-100 d-flex justify-content-center align-items-center mt-2 flex-column">
+       <div class="flex-fill style_viewercss  border border-secondary p-2 bg-secondary text-black flex-fill" id="style_viewer">
+       </div>
+     </div>
+   </div>
+
+   <input id="calid_editor_style" type="hidden" value="<?php echo $current_calendar->get_id(); ?>" style="display:none;">
+   <div class="d-flex flex-column">
+   <div class="d-flex flex-column no-wrap justify-content-center align-items-center p-2 bg-light">
+
+      <div id="color_style_edit_part" style="display:none !important;">
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill row bg-light">
+            <label for="sys_elm_bg" class="col-sm-7">Background: </label>
+            <input type="color" class="col-sm-4 p-2 border border-outline-primary" id="sys_elm_bg" name="sys_elm_bg" />
+         </div>
+      </div>
+
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill row">
+            <label for="sys_elm_color" class="col-sm-7">Color: </label>
+            <input type="color" class="col-sm-4 p-2 border border-outline-primary" id="sys_elm_color" name="sys_elm_color" />
+         </div>
+      </div>
+   </div>
+
+     <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+       <div class="flex-fill d-flex flex-column justify-content-center align-content-center align-items-start flex-row flex-nowrap">
+         <div class="w-100 d-flex justify-content-between align-items-center">System Id: <span class="badge bg-primary" id="container_curent_elmid"></span></div>
+         <div class="w-100 d-flex justify-content-between align-items-center">Last Update: <span class="badge bg-primary" id="container_curent_lastupdate"></span></div>
+
+         <div class="w-100 d-flex justify-content-between align-items-center">Type: <span class="badge bg-primary" id="container_curent_type"></span></div>
+         <div class="w-100 d-flex justify-content-between align-items-center">HTML ID: <span class="badge bg-primary" id="container_curent_htmlid"></span></div>
+         <div class="w-100 d-flex justify-content-between align-items-center">HTML Class: <span class="badge bg-primary" id="container_curent_htmlclass"></span></div>
+         <div class="w-100 d-flex justify-content-between align-items-center">Group: <span class="badge bg-primary" id="container_curent_group"></span></div>
+         <hr /><br />
+         <div id="apply_on_group" class="w-100 d-flex justify-content-between align-items-center"></div>
+       </div>
+     </div>
+
+      <!-- Container Styles Start -->
+      <div id="bs_containers_editor" style="display:none !important;">
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="container_bg" class="badge bg-light text-black">Background Color: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control edit_bs_select" id="container_bg" name="bg">
+                <option value=""></option>
+                <option value="bg-primary">Blue</option>
+                <option value="bg-success">Green</option>
+                <option value="bg-info">Lightblue</option>
+                <option value="bg-warning">Yellow</option>
+                <option value="bg-danger">Red</option>
+                <option value="bg-secondary">gray</option>
+                <option value="bg-dark">black</option>
+                <option value="bg-light">light gray</option>
+              </select>
+            </div>
+         </div>
+      </div>
+
+
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="container_text_color" class="badge bg-light text-black">Text Color: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control edit_bs_select" id="container_text_color" name="text_color">
+                <option value=""></option>
+                <option value="text-muted">muted</option>
+                <option value="text-primary">blue</option>
+                <option value="text-success">green</option>
+                <option value="text-info">lightblue</option>
+                <option value="text-warning">yellow</option>
+                <option value="text-danger">red</option>
+                <option value="text-secondary">Gray</option>
+                <option value="text-white">White</option>
+                <option value="text-dark">black</option>
+                <option value="text-light">Lightgray</option>
+                <option value="text-body">parent color</option>
+              </select>
+            </div>
+         </div>
+      </div>
+
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="container_p" class="badge bg-light text-black">Padding: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control edit_bs_select" id="container_p" name="p">
+                <option value=""></option>
+                <option value="p-1">p-1</option>
+                <option value="p-2">p-2</option>
+                <option value="p-3">p-3</option>
+                <option value="p-4">p-4</option>
+                <option value="p-5">p-5</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="container_m" class="badge bg-light text-black">Margin: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control edit_bs_select" id="container_m" name="m">
+                <option value=""></option>
+                <option value="m-1">m-1</option>
+                <option value="m-2">m-2</option>
+                <option value="m-3">m-3</option>
+                <option value="m-4">m-4</option>
+                <option value="m-5">m-5</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="container_border" class="badge bg-light text-black">Border: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control edit_bs_select" id="container_border" name="border">
+                <option value=""></option>
+                <option value="border">border</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="container_border_size" class="badge bg-light text-black">Border Size: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control edit_bs_select" id="container_border_size" name="border_size">
+                <option value=""></option>
+                <option value="border-1">border-1</option>
+                <option value="border-2">border-2</option>
+                <option value="border-3">border-3</option>
+                <option value="border-4">border-4</option>
+                <option value="border-5">border-5</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+       <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="container_border_color" class="badge bg-light text-black">Border Color: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control edit_bs_select" id="container_border_color" name="border_color">
+                <option value=""></option>
+                <option value="border-primary">Blue</option>
+                <option value="border-secondary">Gray</option>
+                <option value="border-success">Green</option>
+                <option value="border-danger">Red</option>
+                <option value="border-warning">Yellow</option>
+                <option value="border-info">Lightblue</option>
+                <option value="border-light">Lightgray</option>
+                <option value="border-dark">Black</option>
+                <option value="border-white">White</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+
+       <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="container_border_round" class="badge bg-light text-black">Border Round: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control edit_bs_select" id="container_border_round" name="border_round">
+                <option value=""></option>
+                <option value="rounded">rounded</option>
+                <option value="rounded-top">rounded-top</option>
+                <option value="rounded-end">rounded-end</option>
+                <option value="rounded-bottom">rounded-bottom</option>
+                <option value="rounded-start">rounded-start</option>
+                <option value="rounded-circle">rounded-circle</option>
+                <option value="rounded-pill">rounded-pill</option>
+                <option value="rounded-0">rounded-0</option>
+                <option value="rounded-1">rounded-1</option>
+                <option value="rounded-2">rounded-2</option>
+                <option value="rounded-3">rounded-3</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="container_width" class="badge bg-light text-black">Width: </label>
+            </div>
+
+            <div class="" style="width:max-content;">
+              <select class="form-control edit_bs_select" id="container_width" name="width">
+                <option value=""></option>
+                <option value="w-25">25%</option>
+                <option value="w-50">50%</option>
+                <option value="w-75">75%</option>
+                <option value="w-100">100%</option>
+                <option value="w-auto">auto</option>
+                <option value="mw-100">Max</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="container_height" class="badge bg-light text-black">Height: </label>
+            </div>
+
+            <div class="" style="width:max-content;">
+              <select class="form-control edit_bs_select" id="container_height" name="height">
+                <option value=""></option>
+                <option value="h-25">25%</option>
+                <option value="h-50">50%</option>
+                <option value="h-75">75%</option>
+                <option value="h-100">100%</option>
+                <option value="h-auto">auto</option>
+                <option value="mh-100">Max</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="container_m_t" class="badge bg-light text-black">Margin Top: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control edit_bs_select" id="container_m_t" name="m_t">
+                <option value=""></option>
+                <option value="mt-1">1</option>
+                <option value="mt-2">2</option>
+                <option value="mt-3">3</option>
+                <option value="mt-4">4</option>
+                <option value="mt-4">5</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="container_m_b" class="badge bg-light text-black">Margin Bottom: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control edit_bs_select" id="container_m_b" name="m_b">
+                <option value=""></option>
+                <option value="mb-1">1</option>
+                <option value="mb-2">2</option>
+                <option value="mb-3">3</option>
+                <option value="mb-4">4</option>
+                <option value="mb-4">5</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="container_m_r" class="badge bg-light text-black">Margin Right: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control edit_bs_select" id="container_m_r" name="m_r">
+                <option value=""></option>
+                <option value="mr-1">1</option>
+                <option value="mr-2">2</option>
+                <option value="mr-3">3</option>
+                <option value="mr-4">4</option>
+                <option value="mr-4">5</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="container_m_l" class="badge bg-light text-black">Margin Left: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control edit_bs_select" id="container_m_l" name="m_l">
+                <option value=""></option>
+                <option value="ml-1">1</option>
+                <option value="ml-2">2</option>
+                <option value="ml-3">3</option>
+                <option value="ml-4">4</option>
+                <option value="ml-4">5</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="container_p_t" class="badge bg-light text-black">Padding Top: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control edit_bs_select" id="container_p_t" name="p_t">
+                <option value=""></option>
+                <option value="pt-1">1</option>
+                <option value="pt-2">2</option>
+                <option value="pt-3">3</option>
+                <option value="pt-4">4</option>
+                <option value="pt-4">5</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="container_p_b" class="badge bg-light text-black">Padding Bottom: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control edit_bs_select" id="container_p_b" name="p_b">
+                <option value=""></option>
+                <option value="pb-1">1</option>
+                <option value="pb-2">2</option>
+                <option value="pb-3">3</option>
+                <option value="pb-4">4</option>
+                <option value="pb-4">5</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="container_p_r" class="badge bg-light text-black">Padding Right: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control edit_bs_select" id="container_p_r" name="p_r">
+                <option value=""></option>
+                <option value="pr-1">1</option>
+                <option value="pr-2">2</option>
+                <option value="pr-3">3</option>
+                <option value="pr-4">4</option>
+                <option value="pr-4">5</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="container_p_l" class="badge bg-light text-black">Padding Left: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control edit_bs_select" id="container_p_l" name="p_l">
+                <option value=""></option>
+                <option value="pl-1">1</option>
+                <option value="pl-2">2</option>
+                <option value="pl-3">3</option>
+                <option value="pl-4">4</option>
+                <option value="pl-4">5</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="container_visibility" class="badge bg-light text-black">Visibility</label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control edit_bs_select" id="container_visibility" name="visibility">
+                <option value=""></option>
+                <option value="visible">visible</option>
+                <option value="invisible">invisible</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="container_box_shadow" class="badge bg-light text-black">Shadow: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control edit_bs_select" id="container_box_shadow" name="box_shadow">
+                <option value=""></option>
+                <option value="shadow-none">None</option>
+                <option value="shadow-sm">Small</option>
+                <option value="shadow">Normal</option>
+                <option value="shadow-lg">Large</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="container_justify_content" class="badge bg-light text-black">Justify Content: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control edit_bs_select" id="container_justify_content" name="justify_content">
+                <option value=""></option>
+                <option value="justify-content-start">Start</option>
+                <option value="justify-content-end">End</option>
+                <option value="justify-content-center">Center</option>
+                <option value="justify-content-between">Space Between</option>
+                <option value="justify-content-around">Space Around</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+       <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="container_align_items" class="badge bg-light text-black">Align Items: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control edit_bs_select" id="container_align_items" name="align_items">
+                <option value=""></option>
+                <option value="align-items-start">Start</option>
+                <option value="align-items-end">End</option>
+                <option value="align-items-center">Center</option>
+                <option value="align-items-around">Space Around</option>
+                <option value="align-items-stretch">Stretch</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+
+      <!-- Bootstrap input -->
+     <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+        <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+           <div class="flex-fill">
+             <label for="container_align_content" class="badge bg-light text-black">Align Content: </label>
+           </div>
+           <div class="" style="width:max-content;">
+             <select class="form-control edit_bs_select" id="container_align_content" name="align_content">
+               <option value=""></option>
+               <option value="align-content-start">Start</option>
+               <option value="align-content-end">End</option>
+               <option value="align-content-center">Center</option>
+               <option value="align-content-around">Space Around</option>
+               <option value="align-content-stretch">Stretch</option>
+             </select>
+           </div>
+        </div>
+     </div>
+     <!-- bootstrap -->
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="container_ratio" class="badge bg-light text-black" title="diffrent heights for containers">Size Ratio: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control edit_bs_select" id="container_ratio" name="ratio">
+                <option value=""></option>
+                <option value="ratio%20ratio-1x1">1x1</option>
+                <option value="ratio%20ratio-4x3">4x3</option>
+                <option value="ratio%20ratio-16x9">16x9</option>
+                <option value="ratio%20ratio-21x9">21x9</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="container_flex_type" class="badge bg-light text-black">Flex Type:</label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control edit_bs_select" id="container_flex_type" name="flex_type">
+                <option value=""></option>
+                <option value="d-flex">Flex</option>
+                <option value="d-inline-flex">Inline Flex</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+
+      <!-- Bootstrap input Flex -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="container_flex_flow" class="badge bg-light text-black" title="(layout type)">Flex flow</label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control edit_bs_select" id="container_flex_flow" name="flex_flow">
+                <option value=""></option>
+                <option value="flex-row">Row</option>
+                <option value="flex-row-reverse">Row Reverse</option>
+                <option value="flex-column">Column</option>
+                <option value="flex-column">Column Reverse</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+       <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="container_flex_wrap" class="badge bg-light text-black">Flex Wrap: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control edit_bs_select" id="container_flex_wrap" name="flex_wrap">
+                <option value=""></option>
+                <option value="flex-wrap">Wrap</option>
+                <option value="flex-wrap-reverse">Wrap reverse</option>
+                <option value="flex-nowrap">No wrap</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+    </div>
+    <!-- Container Styles End -->
+
+    <!-- element start -->
+    <div id="bs_element_editor" style="display:none !important;">
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="element_bg" class="badge bg-light text-black">Background Color: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control edit_bs_selectelm" id="element_bg" name="bg">
+                <option value=""></option>
+                <option value="bg-primary">Blue</option>
+                <option value="bg-success">Green</option>
+                <option value="bg-info">Lightblue</option>
+                <option value="bg-warning">Yellow</option>
+                <option value="bg-danger">Red</option>
+                <option value="bg-secondary">gray</option>
+                <option value="bg-dark">black</option>
+                <option value="bg-light">light gray</option>
+              </select>
+            </div>
+         </div>
+      </div>
+
+
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="element_text_color" class="badge bg-light text-black">Text Color: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control edit_bs_selectelm" id="element_text_color" name="text_color">
+                <option value=""></option>
+                <option value="text-muted">muted</option>
+                <option value="text-primary">blue</option>
+                <option value="text-success">green</option>
+                <option value="text-info">lightblue</option>
+                <option value="text-warning">yellow</option>
+                <option value="text-danger">red</option>
+                <option value="text-secondary">Gray</option>
+                <option value="text-white">White</option>
+                <option value="text-dark">black</option>
+                <option value="text-light">Lightgray</option>
+                <option value="text-body">parent color</option>
+              </select>
+            </div>
+         </div>
+      </div>
+
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="element_p" class="badge bg-light text-black">Padding: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control edit_bs_selectelm" id="element_p" name="p">
+                <option value=""></option>
+                <option value="p-1">p-1</option>
+                <option value="p-2">p-2</option>
+                <option value="p-3">p-3</option>
+                <option value="p-4">p-4</option>
+                <option value="p-5">p-5</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="element_m" class="badge bg-light text-black">Margin: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control edit_bs_selectelm" id="element_m" name="m">
+                <option value=""></option>
+                <option value="m-1">m-1</option>
+                <option value="m-2">m-2</option>
+                <option value="m-3">m-3</option>
+                <option value="m-4">m-4</option>
+                <option value="m-5">m-5</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="element_border" class="badge bg-light text-black">Border: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control edit_bs_selectelm" id="element_border" name="border">
+                <option value=""></option>
+                <option value="border">border</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="element_border_size" class="badge bg-light text-black">Border Size: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control edit_bs_selectelm" id="element_border_size" name="border_size">
+                <option value=""></option>
+                <option value="border-1">border-1</option>
+                <option value="border-2">border-2</option>
+                <option value="border-3">border-3</option>
+                <option value="border-4">border-4</option>
+                <option value="border-5">border-5</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+       <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="element_border_color" class="badge bg-light text-black">Border Color: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control edit_bs_selectelm" id="element_border_color" name="border_color">
+                <option value=""></option>
+                <option value="border-primary">Blue</option>
+                <option value="border-secondary">Gray</option>
+                <option value="border-success">Green</option>
+                <option value="border-danger">Red</option>
+                <option value="border-warning">Yellow</option>
+                <option value="border-info">Lightblue</option>
+                <option value="border-light">Lightgray</option>
+                <option value="border-dark">Black</option>
+                <option value="border-white">White</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+
+       <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="element_border_round" class="badge bg-light text-black">Border Round: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control edit_bs_selectelm" id="element_border_round" name="border_round">
+                <option value=""></option>
+                <option value="rounded">rounded</option>
+                <option value="rounded-top">rounded-top</option>
+                <option value="rounded-end">rounded-end</option>
+                <option value="rounded-bottom">rounded-bottom</option>
+                <option value="rounded-start">rounded-start</option>
+                <option value="rounded-circle">rounded-circle</option>
+                <option value="rounded-pill">rounded-pill</option>
+                <option value="rounded-0">rounded-0</option>
+                <option value="rounded-1">rounded-1</option>
+                <option value="rounded-2">rounded-2</option>
+                <option value="rounded-3">rounded-3</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="element_width" class="badge bg-light text-black">Width: </label>
+            </div>
+
+            <div class="" style="width:max-content;">
+              <select class="form-control edit_bs_selectelm" id="element_width" name="width">
+                <option value=""></option>
+                <option value="w-25">25%</option>
+                <option value="w-50">50%</option>
+                <option value="w-75">75%</option>
+                <option value="w-100">100%</option>
+                <option value="w-auto">auto</option>
+                <option value="mw-100">Max</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="element_height" class="badge bg-light text-black">Height: </label>
+            </div>
+
+            <div class="" style="width:max-content;">
+              <select class="form-control edit_bs_selectelm" id="element_height" name="height">
+                <option value=""></option>
+                <option value="h-25">25%</option>
+                <option value="h-50">50%</option>
+                <option value="h-75">75%</option>
+                <option value="h-100">100%</option>
+                <option value="h-auto">auto</option>
+                <option value="mh-100">Max</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="element_m_t" class="badge bg-light text-black">Margin Top: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control edit_bs_selectelm" id="element_m_t" name="m_t">
+                <option value=""></option>
+                <option value="mt-1">1</option>
+                <option value="mt-2">2</option>
+                <option value="mt-3">3</option>
+                <option value="mt-4">4</option>
+                <option value="mt-4">5</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="element_m_b" class="badge bg-light text-black">Margin Bottom: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control edit_bs_selectelm" id="element_m_b" name="m_b">
+                <option value=""></option>
+                <option value="mb-1">1</option>
+                <option value="mb-2">2</option>
+                <option value="mb-3">3</option>
+                <option value="mb-4">4</option>
+                <option value="mb-4">5</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="element_m_r" class="badge bg-light text-black">Margin Right: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control edit_bs_selectelm" id="element_m_r" name="m_r">
+                <option value=""></option>
+                <option value="mr-1">1</option>
+                <option value="mr-2">2</option>
+                <option value="mr-3">3</option>
+                <option value="mr-4">4</option>
+                <option value="mr-4">5</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="element_m_l" class="badge bg-light text-black">Margin Left: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control edit_bs_selectelm" id="element_m_l" name="m_l">
+                <option value=""></option>
+                <option value="ml-1">1</option>
+                <option value="ml-2">2</option>
+                <option value="ml-3">3</option>
+                <option value="ml-4">4</option>
+                <option value="ml-4">5</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="element_p_t" class="badge bg-light text-black">Padding Top: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control edit_bs_selectelm" id="element_p_t" name="p_t">
+                <option value=""></option>
+                <option value="pt-1">1</option>
+                <option value="pt-2">2</option>
+                <option value="pt-3">3</option>
+                <option value="pt-4">4</option>
+                <option value="pt-4">5</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="element_p_b" class="badge bg-light text-black">Padding Bottom: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control edit_bs_selectelm" id="element_p_b" name="p_b">
+                <option value=""></option>
+                <option value="pb-1">1</option>
+                <option value="pb-2">2</option>
+                <option value="pb-3">3</option>
+                <option value="pb-4">4</option>
+                <option value="pb-4">5</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="element_p_r" class="badge bg-light text-black">Padding Right: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control edit_bs_selectelm" id="element_p_r" name="p_r">
+                <option value=""></option>
+                <option value="pr-1">1</option>
+                <option value="pr-2">2</option>
+                <option value="pr-3">3</option>
+                <option value="pr-4">4</option>
+                <option value="pr-4">5</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="element_p_l" class="badge bg-light text-black">Padding Left: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control edit_bs_selectelm" id="element_p_l" name="p_l">
+                <option value=""></option>
+                <option value="pl-1">1</option>
+                <option value="pl-2">2</option>
+                <option value="pl-3">3</option>
+                <option value="pl-4">4</option>
+                <option value="pl-4">5</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="element_visibility" class="badge bg-light text-black">Visibility</label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control edit_bs_selectelm" id="element_visibility" name="visibility">
+                <option value=""></option>
+                <option value="visible">visible</option>
+                <option value="invisible">invisible</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="element_box_shadow" class="badge bg-light text-black">Shadow: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control edit_bs_selectelm" id="element_box_shadow" name="box_shadow">
+                <option value=""></option>
+                <option value="shadow-none">None</option>
+                <option value="shadow-sm">Small</option>
+                <option value="shadow">Normal</option>
+                <option value="shadow-lg">Large</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+
+
+
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="element_text_align" class="badge bg-light text-black">Text Align: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control edit_bs_selectelm" id="element_text_align" name="text_align">
+                <option value=""></option>
+                <option value="text-start">Start</option>
+                <option value="text-center">Center</option>
+                <option value="text-end">End</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="element_text_break" class="badge bg-light text-black">Text Break: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control edit_bs_selectelm" id="element_text_break" name="text_break">
+                <option value=""></option>
+                <option value="text-break">text break</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="element_text_case" class="badge bg-light text-black">Text Case: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control edit_bs_selectelm" id="element_text_case" name="text_case">
+                <option value=""></option>
+                <option value="text-lowercase">LowerCase</option>
+                <option value="text-uppercase">upperCase</option>
+                <option value="text-capitalize">Capitalize</option>
+                <option value="initialism">Initialism</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="element_text_wrap" class="badge bg-light text-black">Text Wrap: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control edit_bs_selectelm" id="element_text_wrap" name="text_wrap">
+                <option value=""></option>
+                <option value="text-wrap">Wrap</option>
+                <option value="text-nowrap">No Wrap</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="element_font_wight" class="badge bg-light text-black">Font Wight: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control edit_bs_selectelm" id="element_font_wight" name="font_wight">
+                <option value=""></option>
+                <option value="font-weight-bold">Bold</option>
+                <option value="font-weight-bolder">Bolder</option>
+                <option value="font-weight-normal">Normal</option>
+                <option value="font-weight-light">Light</option>
+                <option value="font-weight-lighter">Lighter</option>
+                <option value="font-italic">Italic</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="element_display" class="badge bg-light text-black">Display: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control edit_bs_selectelm" id="element_display" name="display">
+                <option value=""></option>
+                <option value="display-1">1</option>
+                <option value="display-2">2</option>
+                <option value="display-3">3</option>
+                <option value="display-4">4</option>
+                <option value="display-5">5</option>
+                <option value="display-6">6</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="element_heading" class="badge bg-light text-black">Heading: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control edit_bs_selectelm" id="element_heading" name="heading">
+                <option value=""></option>
+                <option value="h1">1</option>
+                <option value="h2">2</option>
+                <option value="h3">3</option>
+                <option value="h4">4</option>
+                <option value="h5">5</option>
+                <option value="h6">6</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="element_flex_order" class="badge bg-light text-black">Flex Order: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control edit_bs_selectelm" id="element_flex_order" name="flex_order">
+                <option value=""></option>
+                <option value="order-1">1</option>
+                <option value="order-2">2</option>
+                <option value="order-3">3</option>
+                <option value="order-4">4</option>
+                <option value="order-5">5</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="element_flex_fill" class="badge bg-light text-black">Flex fill: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control edit_bs_selectelm" id="element_flex_fill" name="flex_fill">
+                <option value=""></option>
+                <option value="flex-fill">Fill</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="element_flex_grow" class="badge bg-light text-black">Flex Grow: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control edit_bs_selectelm" id="element_flex_grow" name="flex_grow">
+                <option value=""></option>
+                <option value="flex-grow-1">Grow 1</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="element_ms_auto" class="badge bg-light text-black">MS auto: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control edit_bs_selectelm" id="element_ms_auto" name="ms_auto">
+                <option value=""></option>
+                <option value="ms-auto">Grow 1</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="element_mx_auto" class="badge bg-light text-black">Center Content</label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control edit_bs_selectelm" id="element_mx_auto" name="mx_auto">
+                <option value=""></option>
+                <option value="mx-auto">Center mx-auto</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="element_badge" class="badge bg-light text-black">Badge: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control edit_bs_selectelm" id="element_badge" name="badge">
+                <option value=""></option>
+                <option value="badge">Badge</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="element_vertical_align" class="badge bg-light text-black">Vertical Align: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control edit_bs_selectelm" id="element_vertical_align" name="vertical_align">
+                <option value=""></option>
+                <option value="align-baseline">baseline</option>
+                <option value="align-top">top</option>
+                <option value="align-bottom">bottom</option>
+                <option value="align-text-top">text top</option>
+                <option value="align-text-bottom">text bottom</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="element_box_shadow" class="badge bg-light text-black">Float Position : </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control edit_bs_selectelm" id="element_box_shadow" name="box_shadow">
+                <option value=""></option>
+                <option value="float-sm-end">sm-end</option>
+                <option value="float-md-end">md-end</option>
+                <option value="float-md-end">md-end</option>
+                <option value="float-xl-end">xl-end</option>
+                <option value="float-xxl-end">xxl-end</option>
+                <option value="float-none">none</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+      <!-- Bootstrap input -->
+      <div class="border border-light bg-light d-flex justify-content-center align-items-center the_width80 mb-2 p-2">
+         <div class="flex-fill d-flex justify-content-center align-items-center flex-row flex-nowrap">
+            <div class="flex-fill">
+              <label for="element_colsm" class="badge bg-light text-black">Col SM: </label>
+            </div>
+            <div class="" style="width:max-content;">
+              <select class="form-control edit_bs_selectelm" id="element_colsm" name="colsm">
+                <option value=""></option>
+                <option value="col-sm-1">1</option>
+                <option value="col-sm-2">2</option>
+                <option value="col-sm-3">3</option>
+                <option value="col-sm-4">4</option>
+                <option value="col-sm-5">5</option>
+                <option value="col-sm-6">6</option>
+                <option value="col-sm-7">7</option>
+                <option value="col-sm-8">8</option>
+                <option value="col-sm-9">9</option>
+                <option value="col-sm-10">10</option>
+                <option value="col-sm-11">11</option>
+                <option value="col-sm-12">12</option>
+              </select>
+            </div>
+         </div>
+      </div>
+      <!-- bootstrap -->
+
+    </div>
+    <!-- element end -->
+
+
+
+ </div>
+
+  </div>
+  </div>
+</div>
+<!-- NEW -->

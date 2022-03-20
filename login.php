@@ -34,7 +34,36 @@
    catch( Exception $e ) {
      $login_error = true;
      $login_error_message = $e->getMessage();
-
+     echo '
+       <!DOCTYPE html>
+       <html>
+       <head>
+       <meta charset="UTF-8">
+       <meta name="viewport" content="width=device-width, initial-scale=1">
+       <link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css">
+       <script src="assets/bootstrap/js/bootstrap.bundle.min.js"></script>
+       <title>No Calendar Found</title>
+       </head>
+       <body>
+       <div class="alert alert-danger">
+         <p class="text-center"><strong>Warning!</strong> '.
+         $login_error_message
+         .
+         '
+           <!-- check if admin and display link to setup -->
+           <div class="d-flex justify-content-center align-items-center">
+             <a href="setup.php" class="btn btn-outline-primary">Go To Setup</a>
+             <a href="index.php" class="btn btn-outline-primary">Go To Home</a>
+             <a href="reports.php" class="btn btn-outline-primary">Go To Reports</a>
+             <a href="signup.php" class="btn btn-outline-primary">Go To Signup</a>
+             <a href="login.php" class="btn btn-outline-primary">Go To Login</a>
+           </div>
+         </p>
+      </div>
+      </body>
+      </html>
+      ';
+      die();
    }
 
    // send internal post request to signup Controller class
@@ -56,8 +85,10 @@
       <title><?php echo defined('TITLE') ? TITLE : 'Super Calendar'; ?></title>
       <link rel="icon" href="<?php echo defined('THUMBNAIL') ? 'uploads/images/' . THUMBNAIL : 'uploads/images/default_logo.png'; ?>">
       <meta name="viewport" content="width=device-width, initial-scale=1">
-      <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-      <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+      <script src="assets/js/jquery-3.5.1.min.js"></script>
+      <link rel="stylesheet" href="assets/font-awesome-4.7.0/css/font-awesome.min.css">
+      <link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css">
+      <script src="assets/bootstrap/js/bootstrap.bundle.min.js"></script>
       <?php
 
       if (isset($_SESSION['ajax_token'])){
@@ -65,28 +96,7 @@
       }
       ?>
    </head>
-   <style>
-      body,html{height:100%;width:auto;margin:auto;padding:auto;}
-      .main_page{height:100%;width:100%;max-width: 100% !important;}
-      .aside_bg{z-index:-1;}
-      .sign_up_btn{min-width: 46% !important;}
-      .login_btn{min-width: 46% !important;}
-      div.aside_menu_class{overflow: hidden !important;}
-      @media only screen and (max-width: 600px) {
-      .aside_menu_class {display:none !important;}
-      .main_content_class {width:100% !important;}
-      .btns_container{display:flex !important; flex-flow:column;}
-      /* .sign_up_btn{display:block !mportant;margin-bottom:5px;width:100% !important;} */
-      .sign_up_btn{width:100% !important;margin-bottom:10px !important;}
-      .login_btn{width:100% !important;}
-      }
-      .aside_bg{height: 100%;background-position: center;background-repeat: no-repeat;background-size: cover;}
-      .max_width_200{
-        max-height:200px !important;
-      }
-      .shadow_sign_title{box-shadow: 0 4px 8px 0 rgba(0, 55, 50, 0.2), 0 6px 20px 0 rgb(80 201 80 / 80%);}
-      .shadow_sign_title1{box-shadow: 0 4px 8px 0 rgb(233 52 167 / 61%), 0 6px 20px 0 rgb(80 201 80 / 80%);}
-   </style>
+   <link href="assets/css/login.css" rel="stylesheet">
    <body>
       <!-- Control the column width, and how they should appear on different devices -->
 
@@ -201,126 +211,5 @@
      }
    ?>
 
-   <script>
-
-   const displayRememberMeCont = document.getElementById("display_remember_me");
-   const toggleRememberMe = (remeberMeDisplayed)=> {
-     if (remeberMeDisplayed == 1){
-       displayRememberMeCont.style.display = "block";
-     } else {
-       displayRememberMeCont.style.display = "none";
-     }
-   };
-
-
-   async function postLoginData(url = '', data = {}) {
-
-     const response = await fetch(url, {
-       method: 'POST',
-       credentials: 'same-origin',
-       headers: {
-         'Content-Type': 'application/json',
-       },
-       // Body data type must match "Content-Type" header
-       body: JSON.stringify(data),
-     });
-     try {
-       const newData = await response.json();
-       //console.log('Data Recived: ', newData)
-       return newData;
-     } catch (error) {
-       console.log("error", error);
-     }
-   };
-
-   /* secuirty js some code for secuirty and logins details */
-   function detectBrowser(userAgent) {
-       // fast way to get choice from user agent
-       if((userAgent.indexOf("Opera") || user_agent.indexOf('OPR')) != -1 ) {
-           return 'Opera';
-       } else if(userAgent.indexOf("Chrome") != -1 ) {
-           return 'Chrome';
-       } else if(user_agent.indexOf("Safari") != -1) {
-           return 'Safari';
-       } else if(user_agent.indexOf("Firefox") != -1 ){
-           return 'Firefox';
-       } else if((navigator.userAgent.indexOf("MSIE") != -1 ) || (!!document.documentMode == true )) {
-           return 'IE';//crap
-       } else {
-           return 'Unknown';
-       }
-   }
-
-   function detectOS(appVersion){
-       if (appVersion.indexOf("Win") != -1){
-         return "Windows OS";
-       } else if (appVersion.indexOf("Mac") != -1) {
-         return "MacOS";
-       } else if (appVersion.indexOf("X11") != -1){
-         return "UNIX OS";
-       }
-       else if (appVersion.indexOf("Linux") != -1){
-         return "Linux OS";
-       } else {
-         return "Unknown";
-       }
-   }
-
-
-   async function getLoginData(){
-     if (!ajax_token){return false;}
-     const secuirtyData = await getLogSecuirties();
-     const userLogObj = {
-       'browser': detectBrowser(navigator.userAgent),
-       'os': detectOS(navigator.appVersion),
-       'cookies_enabled': navigator.cookieEnabled,
-       'browser_language': navigator.language,
-       'loc': secuirtyData['loc'],
-       'login_ip': secuirtyData['login_ip'],
-       'ajax_token': ajax_token
-     }
-     return userLogObj;
-   }
-   // send client data to server also display or not display remeber me if cookies not enabled for more ServerSX
-   async function sendLoginData(){
-     getLoginData().then( (data)=>{
-       postLoginData('', data).then(
-         (res)=>{
-           if (res.code == 200 && res.cookies_enabled){
-             // here server saved data and also can handle cookie
-             toggleRememberMe(1);
-           } else {
-             toggleRememberMe(0);
-           }
-         }
-       )
-       //console.log(data);
-     });
-     return true;
-   }
-
-   async function getLogSecuirties(){
-     const result = {loc: 'Unknown', login_ip: 'Unknown'};
-     const res = await fetch('https://www.cloudflare.com/cdn-cgi/trace');
-
-
-       const resText = await res.text();
-       const data = getSecuirtiesJSON(resText);
-       result['loc'] = !data.loc || data.loc == '' ? 'Unknown' : data.loc;
-       result['login_ip'] = !data.ip || data.ip == '' ? 'Unknown' : data.ip;
-     return result;
-   }
-
-   function getSecuirtiesJSON(data){
-     /* create js object from array accoriding to rule new line sperated */
-     data = data.trim().split('\n').reduce(function(obj, pair) {
-       pair = pair.split('=');
-       return obj[pair[0]] = pair[1], obj;
-     }, {});
-     return data;
-   }
-
-
-   sendLoginData();
-   </script>
+   <script src="login.js" type="text/javascript"></script>
 </html>

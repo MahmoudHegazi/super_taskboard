@@ -52,7 +52,6 @@ window.addEventListener('DOMContentLoaded', (event) => {
         }
       }
     });
-    alert(event.target.value);
   }
 
 
@@ -83,7 +82,7 @@ window.addEventListener('DOMContentLoaded', (event) => {
 }
 
   let proprties_index1 = 1;
-  function getCSSPerioprtiesFormPeriod(data){
+  function getCSSPerioprtiesFormPeriod(data,periodIndex){
     let cssRulesContainers = '';
     data.forEach( (cssRule, index)=>{
       const pauseOrActive = cssRule.active == '1' ? 0 : 1;
@@ -96,7 +95,8 @@ window.addEventListener('DOMContentLoaded', (event) => {
            <form style="display:inline;" action="controllers/setup_controller.php" method="POST">
              <input name="period_cremove_style_calid"  value="${cssRule.cal_id}" style="display:none;">
              <input name="period_cremove_style_title"  value="${cssRule.title}" style="display:none;">
-             <input name="period_cremove_style_classname"  value="${cssRule.classname}" style="display:none;">
+             <input name="period_cremove_style_classname"  value="${cssRule.classname}" type="hidden" style="display:none;">
+             <input name="period_cremove_style_index"  value="${periodIndex}" type="hidden" style="display:none;">
              <input class="bg-danger border border-light rounded  text-white" type="submit" value="X" />
            </form>
          </span>
@@ -106,6 +106,7 @@ window.addEventListener('DOMContentLoaded', (event) => {
              <input name="period_cpause_style_calid"  value="${cssRule.cal_id}" style="display:none;">
              <input name="period_cpause_style_title"  value="${cssRule.title}" style="display:none;">
              <input name="period_cpause_style_classname"  value="${cssRule.classname}" style="display:none;">
+             <input name="period_cpause_style_index"  value="${periodIndex}" type="hidden" style="display:none;">
              <button class="bg-primary border border-light rounded text-white" type="submit">
                ${currentActionBtn}
              </button>
@@ -125,6 +126,7 @@ window.addEventListener('DOMContentLoaded', (event) => {
              <input name="period_cedit_style_calid"  value="${cssRule.cal_id}" style="display:none;" required>
              <input name="period_cedit_style_title"  value="${cssRule.title}" style="display:none;" required>
              <input name="period_cedit_style_classname"  value="${cssRule.classname}" style="display:none;" required>
+             <input name="period_cedit_style_index"  value="${periodIndex}" type="hidden" style="display:none;">
              <div class="d-flex p-1">
                <div>
                  <input name="period_cedit_style_style"  value="${cssRule.style}" required>
@@ -145,7 +147,7 @@ window.addEventListener('DOMContentLoaded', (event) => {
 
   let proprties_index = 1;
   // get HTML containers for css rules forms dynamic period and slot
-  function getCSSPerioprtiesFormSlot(data){
+  function getCSSPerioprtiesFormSlot(data,slotIndex){
     let cssRulesContainers = '';
     data.forEach( (cssRule, index)=>{
       const pauseOrActive = cssRule.active == '1' ? 0 : 1;
@@ -159,7 +161,8 @@ window.addEventListener('DOMContentLoaded', (event) => {
            <form style="display:inline;" action="controllers/setup_controller.php" method="POST">
              <input name="slot_cremove_style_calid"  value="${cssRule.cal_id}" style="display:none;" required>
              <input name="slot_cremove_style_title"  value="${cssRule.title}" style="display:none;" required>
-             <input name="slot_cremove_style_classname"  value="${cssRule.classname}" style="display:none;" required>
+             <input name="slot_cremove_style_index"  value="${slotIndex}" type="hidden" style="display:none;" required>
+             <input name="slot_cremove_style_classname"  value="${cssRule.classname}" type="hidden" style="display:none;" required>
              <input class="bg-danger border border-light rounded  text-white" type="submit" value="X" />
            </form>
          </span>
@@ -168,6 +171,7 @@ window.addEventListener('DOMContentLoaded', (event) => {
              <input name="slot_cpause_style_active"  value="${pauseOrActive}" style="display:none;" required>
              <input name="slot_cpause_style_calid"  value="${cssRule.cal_id}" style="display:none;" required>
              <input name="slot_cpause_style_title"  value="${cssRule.title}" style="display:none;" required>
+             <input name="slot_cpause_style_index"  value="${slotIndex}" type="hidden" style="display:none;" required>
              <input name="slot_cpause_style_classname"  value="${cssRule.classname}" style="display:none;" required>
              <button class="bg-primary border border-light rounded text-white" type="submit">
                ${currentActionBtn}
@@ -186,6 +190,7 @@ window.addEventListener('DOMContentLoaded', (event) => {
              class="edit_customcss_form" data-index="slot_${cssRule.id}">
              <input name="slot_cedit_sample_id"  value="${cssRule.id}" style="display:none;" required>
              <input name="slot_cedit_style_calid"  value="${cssRule.cal_id}" style="display:none;" required>
+             <input name="slot_cedit_style_index"  value="${slotIndex}" type="hidden" style="display:none;" required>
              <input name="slot_cedit_style_title"  value="${cssRule.title}" style="display:none;" required>
              <input name="slot_cedit_style_classname"  value="${cssRule.classname}" style="display:none;" required>
              <div class="d-flex p-1">
@@ -207,6 +212,7 @@ window.addEventListener('DOMContentLoaded', (event) => {
 
 
 let current_main_calues = [];
+let ok = 1;
 function getMainCSS(main_styles, elm_index, type='periods'){
 
   const periodNames = {
@@ -299,6 +305,7 @@ function getMainCSS(main_styles, elm_index, type='periods'){
     }
     code_id = mainStyle.id ?  'code_data_' + mainStyle.id : code_id;
     main_css_calid_value = mainStyle.cal_id ? mainStyle.cal_id : main_css_calid_value;
+
     main_css_classname_value = mainStyle.classname ? mainStyle.classname : main_css_classname_value;
 
    });
@@ -323,7 +330,6 @@ function getMainCSS(main_styles, elm_index, type='periods'){
       if (bindex > 0 && typeOption == borderType){
         borderTypeOptions += `<option value="${typeOption}" selected>${typeOption}</option>`;
       } else {
-        console.log();
         borderTypeOptions += `<option value="${typeOption}" >${typeOption}</option>`;
       }
     });
@@ -339,8 +345,6 @@ function getMainCSS(main_styles, elm_index, type='periods'){
         borderColorOptions += `<option value="${colorOption}" >${colorOption.slice(0,colorOption.length-1)}</option>`;
       }
     });
-
-
     mainCSSFormHTML += `
 
 
@@ -453,7 +457,6 @@ function getMainCSS(main_styles, elm_index, type='periods'){
   const maincss_values = `
   <code style="display:none;" id="${code_id}">${colorValue},${backgroundColor},${fontFamily},${fontSize},${borderSize},${borderType},${borderColor}</code>
   `;
-  //console.log(current_main_calues);
   return mainCSSFormHTML + maincss_values;
 }
 
@@ -469,12 +472,8 @@ function getMainCSS(main_styles, elm_index, type='periods'){
         success: function(data){
 
             if (data.code == 200){
-              console.log(data);
-
-              //console.log(data);
               if (data.total_periods > 0){
 
-                //console.log(data);
                 /* Periods Display */
                 const periods = data.period_data;
                 let periodsHTML = '';
@@ -495,7 +494,6 @@ function getMainCSS(main_styles, elm_index, type='periods'){
               }
 
 
-
               if (data.total_slots > 0){
 
                 /* Slots Display */
@@ -503,8 +501,14 @@ function getMainCSS(main_styles, elm_index, type='periods'){
                 let slotsHTML = '';
                 $("#slots_edit_title").text(`(${data.total_slots})`);
                 $("#total_slots_strong").text(`(${data.total_slots})`);
+                let period_switcher = 0;
                 slots.forEach( (slot, index)=>{
-                  slotsHTML += getSlotHTMLText(slot.slot_index, slot.start_from, slot.end_at, slot.id, data.cal_id, slot.element_id, slot.element_class, slot.main_styles, slot.custom_styles);
+                  if (data.total_periods % index == 0){
+                    period_switcher = 1;
+                  } else {
+                    period_switcher += 1;
+                  }
+                  slotsHTML += getSlotHTMLText(slot.slot_index, slot.start_from, slot.end_at, slot.id, slot.cal_id, slot.element_id, slot.element_class, slot.main_styles, slot.custom_styles, period_switcher);
                 });
                 $('#modal_slots_container').html(slotsHTML);
 
@@ -537,7 +541,7 @@ function getPeriodHTMLText(period_index, period_date, period_description, period
 
   const formated_time = getFormatedTime(period_date);
 
-  const customStyle = getCSSPerioprtiesFormPeriod(customCSS);
+  const customStyle = getCSSPerioprtiesFormPeriod(customCSS, period_index);
 
   let customTitles = customCSS.map(customObj => customObj.title);
   const lastCustomIndex = get_last_index_dynamic(customTitles);
@@ -685,12 +689,8 @@ function getPeriodHTMLText(period_index, period_date, period_description, period
 
 
 
-function getSlotHTMLText(slot_index, start_from, end_at, slot_id, cal_id, element_id, element_class, mainCSS, customCSS){
-
-
-  const customStyle = getCSSPerioprtiesFormSlot(customCSS);
-
-
+function getSlotHTMLText(slot_index, start_from, end_at, slot_id, cal_id, element_id, element_class, mainCSS, customCSS, period_id) {
+  const customStyle = getCSSPerioprtiesFormSlot(customCSS, slot_index);
   let customTitles = customCSS.map(customObj => customObj.title);
   const lastCustomIndex = get_last_index_dynamic(customTitles);
 
@@ -777,6 +777,7 @@ function getSlotHTMLText(slot_index, start_from, end_at, slot_id, cal_id, elemen
                       <input type="submit" value="Add Custom Rule" class="btn btm-block btn-primary">
                       <input type="hidden" value="${cal_id}" class="form-control"
                       name="slot_add_calid" style="display:none;">
+                      <input type="hidden" name="custom_slot_index" value="${slot_index}" class="form-control" style="display:none !important;">
                       <input type="hidden" value="${lastCustomIndex}" class="form-control"
                       name="custom_slot_newindex" style="display:none;">
                     </div>
@@ -788,7 +789,7 @@ function getSlotHTMLText(slot_index, start_from, end_at, slot_id, cal_id, elemen
         </div>
       </div>
     <!-- style end-->
-    <!-- remove period form -->
+    <!-- remove slot form -->
     <form id="delete_slot_form" action="controllers/setup_controller.php" method="POST" onsubmit="displayCalendarEditWait(event)">
 
       <div class="form-group">
@@ -827,14 +828,3 @@ function getSlotHTMLText(slot_index, start_from, end_at, slot_id, cal_id, elemen
 
 
 });
-
-
-/*
-$.ajax({
-  type: "POST",
-  data: {ajax_calid_editcal:1},
-  url: 'controllers/setup_controller.php',
-  success: function(data){
-      console.log(data);
-    }
-  });*/

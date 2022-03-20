@@ -3,13 +3,13 @@ $servername = "localhost";
 $username = "root";
 $password = "root";
 
+// the native app country
+$country_code = 'IT';
+
 // this appname usally it's the root of the site for example folder contains website name supercalendar
 define('APPNAME', 'supercalendar');
 
 // set default time zone
-define('TIMEZONE', 'Europe/Rome');
-date_default_timezone_set(TIMEZONE);
-
 try {
 
   $now = new DateTime();

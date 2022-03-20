@@ -244,6 +244,60 @@ function display_html_erro($GETobj){
     }
 }
 
+function display_error($error, $error_msg){
+  if ($error){
+    echo '
+    <!DOCTYPE html>
+    <html>
+    <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css">
+    <script src="assets/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <title>'.$error_msg.'</title>
+    </head>
+    <body>
+    <div class="alert alert-danger">
+      <p class="text-center"><strong>Warning!</strong> '.
+      $error_msg
+      .
+      '
+        <!-- check if admin and display link to setup -->
+        <div class="d-flex justify-content-center align-items-center">
+          <a href="index.php" class="btn btn-outline-primary">Go To Home</a>
+        </div>
+      </p>
+   </div>
+   </body>
+   </html>
+   ';
+   die();
+ } else {
+   echo '
+   <!DOCTYPE html>
+   <html>
+   <head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1">
+   <link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css">
+   <script src="assets/bootstrap/js/bootstrap.bundle.min.js"></script>
+   <title>Unkown Error</title>
+   </head>
+   <body>
+   <div class="alert alert-danger">
+     unkown error please contact admin
+   </div>
+   <div class="d-flex justify-content-center align-items-center">
+     <a href="index.php" class="btn btn-outline-primary">Go To Home</a>
+   </div>
+   </body>
+   </html>
+   ';
+   die();
+ }
+}
+
+
 /* some other secuirtes Cloud auth tequnique */
 function encryptString($plaintext, $password, $encoding = null) {
     $iv = openssl_random_pseudo_bytes(16);

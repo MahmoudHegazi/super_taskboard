@@ -1,11 +1,11 @@
 <?php
 ob_start();
-require_once (dirname(__FILE__, 2) . '\config.php');
-require_once (dirname(__FILE__, 2) . '\functions.php');
-require_once (dirname(__FILE__, 2) . '\services\UserService.php');
-require_once (dirname(__FILE__, 2) . '\services\LogsService.php');
-require_once (dirname(__FILE__, 2) . '\services\CalendarService.php');
-require_once (dirname(__FILE__, 2) . '\models\User.php');
+require_once (dirname(__FILE__, 2) . '/config.php');
+require_once (dirname(__FILE__, 2) . '/functions.php');
+require_once (dirname(__FILE__, 2) . '/services/UserService.php');
+require_once (dirname(__FILE__, 2) . '/services/LogsService.php');
+require_once (dirname(__FILE__, 2) . '/services/CalendarService.php');
+require_once (dirname(__FILE__, 2) . '/models/User.php');
 
 class LoginController {
   protected $pdo;
@@ -35,8 +35,9 @@ class LoginController {
     $used_cal = $this->set_used_calendar($this->assign_used_calendar());
     $used_cal = $this->get_used_calendar();
 
-    if (!isset($used_cal) || empty($used_cal)){
-      throw new Exception( "No Calendars Created Please Create Calendar First and it will marked as used automatic Erro 01" );
+    $cal_id = NULL;
+    if (isset($used_cal) && !empty($used_cal)){
+      $cal_id= $used_cal->get_id();
     }
 
     if (!isset($this->calendar_service) || empty($this->calendar_service)){
@@ -44,7 +45,7 @@ class LoginController {
     }
 
 
-    $cal_id= $used_cal->get_id();
+
 
     $appname = defined('APPNAME') ? APPNAME : 'supercalendar';
     $this->set_app_name($appname);
@@ -372,6 +373,7 @@ class LoginController {
           if ($cookies_enabled == 1 && $rememberme_input == 1){
 
             if ($rememberme == False){
+              // in server set https to true to send encrypt cookie and it encrypted to
               $cooke_ready = setcookie('uid', $encrypted_userid, time() + (86400 * 30), $httponly=True);
             }
 

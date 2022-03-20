@@ -1,0 +1,146 @@
+bg (bg-primary, bg-success, bg-info, bg-warning, bg-danger, bg-secondary, bg-dark, bg-light)
+text_color (text-muted, text-primary, text-success, text-info text-warning, text-danger,
+ text-secondary, text-white, text-dark, text-light, text-body)
+p (p-1, p-2, p-3, p-4, p-5)
+m (m-1, m-2, m-3, m-4, m-5)
+border (,border)
+border_size (border-1, border-2, border-3, border-4, border-5)
+border_color(border-primary, border-secondary, border-success, border-danger, border-warning,
+ border-info, border-light, border-dark, border-white)
+border_round (rounded, rounded-top, rounded-end, rounded-bottom, rounded-start,
+rounded-circle, rounded-pill, rounded-0, rounded-1, rounded-2, rounded-3)
+width (w-25, w-50, w-75, w-100, w-auto, mw-100)
+height (h-25, h-50, h-75, h-100, h-auto, mh-100)
+m_t (mt-1, mt-2, mt-3, mt-4, mt-5)
+m_b (mb-1, mb-2, mb-3, mb-4, mb-5)
+m_r (mr-1, mr-2, mr-3, mr-4, mr-5)
+m_l (ml-1, ml-2, ml-3, ml-4, ml-5)
+p_t (pt-1, pt-2, pt-3, pt-4, pt-5)
+p_b (pb-1, pb-2, pb-3, pb-4, pb-5)
+p_r (pr-1, pr-2, pr-3, pr-4, pr-5)
+p_l (pl-1, pl-2, pl-3, pl-4, pl-5)
+visibility (visible, invisible)
+box_shadow (shadow-none, shadow-sm, shadow, shadow-lg)
+justify_content (justify-content-start, justify-content-end, justify-content-center, justify-content-between, justify-content-around)
+align_items (align-items-start, align-items-end, align-items-center, align-items-around, align-items-stretch)
+ratio (ratio ratio-1x1, ratio ratio-4x3, ratio ratio-16x9, ratio ratio-21x9)
+flex_flow (flex-row, flex-row-reverse, flex-column, flex-column-reverse)
+flex_type (d-flex, d-inline-flex)
+flex_wrap (flex-wrap, flex-wrap-reverse, flex-nowrap)
+align_content (align-content-start, align-content-end, align-content-center, align-content-around, align-content-stretch)
+
+
+bg (bg-primary, bg-success, bg-info, bg-warning, bg-danger, bg-secondary, bg-dark, bg-light)
+text_color (text-muted, text-primary, text-success, text-info text-warning, text-danger, text-secondary,
+
+text-white, text-dark, text-light, text-body)
+
+p (p-1, p-2, p-3, p-4, p-5)
+m (m-1, m-2, m-3, m-4, m-5)
+border (bool)
+border_size (border-1, border-2, border-3, border-4, border-5)
+border_color(border-primary, border-secondary, border-success, border-danger, border-warning, border-info, border-light, border-dark, border-white)
+border_round (rounded, rounded-top, rounded-end, rounded-bottom, rounded-start, rounded-circle, rounded-pill, rounded-0, rounded-1, rounded-2, rounded-3)
+width (w-25, w-50, w-75, w-100, w-auto, mw-100)
+height (h-25, h-50, h-75, h-100, h-auto, mh-100)
+m_t (mt-1, mt-2, mt-3, mt-4, mt-5)
+m_b (mb-1, mb-2, mb-3, mb-4, mb-5)
+m_r (mr-1, mr-2, mr-3, mr-4, mr-5)
+m_l (ml-1, ml-2, ml-3, ml-4, ml-5)
+p_t (pt-1, pt-2, pt-3, pt-4, pt-5)
+p_b (pb-1, pb-2, pb-3, pb-4, pb-5)
+p_r (pr-1, pr-2, pr-3, pr-4, pr-5)
+p_l (pl-1, pl-2, pl-3, pl-4, pl-5)
+visibility (visible, invisible)
+box_shadow (shadow-none, shadow-sm, shadow, shadow-lg)
+flex_fill (, flex-fill)
+flex_grow (, flex-grow-1)
+ms_auto (, ms_auto)
+flex_order (, order-1, order-2, order-3, order-4, order-5)
+vertical_align (align-baseline, align-top, align-middle, align-bottom, align-text-top, align-text-bottom)
+col_sm (col-sm-1, col-sm-2, col-sm-3, col-sm-4, col-sm-5, col-sm-6, col-sm-7, col-sm-8, col-sm-9, col-sm-10, col-sm-11, col-sm-12)
+h (h1, h2, h3, h4, h5, h6)
+display (display-1, display-2, display-3, display-4, display-5, display-6)
+text_wrap (text-wrap, text-nowrap, text-break)
+font_weight (font-weight-bold, font-weight-bolder, font-weight-normal, font-weight-light, font-weight-lighter, font-italic)
+text_case(text-lowercase, text-uppercase, text-capitalize, initialism)
+badge (, badge)
+float_position (float-sm-end, float-md-end, float-lg-end, float-xl-end, float-xxl-end, float-none)
+text_align (text-start, text-center, text-end)
+text_break ( ,text-break)
+center_content = (,mx-auto)
+
+
+
+
+
+
+
+container_bg
+container_text_color
+container_p
+container_m
+container_border
+container_border_size
+container_border_color
+container_border_round
+container_width
+container_height
+container_m_t
+container_m_b
+container_m_r
+container_m_l
+container_p_t
+container_p_b
+container_p_r
+container_p_l
+container_visibility
+container_box_shadow
+container_justify_content
+container_align_items
+container_align_content
+container_ratio
+container_flex_type
+container_flex_flow
+container_flex_wrap
+
+
+
+
+
+element_bg
+element_text_color
+element_p
+element_m
+element_border
+element_border_size
+element_border_color
+element_border_round
+element_width
+element_height
+element_m_t
+element_m_b
+element_m_r
+element_m_l
+element_p_t
+element_p_b
+element_p_r
+element_p_l
+element_visibility
+element_box_shadow
+element_text_align
+element_text_break
+element_text_case
+element_text_wrap
+element_font_wight
+element_display
+element_heading
+element_flex_order
+element_flex_fill
+element_flex_grow
+element_ms_auto
+element_mx_auto
+element_badge
+element_vertical_align
+element_box_shadow
+element_colsm

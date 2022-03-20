@@ -1,7 +1,7 @@
 <?php
-require_once(dirname(__FILE__, 2) . '\config.php');
-require_once(dirname(__FILE__, 2) . '\mappers\PeriodMapper.php');
-require_once(dirname(__FILE__, 2) . '\models\Period.php');
+require_once(dirname(__FILE__, 2) . '/config.php');
+require_once(dirname(__FILE__, 2) . '/mappers/PeriodMapper.php');
+require_once(dirname(__FILE__, 2) . '/models/Period.php');
 
 
 class PeriodService {
@@ -72,13 +72,13 @@ class PeriodService {
     return $period_list;
   }
 
-  function get_day_periods($day_id){
+  function get_day_periods($day_id, $calid){
     if (!isset($day_id) || !is_numeric($day_id)){
       return array();
     }
-
     $period_list = array();
-    $period_rows = $this->period_mapper->get_periods_by_day($day_id);
+
+    $period_rows = $this->period_mapper->get_periods_by_day($day_id, $calid);
     if (count($period_rows) == 0){return array();}
 
     for ($i=0; $i<count($period_rows); $i++){

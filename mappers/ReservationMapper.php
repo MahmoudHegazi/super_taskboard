@@ -47,7 +47,6 @@ class ReservationMapper {
     if ($data){
       return $stmt->fetch();
     } else {
-      echo 'yes';
       return array();
     }
   }

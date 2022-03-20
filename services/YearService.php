@@ -1,7 +1,7 @@
 <?php
-require_once(dirname(__FILE__, 2) . '\config.php');
-require_once(dirname(__FILE__, 2) . '\mappers\YearMapper.php');
-require_once(dirname(__FILE__, 2) . '\models\Year.php');
+require_once(dirname(__FILE__, 2) . '/config.php');
+require_once(dirname(__FILE__, 2) . '/mappers/YearMapper.php');
+require_once(dirname(__FILE__, 2) . '/models/Year.php');
 
 class YearService {
   protected $pdo;

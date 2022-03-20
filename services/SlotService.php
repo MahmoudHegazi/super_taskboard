@@ -1,7 +1,7 @@
 <?php
-require_once(dirname(__FILE__, 2) . '\config.php');
-require_once(dirname(__FILE__, 2) . '\mappers\SlotMapper.php');
-require_once(dirname(__FILE__, 2) . '\models\Slot.php');
+require_once(dirname(__FILE__, 2) . '/config.php');
+require_once(dirname(__FILE__, 2) . '/mappers/SlotMapper.php');
+require_once(dirname(__FILE__, 2) . '/models/Slot.php');
 
 
 class SlotService {

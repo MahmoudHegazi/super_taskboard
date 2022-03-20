@@ -1,7 +1,7 @@
 <?php
-require_once(dirname(__FILE__, 2) . '\config.php');
-require_once(dirname(__FILE__, 2) . '\mappers\DayMapper.php');
-require_once(dirname(__FILE__, 2) . '\models\Day.php');
+require_once(dirname(__FILE__, 2) . '/config.php');
+require_once(dirname(__FILE__, 2) . '/mappers/DayMapper.php');
+require_once(dirname(__FILE__, 2) . '/models/Day.php');
 
 
 class DayService {
@@ -44,6 +44,14 @@ class DayService {
     return $day;
   }
 
+
+  function get_day_by_id_force($day_id){
+    $day_row = $this->day_mapper->read_one_by_force($day_id);
+    if (!isset($day_row['id']) || empty($day_row['id'])){return 0;}
+    return $day_row['id'];
+  }
+
+
   function get_dayid_by_date($day_date, $cal_id){
 
     $day_date = test_input($day_date);
@@ -73,7 +81,6 @@ class DayService {
     }
     return $days_list;
   }
-
 
   // services methods
   function get_days_by_id($list_of_ids){
@@ -160,11 +167,15 @@ class DayService {
 
 
 
-  function get_all_days_where($column, $value, $limit='', $and_column='', $and_val=''){
+  function get_all_days_where($calid, $column, $value, $limit='', $and_column='', $and_val=''){
+
+    if (!$calid){return array();}
     $limit = $limit && $limit != '' && is_numeric($limit) ? $limit : '';
     $days_list = array();
-    $day_rows = $this->day_mapper->get_days_where($column, $value, $limit, $and_column, $and_val);
+
+    $day_rows = $this->day_mapper->get_days_where($calid, $column, $value, $limit, $and_column, $and_val);
     $total_rows = count($day_rows);
+
     if ($total_rows == 0){return array();}
 
     for ($i=0; $i<$total_rows; $i++){
@@ -184,6 +195,7 @@ class DayService {
           array_push($days_list, $day);
         }
     }
+
     return $days_list;
   }
 }

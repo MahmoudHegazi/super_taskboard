@@ -1,0 +1,488 @@
+body, html {
+margin: 0;
+height: auto;
+font-family: georgia;
+font-size: 16px;
+width: 100%;
+}
+.padding-1{padding:1px;}
+.active_toggle{
+  box-shadow: 0 4px 8px 0 rgba(200, 200, 200), 0 6px 20px 0 rgba(0, 150, 200, .06) !important;
+}
+.main_view {
+  width: 100% !important;
+  max-width: 100% !important;
+  height:max-content;
+}
+.applyongroup {
+  width: 25px;
+  height: 25px;
+  padding: 3px;
+}
+/* scroll style */
+::-webkit-scrollbar {
+  width: 20px;
+  height: 10px !important;
+}
+/* Track */
+::-webkit-scrollbar-track {
+  box-shadow: inset 0 0 5px grey;
+  border-radius: 10px;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: url('../images/scrollbg.jpg');
+  border-radius: 10px;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  opacity: 0.8;
+  box-shadow: inset 2px 0 5px lightblue;
+}
+.options_parent {min-height: 175px;}
+div.aside_container{
+box-shadow: 0 4px 8px 0 rgba(200, 200, 200), 0 6px 20px 0 rgba(0, 150, 200, .06);
+background: #e6e6fa75;
+display: block;
+}
+.nav_cont{text-align:justify;}
+div.aside_container .nav_item, div.calendar {
+box-shadow: 0 4px 8px 0 rgba(200, 200, 200, 0.2), 0 6px 20px 0 rgba(200, 200, 200, 1.2);
+cursor: pointer;
+}
+div.aside_container .nav_item:hover {
+box-shadow: 0 4px 8px 0 rgba(200, 200, 200, 0.2), 0 6px 20px 0 rgba(200, 200, 200, 1.2);
+box-shadow: 0 4px 8px 0 rgba(30, 200, 50, 0.2), 0 6px 20px 0 rgba(200, 200, 200, .6);
+cursor: pointer;
+background: azure;
+}
+.menu__item {
+text-decoration: none;
+color: black;
+font-weight: bold;
+font-family: georgia;
+}
+.active_section{
+box-shadow: 0 4px 8px 0 rgb(150 150 150 / 20%), 0 6px 10px 0 rgb(12 130 150) !important;
+}
+.active_link{
+background: royalblue;
+color: white !important;
+box-shadow: 0 4px 8px 0 rgb(200 200 200 / 20%), 0 6px 20px 0 rgb(200 200 200);
+}
+.scroll_to_btns:hover{
+background: white;
+color: black !important;
+box-shadow: 0 4px 8px 0 rgb(200 200 200 / 20%), 0 6px 20px 0 rgb(200 200 200);
+}
+.default_shadow {
+box-shadow: 0 4px 8px 0 rgb(200 200 200 / 20%), 0 6px 20px 0 rgb(200 200 200);
+}
+.bg_darkkhaki{
+background:darkkhaki;
+}
+.bg_aliceblue {
+background: aliceblue;
+}
+.bg_dodgerblue {
+background: dodgerblue;
+}
+.bg_dimgray{
+background: dimgray;
+}
+.bg_indianred{
+background: indianred;
+}
+.bg_cornsilk{
+background: cornsilk;
+color: dimgray;
+}
+.bg_azure{
+background: azure;
+}
+.bg_cornflowerblue{
+background: cornflowerblue;
+}
+.bg_palevioletred{
+  background: palevioletred;
+}
+.fontbold{
+  font-weight: bold;
+}
+.shadow1{
+text-shadow: 1px 1px 2px black, 8px 0 25px gray, 3px 0 5px darkblue;
+}
+.text_shadow01 {
+text-shadow: 1px 1px 2px black, 0 0 25px blue, 0 0 5px lightgray;
+}
+.text_shadow02 {
+text-shadow: 1px 1px 2px black, 0 0 25px white, 0 0 5px darkblue;
+}
+.cursor_pointer{
+  cursor:pointer;
+}
+.text_black{color: black;}
+.font_80em {font-size: .80em;}
+
+.max_width_30{
+  max-width: 30% !important;
+}
+.the_width80{ width: 100% !important;}
+.month_arrow {
+cursor: pointer;
+}
+.month_arrow:hover {
+text-shadow: 1px 1px 2px black, 0 0 25px white, 0 0 3px white;
+}
+
+.obj_in_view * {max-width: 100% !important;}
+.month_toggle_btn {
+width: 30px;
+max-width: 30px;
+box-shadow: 0 2px 3px 0 rgb(200 200 200 / 20%), 0 6px 8px 0 rgba(0, 0, 50, 0.5);
+cursor: pointer;
+}
+.month_toggle_btn span{
+text-shadow: 1px 1px 2px lightgray, 0 0 25px blue, 0 0 5px gold;
+color: darkslategrey;
+font-weight: bold;
+}
+.month_toggle_btn:hover {
+box-shadow: 0 2px 3px 0 rgb(200 200 200 / 20%), 0 6px 20px 0 rgb(200 200 200);
+}
+#period_desc_280910{
+  background: black !important;
+}
+.allweeks {
+  position: fixed;
+  left:0;
+  top:0;
+  background: transparent;
+  width:fit-content;
+  max-width:100% !important;
+  font-size:10px;
+  margin:0;
+  padding:0 !important;
+}
+.cal_card_cell {
+max-width:14.2857142857%;
+overflow:auto;
+hight: fit-content;
+max-height: fit-content;
+padding: 8px;
+background: royalblue;
+color: cornsilk;
+}
+.day_card {
+min-height: fit-content;
+cursor: default;
+}
+
+.owned_byLoged,.owned_byLoged_remove,.owned_byLoged_reserv {
+  cursor: pointer;
+}
+.owned_byLoged_remove:hover{
+  background: darkred !important;
+  color: white !important;
+}
+
+
+.period_title_default{
+
+   width: fit-content;
+   margin-left: auto !important;
+   margin-right: auto !important;
+   padding: 2px;
+ }
+.period_background_default {
+  padding: 5px;
+  color: black;
+  border: 1px solid white;
+  border-radius: 8px;
+  width: 95%;
+  max-width: 95%;
+  margin-bottom: 5px;
+
+
+}
+
+.used_slot {
+  opacity: 0.8;
+  cursor: default !important;
+}
+.slot_background_default {
+  cursor: pointer;
+  background: lightgray;
+  color: black;
+  border: 1p solid gold;
+  border-radius: 8px;
+  width: 95%;
+  max-width: 95%;
+
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center importat;
+  flex-flow: row nowrap !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+
+}
+ /* active section and link and scroll to */
+ .active_section{
+  box-shadow: 0 4px 8px 0 rgb(200 200 200 / 20%), 0 6px 20px 0 rgb(10 10 10);
+}
+.active_link{
+  background: royalblue;
+  color: white !important;
+  box-shadow: 0 4px 8px 0 rgb(200 200 200 / 20%), 0 6px 20px 0 rgb(200 200 200);
+}
+
+
+.scroll_to_btns:hover{
+  background: white;
+  color: black !important;
+  box-shadow: 0 4px 8px 0 rgb(200 200 200 / 20%), 0 6px 20px 0 rgb(200 200 200);
+}
+
+.null_day {
+  background: dimgrey;
+}
+/* style controller aside */
+div.active_aside {
+   position: fixed;
+   display: none;
+   bottom: 0;
+   right: 4px;
+   overflow: auto;
+   height: 100%;
+   width: 22%;
+   background: cadetblue;
+   border: 3px solid lightgray;
+   box-shadow: 0 2px 3px 0 khaki, 0 2px 8px 0 lightgray;
+ }
+
+ .style_editor_title{
+margin: 5px;
+text-shadow: 1px 1px 2px lightgray, 0 0 25px blue, 0 0 5px gold;
+      box-shadow: 0 2px 3px 0 khaki, 0 2px 8px 0 lightgray;
+}
+
+.magic_icon{
+color: khaki;
+text-shadow: 1px 1px 2px lightgreen, 0 0 25px blue, 0 0 5px gold;
+}
+.toggle_asside{
+cursor: pointer;
+}
+
+.toggle_asside:hover{
+text-shadow: 1px 1px 2px red, 0 0 25px blue, 0 0 5px gold;
+}
+
+.style_viewercss{
+min-height:100%;
+height: auto;
+min-width: 80%;
+max-width: 100%;
+width: 100%;
+box-shadow: 0 2px 3px 2px lightgray, 0 2px 8px 0 gray;
+}
+
+
+
+/* media query programing */
+@media only screen and (max-width: 900px) {
+ /* ipad */
+.full_day {display: none !important;}
+.short_day{display: block !important;}
+
+div.slot_background_default div.justify-content-between{ justify-content: center !important; }
+
+ .period_title_default {
+    max-width:80% !important;
+    overflow:hidden;
+    font-size: .525rem;
+    padding:0;
+}
+.active_aside {width: 40% !important;}
+
+.period_background_default {
+  padding: 0px !important;
+  max-width: 100%;
+  overflow: hidden;
+  margin-bottom: 0px !important;
+            display: flex !important;
+    justify-content: center !important;
+    align-items: center importat;
+    flex-flow: column nowrap !important;
+ padding: 0px;
+}
+.slot_background_default {
+  max-width: 80%;
+  overflow: hidden;
+}
+
+
+}
+div.day_card  {
+  min-height: 80px;
+}
+@media only screen and (max-width: 580px) {
+
+.active_aside {width: 40% !important;}
+#aside_style_controller *{
+  font-weight: lighter;
+  text-transform: lowercase;
+}
+#aside_style_controller .editor_part{
+  width: 100%;
+  padding: 0;
+  margin: 0;
+}
+
+#aside_style_controller button {
+  max-width: 85% !important;
+  padding: 2px !important;
+
+  display: block;
+
+}
+
+.period_title_default {
+    max-width:100%;
+    overflow:hidden;
+    font-size: .925rem;
+    padding:8px;
+    margin-top: 4px;
+    margin-bottom 2px;
+}
+/* day name titles mobile*/
+#day_namecont {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    flex-flow: column;
+    display: none !important;
+  }
+
+div.day_card  {
+  min-height: 100px;
+}
+div.cal_cards_row{
+display: block !important;
+border-bottom: 5px solid royalblue;
+border-top: 5px solid royalblue;
+border-radius: 10px;
+margin-bottom: 20px;
+
+box-shadow: 0px 4px 0 4px rgba(50, 50, 50, .4), 0 0 0 1px rgba(0, 200, 150, .8);
+}
+.cal_cards_row:hover{
+box-shadow: 0px 4px 0 4px rgba(50, 50, 50, .4), 0 0 0 2px rgba(130, 255, 130, .8);
+background: rgba(240, 250, 240, .8);
+}
+.cal_days_titles {
+display: none !important;
+}
+.day_card{ max-width: 100% !important;}
+/* \a new line */
+.week_1::before {
+content: 'Week 1';
+white-space: pre;
+color: #2196f3;
+font-size: larger;
+text-shadow: 1px 1px 2px black, 0 0 25px white, 0 0 3px white;
+}
+.week_2::before {
+content: 'Week 2';
+white-space: pre;
+color: #2196f3;
+font-size: larger;
+text-shadow: 1px 1px 2px black, 0 0 25px white, 0 0 3px white;
+}
+.week_3::before {
+content: 'Week 3';
+white-space: pre;
+color: #2196f3;
+font-size: larger;
+text-shadow: 1px 1px 2px black, 0 0 25px white, 0 0 3px white;
+}
+.week_4::before {
+content: 'Week 4';
+white-space: pre;
+color: #2196f3;
+font-size: larger;
+text-shadow: 1px 1px 2px black, 0 0 25px white, 0 0 3px white;
+}
+.week_5::before {
+content: 'Week 5';
+white-space: pre;
+color: #2196f3;
+font-size: larger;
+text-shadow: 1px 1px 2px black, 0 0 25px white, 0 0 3px white;
+}
+}
+@media only screen and (max-width: 300px) {
+div#month_controler_container {
+width: 100%;
+}
+.options_parent {
+margin: 0;
+padding: 0;
+}
+.month_arrow {
+font-size: 1.5rem;
+}
+.month_name {
+font-size: 1rem;
+display: inline-block !important;
+margin-left: auto !important;
+margin-right: auto !important;
+}
+.month_small_btns{
+padding: 0;
+margin: 0;
+}
+
+#style_viewer {
+  font-size: .625rem !important;
+  background: black !important;
+  padding: 1px !important;
+  margin: 0px !important;
+
+}
+
+
+.month_small_btns form {
+width: 30px;
+font-size: 1rem !important;
+padding: 1 !important;
+}
+.month_row  {
+display: flex !important;
+justify-content: center !important;
+align-items: center !important;
+flex-flow: column;
+}
+
+
+
+}
+@media only screen and (max-width: 190px) {
+.month_row {
+border: none !important;
+word-break: break-word;
+}
+.month_name {
+font-size: .825rem;
+}
+.month_arrow {
+font-size: 1.5rem;
+}
+}
+form.active_small_button {
+    background: #41e15c85 !important;
+    box-shadow: 0px 4px 0 4px rgba(50, 50, 50, .4), 2px 2px 2px 1px rgba(255, 255, 255, .8);
+}

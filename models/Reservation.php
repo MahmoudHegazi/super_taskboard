@@ -7,6 +7,7 @@ class Reservation {
   private $slot_id;
   private $user_id;
   private $reservation_date;
+  private $status;
 
   function init($name, $notes, $slot_id, $user_id){
     $this->notes = $notes;
@@ -58,4 +59,12 @@ class Reservation {
   function get_reservation_date() {
     return $this->reservation_date;
   }
+
+  function set_status($status) {
+    $this->status = $status;
+  }
+  function get_status() {
+    return $this->status;
+  }
+
 }

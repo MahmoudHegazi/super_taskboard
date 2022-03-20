@@ -1,7 +1,7 @@
 <?php
-require_once(dirname(__FILE__, 2) . '\config.php');
-require_once(dirname(__FILE__, 2) . '\mappers\CalendarMapper.php');
-require_once(dirname(__FILE__, 2) . '\models\Calendar.php');
+require_once(dirname(__FILE__, 2) . '/config.php');
+require_once(dirname(__FILE__, 2) . '/mappers/CalendarMapper.php');
+require_once(dirname(__FILE__, 2) . '/models/Calendar.php');
 
 class CalendarService {
   protected $pdo;
@@ -155,7 +155,6 @@ class CalendarService {
   function free_single_query($sql){
     return $this->calendar_mapper->free_single_query($sql);
   }
-
 
   function excute_on_db($sql){
     return $this->calendar_mapper->free_db_command($sql);

@@ -71,6 +71,49 @@ class BootstrapElementMapper {
     return 0;
   }
 
+  function getid($element_id){
+    $pdo = $this->getPDO();
+    $stmt = $pdo->prepare("SELECT element_id FROM bootstrap_element WHERE id=:element_id");
+    $stmt->bindParam(':element_id', $element_id, PDO::PARAM_INT);
+    $stmt->execute();
+    $data = $stmt->fetch(PDO::FETCH_ASSOC);
+    return $data;
+  }
+
+  function show_column_names(){
+    $pdo = $this->getPDO();
+    $stmt = $pdo->prepare("SELECT * FROM bootstrap_element LIMIT 1");
+    $stmt->execute();
+    $data = $stmt->fetch(PDO::FETCH_ASSOC);
+    return $data;
+  }
+
+  function is_valid_column_enum_value($column, $value){
+    try {
+      $column_enums = [];
+      $pdo = $this->getPDO();
+      $sql = 'SHOW COLUMNS FROM bootstrap_element WHERE field="'.$column.'"';
+      $row = $pdo->query($sql)->fetch(PDO::FETCH_ASSOC);
+
+      foreach(explode("','",substr($row['Type'],6,-2)) as $option) {
+         $column_enums[] = $option;
+       }
+      return in_array($value, $column_enums);
+    }
+    catch( Exception $e ) {
+      return 0;
+    }
+  }
+
+  function read_one_column($col, $id){
+      $pdo = $this->getPDO();
+      $stmt = $pdo->prepare("SELECT " . $col . " FROM bootstrap_element WHERE id = :id LIMIT 1");
+      $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+      $stmt->execute();
+      $data = $stmt->fetch(PDO::FETCH_ASSOC);
+      return $data;
+  }
+
 
   function read_one($log_id){
     $pdo = $this->getPDO();
@@ -167,6 +210,18 @@ class BootstrapElementMapper {
     $statement->execute();
     return $statement->fetch();
   }
+
+
+
+  function get_bsid_by_element($element_id){
+    $pdo = $this->getPDO();
+    $sql = 'SELECT id FROM bootstrap_element WHERE element_id = :element_id LIMIT 1';
+    $statement = $pdo->prepare($sql);
+    $statement->bindParam(':element_id', $element_id, PDO::PARAM_INT);
+    $statement->execute();
+    return $statement->fetch();
+  }
+
 
   function get_bs_by_element($element_id){
     $pdo = $this->getPDO();

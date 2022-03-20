@@ -1,7 +1,7 @@
 <?php
-require_once(dirname(__FILE__, 2) . '\config.php');
-require_once(dirname(__FILE__, 2) . '\mappers\BootstrapContainerMapper.php');
-require_once(dirname(__FILE__, 2) . '\models\BootstrapContainer.php');
+require_once(dirname(__FILE__, 2) . '/config.php');
+require_once(dirname(__FILE__, 2) . '/mappers/BootstrapContainerMapper.php');
+require_once(dirname(__FILE__, 2) . '/models/BootstrapContainer.php');
 
 class BootstrapContainerService {
   protected $pdo;
@@ -14,6 +14,19 @@ class BootstrapContainerService {
     $this->pdo = $pdo;
     $this->bootstrap_container_mapper = new BootstrapContainerMapper($pdo);
   }
+
+  function is_valid_key($column_name='') {
+    $valid_column = false;
+    $col_names = $this->bootstrap_container_mapper->show_column_names();
+    foreach($col_names as $key => $value) {
+      if ($key == $column_name){
+        $valid_column = true;
+      }
+    }
+    return $valid_column;
+  }
+
+
   // Add New bs_container
   function add(
     $element_id, $cal_id, $bg='', $text_color='', $p='', $m='', $border='', $border_size='', $border_color='', $border_round='', $width='', $height='',
@@ -38,10 +51,12 @@ class BootstrapContainerService {
   function get_bs_container_by_id($bscontainer_id){
 
     $container_row = $this->bootstrap_container_mapper->read_one($bscontainer_id);
+
     // if element not found
     if (!isset($container_row['id']) || empty($container_row['id'])){return array();}
     $bs_container = new BootstrapContainer();
     $bs_container->init(
+      $container_row['element_id'], $container_row['cal_id'],
       $container_row['bg'], $container_row['text_color'],
       $container_row['p'], $container_row['m'],
       $container_row['border'], $container_row['border_size'],
@@ -55,9 +70,50 @@ class BootstrapContainerService {
       $container_row['align_items'], $container_row['ratio'], $container_row['flex_flow'],
       $container_row['flex_type'], $container_row['flex_wrap'],
       $container_row['align_content'],
-      $container_row['last_update'], $container_row['element_id'], $container_row['cal_id']
+      $container_row['last_update']
     );
     $bs_container->set_id($container_row['id']);
+    $bs_container->set_last_update($container_row['last_update']);
+    return $bs_container;
+  }
+
+  function get_public_bs_container_by_id($id){
+    $container_row = $this->get_bs_container_by_id($id);
+    // if element not found
+    if (!isset($container_row) || empty($container_row)){return array();}
+    $bs_container = array(
+      'bg'=>$container_row->get_bg(),
+      'text_color'=>$container_row->get_text_color(),
+      'p'=>$container_row->get_p(),
+      'm'=>$container_row->get_m(),
+      'border'=>$container_row->get_border(),
+      'border_size'=>$container_row->get_border_size(),
+      'border_color'=>$container_row->get_border_color(),
+      'border_round'=>$container_row->get_border_round(),
+      'width'=>$container_row->get_width(),
+      'height'=>$container_row->get_height(),
+      'm_t'=>$container_row->get_m_t(),
+      'm_b'=>$container_row->get_m_b(),
+      'm_r'=>$container_row->get_m_r(),
+      'm_l'=>$container_row->get_m_l(),
+      'p_t'=>$container_row->get_p_t(),
+      'p_b'=>$container_row->get_p_b(),
+      'p_r'=>$container_row->get_p_r(),
+      'p_l'=>$container_row->get_p_l(),
+      'visibility'=>$container_row->get_visibility(),
+      'box_shadow'=>$container_row->get_box_shadow(),
+      'justify_content'=>$container_row->get_justify_content(),
+      'align_items'=>$container_row->get_align_items(),
+      'ratio'=>$container_row->get_ratio(),
+      'flex_flow'=>$container_row->get_flex_flow(),
+      'flex_type'=>$container_row->get_flex_type(),
+      'flex_wrap'=>$container_row->get_flex_wrap(),
+      'align_content'=>$container_row->get_align_content(),
+      'last_update'=>$container_row->get_last_update(),
+      'element_id'=>$container_row->get_element_id(),
+      'cal_id'=>$container_row->get_cal_id(),
+      'id'=>$container_row->get_id()
+    );
     return $bs_container;
   }
 
@@ -65,6 +121,8 @@ class BootstrapContainerService {
     $bootstrap_classes = ' ';
     $container_row = $this->bootstrap_container_mapper->get_bs_by_element($bscontainer_id);
     if (!isset($container_row) || empty($container_row)){
+      // this good it will return error if u mistake in table
+      //echo $bscontainer_id;
       return '';
     }
     // my way to get assoc or index array from the pdo fetch which retun index and assoc (not get empty values)
@@ -88,6 +146,15 @@ class BootstrapContainerService {
     return $bootstrap_classes;
   }
 
+  function get_bscontainerid_by_element($element_id){
+    // if element not found
+    $container_row = $this->bootstrap_container_mapper->get_bsid_by_element($element_id);
+    if (isset($container_row['id']) && !empty($container_row['id'])){
+      return $container_row['id'];
+    } else {
+      return false;
+    }
+  }
 
   function get_bscontainer_by_element($element_id){
     // if element not found
@@ -178,6 +245,32 @@ class BootstrapContainerService {
 
   function get_total_bscontainers(){
     return $this->bootstrap_container_mapper->get_total_calendar_bscontainers();
+  }
+
+  function is_valid_column_enum_value($column, $value){
+    $column = test_input($column);
+    $value = test_input($value);
+    return $this->bootstrap_container_mapper->is_valid_column_enum_value($column, $value);
+  }
+
+  function get_bs_element_id($container_id){
+    $elm_row = $this->bootstrap_container_mapper->getid($container_id);
+    if (isset($elm_row['element_id']) && !empty($elm_row['element_id'])){
+      return intval($elm_row['element_id']);
+    } else {
+      print_r($elm_row);
+      return 0;
+    }
+  }
+
+  function get_column_value($col, $id){
+    $col = test_input($col);
+    $col_value_row = $this->bootstrap_container_mapper->read_one_column($col, $id);
+    if (isset($col_value_row[$col])){
+       return $col_value_row[$col];
+    } else {
+      return '';
+    }
   }
 
   // used for get bscontainer id by init value

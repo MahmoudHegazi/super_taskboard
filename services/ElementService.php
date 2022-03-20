@@ -1,12 +1,15 @@
 <?php
-require_once(dirname(__FILE__, 2) . '\config.php');
-require_once(dirname(__FILE__, 2) . '\mappers\ElementMapper.php');
-require_once(dirname(__FILE__, 2) . '\models\Element.php');
+require_once(dirname(__FILE__, 2) . '/config.php');
+require_once(dirname(__FILE__, 2) . '/mappers/ElementMapper.php');
+require_once(dirname(__FILE__, 2) . '/models/Element.php');
+
+require_once(dirname(__FILE__, 2) . '/services/CalendarService.php');
 
 
 class ElementService {
   protected $pdo;
   protected $element_mapper;
+  protected $calendar_service;
 
   //$calendarMapper = new CalendarMapper($this->pdo);
   // build the pdo for global use in object only
@@ -14,6 +17,7 @@ class ElementService {
   {
     $this->pdo = $pdo;
     $this->element_mapper = new ElementMapper($pdo);
+    $this->calendar_service = new CalendarService($pdo);
   }
   // Add New Day
   public function add($element_id, $class_name, $cal_id, $type, $default_bootstrap='', $default_style = '', $group=NULL, $bootstrap_classes='', $innerHTML=NULL, $innerText=NULL, $data=NULL){
@@ -26,6 +30,10 @@ class ElementService {
   // Remove  day
   public function remove($element_id){
     return $this->element_mapper->delete($element_id)->rowCount() ? 1 : 0;
+  }
+
+  public function delete_all_cal_elements($cal_id){
+    return $this->element_mapper->delete_all_cal_elements($cal_id)->rowCount() ? 1 : 0;
   }
 
   // Get element Using it's id
@@ -188,7 +196,8 @@ class ElementService {
   }
 
   public function getElement($element_id, $type='container'){
-    $element_row = $this->element_mapper->get_element($element_id, $type);
+    $current_cal = $this->calendar_service->get_used_calendar('used', 1);
+    $element_row = $this->element_mapper->get_element($element_id, $type, $current_cal->get_id());
     if (!isset($element_row['id']) || empty($element_row['id'])){return array();}
     $element = new Element();
     $element->init(
@@ -207,6 +216,18 @@ class ElementService {
     $element->set_id($element_row['id']);
     return $element;
   }
+
+  public function getElementId($element_id, $type='container'){
+    $element_row = $this->element_mapper->get_elementid($element_id, $type);
+    if (isset($element_row['id']) && !empty($element_row['id'])){
+      return $element_row['id'];
+    } else {
+      return 0;
+    }
+  }
+
+
+
 
   public function read_all_cal_elements($cal_id){
     $elements_list = array();

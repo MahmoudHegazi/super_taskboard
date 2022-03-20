@@ -16,11 +16,18 @@ div.header_row{
   font-family: georgia;
 }
 
+.advanced_period_slots{
+  width: 30% !important;
+}
+
 .cals_container, .users_container {
   background:aliceblue;
   box-shadow: 0 4px 8px 0 rgba(30, 150, 50, 0.2), 0 6px 20px 0 rgba(200, 200, 200, .6);
 }
 
+.hoverable:hover{
+  opacity: 0.8;
+}
 
 .cal-card{
   box-shadow: 0 4px 8px 0 rgba(30, 150, 50, 0.2), 0 6px 20px 0 rgba(200, 200, 200, .6);
@@ -75,8 +82,15 @@ div.aside_container .nav_item:hover {
   align-items:center;
   flex-wrap: wrap-reverse;
 }
-
-
+.asp_input{
+  display:none;
+  width:100%;
+  max-width:100%!important;
+}
+.bg-darkseagreen{
+  background: darkseagreen;
+  color: black;
+}
 
 .bg-cornflowerblue{
   background: cornflowerblue;
@@ -122,7 +136,21 @@ div.aside_container .nav_item:hover {
   box-shadow: var(--active_shadow);
 }
 
+/*  charts chart_container*/
+ .chart_container {
+   min-height: 380px !important;
+ }
+/*  charts end */
+@media only screen and (max-width: 690px) {
+  #modal_body_advanced div.advanced_period_slots {
+    width: 80% !important;
+  }
+}
 @media only screen and (max-width: 575px) {
+
+  div#modal_body_advanced div.advanced_period_slots{
+    width: 100% !important;
+  }
 
   div.aside_container {
     height:fit-content !important;
@@ -144,13 +172,23 @@ div.aside_container .nav_item:hover {
         padding: 0px;
         margin: 0px;
   }
+
+  .advanced_period_slots{
+    width: 100% !important;
+  }
+  .asp_modal{
+    overflow: auto;
+  }
 }
 
 
-@media only screen and (min-width: 575px) {
+@media only screen and (max-width: 1125px) {
 
-  div.main_container {
-    height:100%;
+  div.calendarcard_css {
+    width:100% !important;
+  }
+  .advanced_period_slots {
+    width: 48% !important;
   }
 }
 
