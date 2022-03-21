@@ -203,7 +203,18 @@ class BootstrapElementMapper {
     return $stmt->execute([$value, $id]);
   }
 
+  function update_bs_elements_by_elm_group_fast($bs_class, $bs_value, $data_group){
+    $pdo = $this->getPDO();
+    $sql = "UPDATE bootstrap_element SET ".$bs_class."=:bs_value WHERE bootstrap_element.element_id IN (SELECT id FROM element WHERE data_group=:data_group)";
+    $statement = $pdo->prepare($sql);
+    $statement->bindParam(':bs_value', $bs_value, PDO::PARAM_STR);
+    $statement->bindParam(':data_group', $data_group, PDO::PARAM_STR);
+    $excuted = $statement->execute();
+    return $excuted;
+  }
+
   function get_total_calendar_bselements($cal_id){
+    $pdo = $this->getPDO();
     $sql = 'SELECT COUNT(id) from bootstrap_element WHERE cal_id= :cal_id';
     $statement = $pdo->prepare($sql);
     $statement->bindParam(':cal_id', $value, PDO::PARAM_STR);

@@ -145,9 +145,25 @@ class ElementService {
     return $this->element_mapper->update_column($column, $value, $id);
   }
 
+  public function update_elements_by_group($column, $value, $data_group){
+    return $this->element_mapper->update_columns_by_group($column, $value, $data_group);
+  }
+
+
   public function get_total_elements(){
     return $this->element_mapper->get_total_elements();
   }
+  // load HTML element style
+  public function get_element_styles($id){
+    $element_styles_row = $this->element_mapper->get_element_styles($id);
+    if ($element_styles_row && isset($element_styles_row['default_style']) && !empty($element_styles_row['default_style'])){
+      return $element_styles_row['default_style'];
+    } else {
+      return '';
+    }
+  }
+
+
 
 
   public function insert_group_fast($data){
@@ -174,8 +190,22 @@ class ElementService {
     return $this->element_mapper->insert_group_fast($elements_objects);
   }
 
+  public function get_elements_ids_where($column, $value, $limit='', $and_column='', $and_val=''){
+    $element_rows = $this->element_mapper->get_element_ids_where($column, $value, $limit, $and_column, $and_val);
+    if (count($element_rows) == 0){return array();}
+    $elements_ids = array();
+    for ($i=0; $i<count($element_rows); $i++){
+        if (!empty($element_rows[$i]) && isset($element_rows[$i]['id']) && !empty($element_rows[$i]['id'])){
+          $elmid = $element_rows[$i]['id'];
+          array_push($elements_ids, $elmid);
+        }
+    }
+    return $elements_ids;
+  }
+
+
   public function get_element_where($column, $value, $limit='', $and_column='', $and_val=''){
-    $element_row = $this->element_mapper->get_total_elements($column, $value, $limit, $and_column, $and_val);
+    $element_row = $this->element_mapper->get_element_where($column, $value, $limit, $and_column, $and_val);
     if (!isset($element_row['id']) || empty($element_row['id'])){return array();}
     $element = new Element();
     $element->init(

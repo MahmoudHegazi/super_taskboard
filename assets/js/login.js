@@ -90,7 +90,6 @@
            }
          }
        )
-       //console.log(data);
      });
      return true;
    }

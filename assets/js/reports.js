@@ -15,7 +15,7 @@ async function setupReportsData(url = '', data = {}) {
     //console.log('Data Recived: ', newData)
     return newData;
   } catch (error) {
-    //console.log("error", error);
+    console.log("error", error);
   }
 };
 
@@ -43,8 +43,6 @@ function getRandomRBGa(type='rgba'){
   } else {
     return randomRgbA;
   }
-  //alert(alphaF.toString().length);
-  //alert(randomRgbA);
   return randomRgbA;
 }
 

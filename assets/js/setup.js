@@ -7,6 +7,15 @@ const displayJQAjaxMessage = (error_msg, type='danger')=>{
   </div>`;
 }
 
+const displayAppMessage = (error_msg, type='danger')=>{
+  const mapErrorCont = document.querySelector("#all_setup_error");
+  mapErrorCont.innerHTML = `
+  <div class="alert alert-${type} alert-dismissible fade show">
+    <p>${error_msg}</p>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>`;
+}
+
 function canceleEdit(event){
   const submitASPBTNId = event.currentTarget.getAttribute("data-target-id");
   const currentSubmit = document.getElementById(submitASPBTNId);
@@ -588,7 +597,7 @@ editUserBtns.forEach((editBtn) => {
         // incase php not laod data for some reason
         if (editRoleOptions == -1 || editActiveOptions == -1){
           closeEditUser.click();
-          alert("Unkown Error User Data Can not loaded");
+          displayAppMessage('Unkown Error User Data Can not loaded','danger');
           return false;
         }
 
@@ -957,7 +966,7 @@ function handleMainCss(event, code_id){
   const errorElm = document.querySelector(`p[data-code='${code_id}']`);
 
   if (!cssIntialValuesElm){
-    alert("Unexcpted Error");
+    displayAppMessage('Unexcpted');
     event.preventDefault();
     return false;
   }

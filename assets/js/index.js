@@ -137,6 +137,24 @@ const updateElmBSClasses = (oldClass, newClass, elm)=>{
   }
 };
 
+const updateBSClassesGroup = (oldClass, newClass, group)=>{
+  const allElements = document.querySelectorAll(`[data-editor-group='${group}']`);
+  allElements.forEach( (bsElm)=>{
+    if (bsElm){
+      if (oldClass.trim() != ''){
+        if (bsElm.classList.contains(oldClass)){
+          bsElm.classList.remove(oldClass);
+        }
+      }
+      if (newClass.trim() != ''){
+        if (!bsElm.classList.contains(newClass)){
+          bsElm.classList.add(newClass);
+        }
+      }
+    }
+  });
+};
+
 
 const toggleEditorWait = (editorWaitParm)=>{
   const editEnableBtn = document.querySelector('#edit_mode_container button');
@@ -320,6 +338,18 @@ allEmptySlots.forEach( (slot)=>{
 const addResAisde = document.querySelector(".aside_add_res");
 addResAisde.addEventListener("click", ()=>{playSound("#open_modal_sound")});
 
+
+function emptyAllBSInputs(){
+  const allBsElementsSelectors = document.querySelectorAll(".edit_bs_selectelm");
+  allBsElementsSelectors.forEach( (elmSelect)=>{
+    const elmOptions = Array.from(elmSelect.options);
+    elmOptions.forEach((op)=>{
+      if (op.selected){
+        op.removeAttribute('selected');
+      }
+    });
+  });
+}
 
 /*
 const reservationName = document.getElementById('reservation_name');
@@ -913,6 +943,7 @@ function startEditMode(event, button=false){
   } else if (editModeStatus == 'resume'){
     enableEditModeMsg.innerText = "(ON)";
     currentElm.innerText = "Stop Edit Containers";
+    removeStyleViewerEvent();
     addStyleViewerEvent();
     the_bsContainersEditor.style.display = "block";
     the_bsElementEditor.style.display = "none";
@@ -1007,14 +1038,19 @@ function mapObjectData(obj, type='container'){
       }
       // now it dynamic with async with php it select all unkowns selects so you can add milions like all frameworks for frontend and more options
       let x = selectNeededOption(prop, value, type);
-      //console.log(prop, value, x);
   }
   return {cal_id: currentCalIdEdit, elm_id: currentElmIdPHP, last_update: currentLastUpdate};
 }
 
-
+let currentDataObj = {};
+// this for both element and container
 async function startEditContainer(e) {
+  emptyAllBSInputs();
+  // only alow edit or load container/element  data if not edit container on
+  if (editModeStatus != 'on' && editModeElmStatus != 'on'){return false;}
+
   e.preventDefault();
+  // element id not bs container
   const elmId = e.target.getAttribute("data-bs-id");
   const elmType = e.target.getAttribute("data-editor-type");
   const elmGroup = e.target.getAttribute("data-editor-group");
@@ -1035,12 +1071,9 @@ async function startEditContainer(e) {
       return false;
     }
 
-
-
-    console.log("success", bsContainerData);
     // load the new container bs classes on the selector do not forget in begning I do not use this bs container table and I deal with string
     const currentEditBsData = mapObjectData(bsContainerData.data, 'container');
-
+    currentDataObj = currentEditBsData;
 
     if (elmId){
       containerInViewData['elm_id'] = elmId;
@@ -1088,8 +1121,22 @@ async function startEditContainer(e) {
     containerCurentHtmlid.innerText = containerInViewData['html_id'];
     containerCurentHtmlclass.innerText = containerInViewData['html_class'];
     containerCurentGroup.innerText = containerInViewData['group'];
+    const checkGroupIdelm = 'group_' + containerInViewData['elm_id'];
     if (containerInViewData['group']){
-      applyOnGroup.innerHTML = '<label class="">Group Apply</label>  <input  type="checkbox" class="applyongroup">';
+      applyOnGroup.innerHTML = `<label>Group Apply</label>  <input id="${checkGroupIdelm}" data-value="off"  type="checkbox" class="applyongroup">`;
+      const checkContainer = document.getElementById(`${checkGroupIdelm}`);
+      if (checkContainer){
+        checkContainer.addEventListener("change",(ev)=>{
+          if (ev.target.nodeName.toLowerCase() == 'input'){
+            const currentValue = ev.target.getAttribute("data-value");
+            if (currentValue && currentValue.toLowerCase() == 'on'){
+              ev.target.setAttribute("data-value", 'off');
+            } else {
+              ev.target.setAttribute("data-value", 'on');
+            }
+          }
+        });
+      }
     } else {
       applyOnGroup.innerHTML = '';
     }
@@ -1110,11 +1157,9 @@ async function startEditContainer(e) {
       console.log("error", bsElementData);
       return false;
     }
-
-    console.log("success", bsElementData);
     // load the new container bs classes on the selector do not forget in begning I do not use this bs container table and I deal with string
     const currentEditBsData = mapObjectData(bsElementData.data, 'element');
-
+    currentDataObj = currentEditBsData;
 
     if (elmId){
       containerInViewData['elm_id'] = elmId;
@@ -1160,11 +1205,6 @@ async function startEditContainer(e) {
       containerInViewData['calid'] = '';
     }
 
-    console.log('here',currentEditBsData);
-
-
-
-    console.log(containerInViewData);
     // elm and cont
     containerCurentLastupdate.innerText = containerInViewData['last_update'];
     containerCurentElmid.innerText = containerInViewData['elm_id'];
@@ -1172,9 +1212,22 @@ async function startEditContainer(e) {
     containerCurentHtmlid.innerText = containerInViewData['html_id'];
     containerCurentHtmlclass.innerText = containerInViewData['html_class'];
     containerCurentGroup.innerText = containerInViewData['group'];
-
+    const checkGroupId = 'group_' + containerInViewData['elm_id'];
     if (containerInViewData['group'] != ''){
-            applyOnGroup.innerHTML = '<label>Group Apply</label>  <input  type="checkbox" class="applyongroup">';
+            applyOnGroup.innerHTML = `<label>Group Apply</label>  <input id="${checkGroupId}" data-value="off"  type="checkbox" class="applyongroup">`;
+            const checkElem = document.getElementById(`${checkGroupId}`);
+            if (checkElem){
+              checkElem.addEventListener("change",(ev)=>{
+                if (ev.target.nodeName.toLowerCase() == 'input'){
+                  const currentValue = ev.target.getAttribute("data-value");
+                  if (currentValue && currentValue.toLowerCase() == 'on'){
+                    ev.target.setAttribute("data-value", 'off');
+                  } else {
+                    ev.target.setAttribute("data-value", 'on');
+                  }
+                }
+              });
+            }
     } else {
       applyOnGroup.innerHTML = '';
     }
@@ -1434,12 +1487,27 @@ async function updateBsContainerColumn(event){
   const columnName = event.target.getAttribute("name");
   const currentElm = elementInView;
   const currentBSID = currentElm.getAttribute("data-bs-id");
+  const currentGroup = currentElm.getAttribute("data-editor-group");
+
+  // this update for js and html to get the value dynamic of the current checkgroup input so u can just apply only single or on group
+  const groupStatusInputId = 'group_'+currentBSID;
+  const currentCheckBox = document.querySelector(`input#${groupStatusInputId}`);
+  let updateOnGroup = 'off';
+  if (currentCheckBox){
+    const getUpdateGroupStatus = currentCheckBox.getAttribute("data-value");
+    if (getUpdateGroupStatus.toLowerCase() == 'on'){
+      updateOnGroup = 'on';
+    } else {
+      updateOnGroup = 'off';
+    }
+  }
+
   if (!currentBSID || !currentElm){return false;}
   if (newBsValue){
     newBsValue = newBsValue.trim();
   }
 
-  const updateRequestData = {updateBsId: currentBSID, updateBsname: columnName.trim(), updateBSvalue: newBsValue};
+  const updateRequestData = {updateBsId: currentBSID, updateBsname: columnName.trim(), updateBSvalue: newBsValue, updateBSGroupStatus: updateOnGroup, updateBSGroup: currentGroup};
   const updateBSResponse = await postData('',updateRequestData);
 
   if (!updateBSResponse || !updateBSResponse.code || !updateBSResponse.data){
@@ -1448,12 +1516,23 @@ async function updateBsContainerColumn(event){
   }
 
   if (updateBSResponse.code == 200){
-
-    updateElmBSClasses(updateBSResponse.data.old, updateBSResponse.data.new, currentElm);
-    displayAjaxEditorMsg('updated element successfully', type='success');
-    console.log(updateBSResponse);
-    updateElementInView();
-    return true;
+    //data-editor-group
+    if (!updateBSResponse.data){
+      displayAjaxEditorMsg('could not update the container data', type='danger');
+      return false;
+    }
+    if (updateBSResponse.data.group_on && updateBSResponse.data.group){
+      // update group html bs togther
+      updateBSClassesGroup(updateBSResponse.data.old, updateBSResponse.data.new, updateBSResponse.data.group);
+      displayAjaxEditorMsg('updated containers successfully', type='success');
+      updateElementInView();
+      return true;
+    } else {
+      updateElmBSClasses(updateBSResponse.data.old, updateBSResponse.data.new, currentElm);
+      displayAjaxEditorMsg('updated container successfully', type='success');
+      updateElementInView();
+      return true;
+    }
   } else {
     displayAjaxEditorMsg(updateBSResponse.message, type='danger');
     return false;
@@ -1474,13 +1553,26 @@ async function updateThisBsElement(event){
   const columnName = event.target.getAttribute("name");
   const currentElm = elementInView;
   const currentBSID = currentElm.getAttribute("data-bs-id");
+  const currentGroup = currentElm.getAttribute("data-editor-group");
 
+  // this update for js and html to get the value dynamic of the current checkgroup input so u can just apply only single or on group
+  const groupStatusInputId = 'group_'+currentBSID;
+  const currentCheckBox = document.querySelector(`input#${groupStatusInputId}`);
+  let updateOnGroup = 'off';
+  if (currentCheckBox){
+    const getUpdateGroupStatus = currentCheckBox.getAttribute("data-value");
+    if (getUpdateGroupStatus.toLowerCase() == 'on'){
+      updateOnGroup = 'on';
+    } else {
+      updateOnGroup = 'off';
+    }
+  }
   if (!currentBSID || !currentElm){return false;}
   if (newBsValue){
     newBsValue = newBsValue.trim();
   }
 
-  const updateRequestData = {updateElmBsId: currentBSID, updateElmBsname: columnName.trim(), updateElmBSvalue: newBsValue};
+  const updateRequestData = {updateElmBsId: currentBSID, updateElmBsname: columnName.trim(), updateElmBSvalue: newBsValue, updateElmGroupStatus: updateOnGroup, updateElmGroup: currentGroup};
   const updateBSResponse = await postData('',updateRequestData);
 
   if (!updateBSResponse || !updateBSResponse.code || !updateBSResponse.data){
@@ -1489,11 +1581,23 @@ async function updateThisBsElement(event){
   }
 
   if (updateBSResponse.code == 200){
-    updateElmBSClasses(updateBSResponse.data.old, updateBSResponse.data.new, currentElm);
-    displayAjaxEditorMsg('updated element successfully', type='success');
-    console.log(updateBSResponse);
-    updateElementInView();
-    return true;
+    if (!updateBSResponse.data){
+      displayAjaxEditorMsg('could not update the element data', type='danger');
+      return false;
+    }
+    if (updateBSResponse.data.group_on && updateBSResponse.data.group && updateBSResponse.data.group_on == true){
+      // update group html bs togther
+      updateBSClassesGroup(updateBSResponse.data.old, updateBSResponse.data.new, updateBSResponse.data.group);
+      displayAjaxEditorMsg('updated elements by group successfully', type='success');
+      updateElementInView();
+      return true;
+    } else {
+      updateElmBSClasses(updateBSResponse.data.old, updateBSResponse.data.new, currentElm);
+      displayAjaxEditorMsg('updated element successfully', type='success');
+      updateElementInView();
+      return true;
+    }
+
   } else {
     displayAjaxEditorMsg(updateBSResponse.message, type='danger');
     return false;
@@ -1502,7 +1606,7 @@ async function updateThisBsElement(event){
 }
 const allBsElementsSelectors = document.querySelectorAll(".edit_bs_selectelm");
 allBsElementsSelectors.forEach( (elmSelect)=>{
-  elmSelect.addEventListener("change",updateThisBsElement);
+  elmSelect.addEventListener("change", updateThisBsElement);
 });
 
 const backFactoryBtn = document.getElementById("back_bs_to_default");
@@ -1527,5 +1631,81 @@ async function backBStoDefault(event){
   }
 }
 backFactoryBtn.addEventListener("click",backBStoDefault);
+
+// update elements background color
+
+async function updateElementBgColor(event){
+  if (!currentDataObj){return false}
+  if (!currentDataObj.elm_id){return false;}
+  const newColor = event.target.value;
+  if (!newColor){return false;}
+  if (!elementInView){return false;}
+
+  const currentElm = elementInView;
+  const currentElmGroup = currentElm.getAttribute("data-editor-group");
+  let groupOn = false;
+  let group = false;
+  if (currentElmGroup){
+    const idToUpdate = currentElm.getAttribute("data-bs-id");
+    const groupOnCheck = document.getElementById(`group_${idToUpdate}`);
+    if (groupOnCheck){
+      const currentElmGroupOn = groupOnCheck.getAttribute("data-value");
+      if (currentElmGroupOn == 'on' && currentElmGroup){
+        groupOn = true;
+        group = currentElmGroup;
+      } else {
+        groupOn = false;
+        group = false;
+      }
+    }
+  }
+  // send request to update bg color style
+  const currentElmid = currentDataObj.elm_id;
+  const bgCss = 'background: ' + newColor + ';';
+  elementInView.style.background = newColor + '!important';
+  const updateElmBgData = await postData('',{styleUpdateElmid:currentElmid,styleUpdateGroupOn:groupOn, styleUpdateGroup:group, styleUpdatebg: bgCss});
+  if (!updateElmBgData || !updateElmBgData.code || !updateElmBgData.data){
+    displayAjaxEditorMsg('could not update background unkown error', type='danger');
+    return false;
+  }
+  if (updateElmBgData.code == 200 && updateElmBgData.data){
+    if (!updateElmBgData.data.bg){
+      displayAjaxEditorMsg('could not update background background not found', type='danger');
+      return false;
+    }
+    const datagroup = updateElmBgData.data.group;
+    const isGroupOn = updateElmBgData.data.group_on;
+    if (isGroupOn && datagroup && group){
+      if (event.target.value && updateElmBgData.data.bg){
+        const getAllGroup = document.querySelectorAll(`[data-editor-group='${group}']`);
+        getAllGroup.forEach( (elm)=>{
+          elm.style.background = event.target.value;
+          return true;
+        });
+        updateElementInView();
+      } else {
+        displayAjaxEditorMsg('could not update background background invalid', type='danger');
+        return false;
+      }
+    } else {
+      if (event.target.value && updateElmBgData.data.bg){
+
+        displayAjaxEditorMsg('updated background successfully', type='success');
+        updateElementInView();
+      } else {
+        displayAjaxEditorMsg('could not update background background invalid', type='danger');
+        return false;
+      }
+    }
+
+  }
+
+}
+
+
+const elementBgColorChanger = document.getElementById('sys_elm_bg');
+if (elementBgColorChanger){
+  elementBgColorChanger.addEventListener("change", updateElementBgColor);
+}
 
 });

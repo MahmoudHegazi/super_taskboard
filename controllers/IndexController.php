@@ -107,7 +107,7 @@ class IndexController {
     $this->bootstrap_element_service = new BootstrapElementService($pdo);
 
     $used_cal = $this->assign_used_calendar();
-    if (!$used_cal || empty($used_cal) || !isset($used_cal)){
+    if (!$used_cal || empty($used_cal) || !isset($used_cal) || !isset($this->element_service)){
       // this error in case no used calendar, make sure not to use DB to delete calendars and if u did np but with next add/remove will solved
       throw new Exception( "Sorry, no used calendar found to display Please add a new calendar and it will be marked as used by default..." );
     }
@@ -877,7 +877,7 @@ echo date("Y");
     }
     /* Map New reservation AJAX end */
 
-    /* style setup container */
+    /* style setup container Bootstrap 5 1 */
     $is_add_container = isset($index_controller) && isset($data['setup_containers']);
     if ($is_add_container){
       if (empty($data['setup_containers'])){
@@ -1050,6 +1050,22 @@ echo date("Y");
         die();
       }
 
+
+
+      // check group update so u can update one element or apply style on all same group also u can control the groups depend on template used   ver9.1
+      $group_status = (isset($data['updateBSGroupStatus']) && !empty($data['updateBSGroupStatus'])) ? test_input($data['updateBSGroupStatus']) : 'off';
+      $group_index = (isset($data['updateBSGroup']) && !empty($data['updateBSGroup'])) ? test_input($data['updateBSGroup']) : '';
+
+      $applyongroup = false;
+      if ($group_status == 'on' && !empty($group_index) && $group_index != ''){
+        $applyongroup = true;
+      }
+
+
+      // check group update so u can update one element or apply style on all same group also u can control the groups depend on template used1
+
+
+
       // this method help to validate the column name as this not normal handle column by column it dynamic  and give u best dynamic to add new easy column
       $valid_column_name = $index_controller->bootstrap_container_service->is_valid_key($bs_column);
       if ($valid_column_name == false){
@@ -1063,8 +1079,18 @@ echo date("Y");
         die();
       }
 
+      // update one or group
+
+
       $old = $index_controller->bootstrap_container_service->get_column_value($bs_column, $bsid);
-      $update_col = $index_controller->bootstrap_container_service->update_one_column($bs_column, $bs_value, $bsid);
+      $update_col = false;
+      $updated_group = false;
+      if ($applyongroup){
+        $updated_group = $index_controller->bootstrap_container_service->update_bs_by_contgroup($bs_column, $bs_value, $group_index);
+      } else {
+        $update_col = $index_controller->bootstrap_container_service->update_one_column($bs_column, $bs_value, $bsid);
+      }
+
       if ($update_col){
         // this is how the idea built on big table with simple async with string column
         $asyncd_elm = $index_controller->async_element_bs($index_controller, $elm_id, 'container');
@@ -1079,13 +1105,36 @@ echo date("Y");
                 'new'=>$bs_value,
                 'old'=>$old,
                 'bsid'=>$bsid,
+                'group_on'=>false,
+                'group'=>'',
+                'col'=>$bs_column
+              ),'message'=>$message
+            )));
+          die();
+        }
+      } else if ($updated_group && $updated_group) {
+        // update the group
+        $asyncd_elements_by_group = $index_controller->async_element_bs_by_group($index_controller, $group_index, 'container');
+        if (empty($asyncd_elements_by_group)){
+          print_r(json_encode(array('code'=>400, 'data'=>array() , 'message'=>'The select option value provided unkown by the system please add it to the column enum values but you must know BS5 if unkown bs nothing happends.')));
+          die();
+        } else {
+          $message = 'Updated Container Group: ' . $group_index . ' Class: ' . $bs_column . ' Successfully';
+          print_r(json_encode(
+              array('code'=>200,
+              'data'=>array(
+                'new'=>$bs_value,
+                'old'=>$old,
+                'bsid'=>$bsid,
+                'group_on'=>true,
+                'group'=>$group_index,
                 'col'=>$bs_column
               ),'message'=>$message
             )));
           die();
         }
       } else {
-        print_r(json_encode(array('code'=>422, 'data'=>array('new'=>'', 'old'=>'') , 'message'=>'unkown error happend')));
+        print_r(json_encode(array('code'=>422, 'data'=>array('new'=>'', 'old'=>'') , 'message'=>'unkown error happend' . $updated_group && $updated_group)));
         die();
       }
     }
@@ -1093,6 +1142,19 @@ echo date("Y");
     // update bs element style classes
     $is_updatebs_style = isset($index_controller) && isset($data['updateElmBsId']) && isset($data['updateElmBsname']) && isset($data['updateElmBSvalue']);
     if ($is_updatebs_style){
+
+      // check group update so u can update one element or apply style on all same group also u can control the groups depend on template used   ver9.1
+      $group_status = (isset($data['updateElmGroupStatus']) && !empty($data['updateElmGroupStatus'])) ? test_input($data['updateElmGroupStatus']) : 'off';
+      $group_index = (isset($data['updateElmGroup']) && !empty($data['updateElmGroup'])) ? test_input($data['updateElmGroup']) : '';
+
+      $applyongroup = false;
+      if ($group_status == 'on' && !empty($group_index) && $group_index != ''){
+        $applyongroup = true;
+      }
+
+
+      // check group update so u can update one element or apply style on all same group also u can control the groups depend on template used1
+
 
       if (empty($data['updateElmBsId']) || empty($data['updateElmBsname'])){
         print_r(json_encode(array('code'=>400, 'data'=>array(), 'message'=>'can not update style missing Name Or Id of current element')));
@@ -1120,15 +1182,25 @@ echo date("Y");
         print_r(json_encode(array('code'=>400, 'data'=>array() , 'message'=>'The select option value provided unkown by the system please add it to the column enum values but you must know BS5 if unkown bs nothing happends.')));
         die();
       }
+
+
       $old = $index_controller->bootstrap_element_service->get_column_value($bs_column, $bsid);
-      $update_col = $index_controller->bootstrap_element_service->update_one_column($bs_column, $bs_value, $bsid);
+
+      $update_col = false;
+      $updated_group = false;
+      if ($applyongroup){
+        $updated_group = $index_controller->bootstrap_element_service->update_bs_by_elmgroup($bs_column, $bs_value, $group_index);
+      } else {
+        $update_col = $index_controller->bootstrap_element_service->update_one_column($bs_column, $bs_value, $bsid);
+      }
+
       if ($update_col){
         // this is how the idea built on big table with simple async with string column
         $asyncd_elm = $index_controller->async_element_bs($index_controller, $elm_id, 'element');
         if (empty($asyncd_elm)){
           print_r(json_encode(array('code'=>400, 'data'=>array() , 'message'=>'The select option value provided unkown by the system please add it to the column enum values but you must know BS5 if unkown bs nothing happends.')));
           die();
-        }else {
+        } else {
           $message = 'Updated ' . $bs_column . 'Successfully';
           print_r(json_encode(
               array('code'=>200,
@@ -1136,6 +1208,29 @@ echo date("Y");
                 'new'=>$bs_value,
                 'old'=>$old,
                 'bsid'=>$bsid,
+                'group_on'=>false,
+                'group'=>'',
+                'col'=>$bs_column
+              ),'message'=>$message
+            )));
+          die();
+        }
+      } else if ($updated_group && $group_index) {
+        // update elements by group
+        $asyncd_elms = $index_controller->async_element_bs_by_group($index_controller, $group_index, 'element');
+        if (empty($asyncd_elms)){
+          print_r(json_encode(array('code'=>400, 'data'=>array() , 'message'=>'The select option value provided unkown by the system please add it to the column enum values but you must know BS5 if unkown bs nothing happends.')));
+          die();
+        } else {
+          $message = 'Updated Elements Group: ' . $group_index . ' Class: ' . $bs_column . ' Successfully';
+          print_r(json_encode(
+              array('code'=>200,
+              'data'=>array(
+                'new'=>$bs_value,
+                'old'=>$old,
+                'bsid'=>$bsid,
+                'group_on'=>true,
+                'group'=>$group_index,
                 'col'=>$bs_column
               ),'message'=>$message
             )));
@@ -1144,6 +1239,55 @@ echo date("Y");
       } else {
         print_r(json_encode(array('code'=>422, 'data'=>array('new'=>'', 'old'=>'') , 'message'=>'unkown error happend')));
         die();
+      }
+    }
+
+    // update element style
+    $is_update_element_bgcolor = isset($index_controller) && isset($data['styleUpdateElmid']) && isset($data['styleUpdateGroupOn']) && isset($data['styleUpdateGroup']) && isset($data['styleUpdatebg']);
+    if ($is_update_element_bgcolor){
+      $newbg_color = !empty($data['styleUpdatebg']) ? test_input($data['styleUpdatebg']) : 0;
+      if (!$newbg_color){
+        print_r(json_encode(array('code'=> 400, 'message'=> 'No color found', 'data'=>array())));
+        die();
+      }
+
+      $elmid = !empty($data['styleUpdateElmid']) ? test_input($data['styleUpdateElmid']) : false;
+      $group_on = !empty($data['styleUpdateGroupOn']) ? test_input($data['styleUpdateGroupOn']) : false;
+      $group = !empty($data['styleUpdateGroup']) ? test_input($data['styleUpdateGroup']) : false;
+      if (!$elmid && !$group_on && !$group){
+        print_r(json_encode(array('code'=> 400, 'message'=> 'Element Data not provided', 'data'=>array())));
+        die();
+      }
+      if (!empty($group_on) && !empty($group) && $group_on != false){
+        $update_elements = $this->element_service->update_elements_by_group('default_style', $newbg_color, $group);
+        if ($update_elements){
+          print_r(json_encode(array('code'=> 200, 'message'=> 'Updated elements background', 'data'=>array(
+            'group'=>$group,
+            'group_on'=>$group_on,
+            'bg'=>$newbg_color,
+            'id'=>$elmid
+          ))));
+          die();
+        } else {
+          print_r(json_encode(array('code'=> 422, 'message'=> 'Elements bg could not updated', 'data'=>array())));
+          die();
+        }
+        // update bg with group
+      } else if (!empty($elmid) && !empty($newbg_color) && (empty($group_on) || empty($group))) {
+        $update_element = $this->element_service->update_one_column('default_style', $newbg_color, $elmid);
+        if ($update_element){
+          print_r(json_encode(array('code'=> 200, 'message'=> 'Updated element background', 'data'=>array(
+            'group'=>$group,
+            'group_on'=>$group_on,
+            'bg'=>$newbg_color,
+            'id'=>$elmid
+          ))));
+          die();
+        } else {
+          print_r(json_encode(array('code'=> 422, 'message'=> 'Element bg could not updated', 'data'=>array())));
+          die();
+        }
+        // update single element
       }
     }
 
@@ -1505,7 +1649,7 @@ UPDATE style style JOIN period ON style.class_id=period.id JOIN day ON period.da
     return $bs_element;
   }
 
-
+  // ver9.1
   public function async_element_bs($index_controller, $elm_id, $type='container'){
     if ($type == 'element'){
       $bootstrap_class_string = $index_controller->bootstrap_element_service->get_bootstrap_classes_by_element($elm_id);
@@ -1518,10 +1662,54 @@ UPDATE style style JOIN period ON style.class_id=period.id JOIN day ON period.da
     }
   }
 
+  public function async_element_bs_by_group($index_controller, $data_group, $type='element'){
+    $updated = false;
+    $all_group_elm = $index_controller->element_service->get_elements_ids_where('data_group', $data_group);
+    if ($type == 'element'){
+      if (isset($all_group_elm) && !empty($all_group_elm)){
+        for ($elmi=0; $elmi<count($all_group_elm); $elmi++){
+          $elm_id = $all_group_elm[$elmi];
+          if (isset($elm_id) && !empty($elm_id)){
+            $bootstrap_class_string = $index_controller->bootstrap_element_service->get_bootstrap_classes_by_element($elm_id);
+            $updated = $index_controller->element_service->update_one_column('bootstrap_classes', $bootstrap_class_string, $elm_id);
+          }
+        }
+      }
+      return $updated;
+    } else {
+      if (isset($all_group_elm) && !empty($all_group_elm)){
+        for ($elmi=0; $elmi<count($all_group_elm); $elmi++){
+          $elm_id = $all_group_elm[$elmi];
+          if (isset($elm_id) && !empty($elm_id)){
+            $bootstrap_class_string = $index_controller->bootstrap_container_service->get_bootstrap_classes_by_element($elm_id);
+            $updated = $index_controller->element_service->update_one_column('bootstrap_classes', $bootstrap_class_string, $elm_id);
+          }
+        }
+      }
+      return $updated;
+    }
+  }
 
 
-  public function get_elements_ids($cal_id){
-
+  public function load_element_style($elm_id, $default=''){
+    $default = !empty($default) ? $default . ';' : '';
+    if (!isset($this->element_service)){
+      echo '';
+      return false;
+    }
+    $elm_styles = $this->element_service->get_element_styles($elm_id);
+    if ($elm_styles && isset($elm_styles) && !empty($elm_styles)){
+      echo 'style="'. $elm_styles . ';' . $default . '"';
+      return true;
+    } else {
+      if (empty($default)){
+        echo '';
+        return false;
+      } else {
+        echo 'style="'. $default . '"';
+        return false;
+      }
+    }
   }
 
 }

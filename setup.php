@@ -154,6 +154,7 @@ try {
      </div>
    </div>
    <!-- Calendar Alert Messages Dynamic-->
+
    <?php
        if (!isset($_SESSION['error_displayed']) || $_SESSION['error_displayed'] == False){
          display_html_erro($_GET);
@@ -163,6 +164,8 @@ try {
     ?>
   <!-- Calendar Alert Messages end -->
 
+  <!-- js alert message -->
+  <div id="all_setup_error" class="container"></div>
 
    <!-- Control the column width, and how they should appear on different devices -->
    <div class="row">

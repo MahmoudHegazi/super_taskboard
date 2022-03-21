@@ -9,6 +9,7 @@ if (!isset($_SESSION['logged']) || empty($_SESSION['logged']) || !isset($_SESSIO
   die();
   return False;
 }
+global $pdo;
 $logged_userid = test_input($_SESSION['logged_id']);
 $logged_uname = test_input($_SESSION['name']);
 
@@ -175,15 +176,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
 <div class="main_view bg-white">
 
 
-    <div data-editor-type="container" data-editor-class="the_real_containercss" id="the_real_container_<?php echo Calid; ?>" class="<?php echo setupBSElementsData($index_controller, 'the_real_container_'.Calid, 'container', '', true); ?> the_real_containercss container-fluid p-2 text-white text-center cal_title bg_dimgray" <?php echo $index_controller->getBsId($index_controller, 'the_real_container_'.Calid, 'container'); ?>>
+    <div data-editor-type="container"  data-editor-class="the_real_containercss" id="the_real_container_<?php echo Calid; ?>" class="<?php echo setupBSElementsData($index_controller, 'the_real_container_'.Calid, 'container', '', true); ?> the_real_containercss container-fluid p-2 text-white text-center cal_title bg_dimgray" <?php echo $index_controller->getBsId($index_controller, 'the_real_container_'.Calid, 'container'); ?>
+      <?php $index_controller->load_element_style('the_real_container_'.Calid)?>>
 
 
       <div data-editor-type="container" data-editor-class="title_container_cs"
-      class="<?php echo setupBSElementsData($index_controller, 'title_container_new', 'container'); ?> display-6 mt-2 mb-3 text-white p-2 default_shadow text_shadow03 border border-secondary title_container_cs" id="title_container_new" <?php echo $index_controller->getBsId($index_controller, 'title_container_new', 'container'); ?>>
+      class="<?php echo setupBSElementsData($index_controller, 'title_container_new', 'container'); ?> display-6 mt-2 mb-3 text-white p-2 default_shadow text_shadow03 border border-secondary title_container_cs" id="title_container_new" <?php echo $index_controller->getBsId($index_controller, 'title_container_new', 'container'); ?> <?php $index_controller->load_element_style('title_container_new')?>>
 
       <img data-editor-type="element" id="logo_image" data-editor-class="logo_image_css"  class="logo_image_css <?php echo setupBSElementsData($index_controller, 'logo_image', 'element'); ?>"
-      src="<?php echo defined('THUMBNAIL') ? 'uploads/images/' . THUMBNAIL : 'uploads/images/default_logo.png'; ?>" alt="Calendar Logo" height="50" width="50" <?php echo $index_controller->getBsId($index_controller, 'logo_image', 'element'); ?>>
-      <span data-editor-type="element" id="title_text" data-editor-class="title_text_css" class="title_text_css <?php echo setupBSElementsData($index_controller, 'title_text', 'element'); ?>" <?php echo $index_controller->getBsId($index_controller, 'title_text', 'element'); ?>>
+      src="<?php echo defined('THUMBNAIL') ? 'uploads/images/' . THUMBNAIL : 'uploads/images/default_logo.png'; ?>" alt="Calendar Logo" height="50" width="50" <?php echo $index_controller->getBsId($index_controller, 'logo_image', 'element'); ?> <?php $index_controller->load_element_style('logo_image')?>>
+      <span data-editor-type="element" id="title_text" data-editor-class="title_text_css" class="title_text_css <?php echo setupBSElementsData($index_controller, 'title_text', 'element'); ?>" <?php echo $index_controller->getBsId($index_controller, 'title_text', 'element'); ?> <?php $index_controller->load_element_style('title_text')?>>
         <?php echo defined('TITLE') ? TITLE : 'Super Calendar'; ?></span>
       </div>
 
@@ -193,28 +195,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
 
 
         <div data-editor-type="container" data-editor-class="desc_class"
-        class="<?php echo setupBSElementsData($index_controller, 'desc_id', 'container'); ?> desc_class description_p bg_azure  text-black border border-secondary p-2 default_shadow" id="desc_id" <?php echo $index_controller->getBsId($index_controller, 'desc_id', 'container'); ?>>
+        class="<?php echo setupBSElementsData($index_controller, 'desc_id', 'container'); ?> desc_class description_p bg_azure  text-black border border-secondary p-2 default_shadow" id="desc_id" <?php echo $index_controller->getBsId($index_controller, 'desc_id', 'container'); ?> <?php $index_controller->load_element_style('desc_id')?>>
 
         <?php echo defined('DESCRIPTION') ? DESCRIPTION : 'Booking Calendar'; ?>
       </div>
 
-      <div data-editor-type="container" id="top_nav" data-editor-class="top_nav_css" class="top_nav_css container border border-succcess p-2 <?php echo setupBSElementsData($index_controller, 'top_nav', 'container'); ?>" <?php echo $index_controller->getBsId($index_controller, 'top_nav', 'container'); ?>>
+      <div data-editor-type="container" id="top_nav" data-editor-class="top_nav_css" class="top_nav_css container border border-succcess p-2 <?php echo setupBSElementsData($index_controller, 'top_nav', 'container'); ?>" <?php echo $index_controller->getBsId($index_controller, 'top_nav', 'container'); ?> <?php $index_controller->load_element_style('top_nav')?>>
 
         <?php
           if (isset($_SESSION['logged_id']) && !empty($_SESSION['logged_id'])){
             ?>
-            <a href="./logout.php" class="<?php echo setupBSElementsData($index_controller, 'logout_page_link', 'element'); ?> logout_page_link_css btn bg-danger text-white" id="logout_page_link" data-editor-type="element" data-editor-class="logout_page_link_css" <?php echo $index_controller->getBsId($index_controller, 'logout_page_link', 'element'); ?>>Log Out</a>
-            <span style="width:10px;"></span>
+            <!-- <span style="width:10px;"></span> -->
+            <a href="./logout.php" class="<?php echo setupBSElementsData($index_controller, 'logoutlink', 'element'); ?> logoutlink_css btn bg-primary text-white" id="logoutlink" data-editor-type="element" data-editor-class="logoutlink_css" <?php echo $index_controller->getBsId($index_controller, 'logoutlink', 'element'); ?> <?php $index_controller->load_element_style('logoutlink')?>>Setup</a>
+
             <?php
           }
          ?>
         <!-- fake margin for flex -->
-        <span style="width:10px;"></span>
+        <!-- <span style="width:10px;"></span> -->
         <?php if ($user_role == 'admin'){
           ?>
-            <a href="./setup.php" class="<?php echo setupBSElementsData($index_controller, 'setup_page_link', 'element'); ?> setup_page_link_css btn bg-primary text-white" id="setup_page_link" data-editor-type="element" data-editor-class="setup_page_link_css" <?php echo $index_controller->getBsId($index_controller, 'setup_page_link', 'element'); ?>>Setup</a>
-            <span style="width:10px;"></span>
-            <a href="./reports.php" class="<?php echo setupBSElementsData($index_controller, 'report_page_link', 'element'); ?> report_page_link_css btn bg-primary text-white" id="report_page_link" data-editor-type="element" data-editor-class="report_page_link_css" <?php echo $index_controller->getBsId($index_controller, 'report_page_link', 'element'); ?>>Reports</a>
+            <a href="./setup.php" class="<?php echo setupBSElementsData($index_controller, 'setuplink', 'element'); ?> setuplink_css btn bg-primary text-white" id="setuplink" data-editor-type="element" data-editor-class="setuplink_css" <?php echo $index_controller->getBsId($index_controller, 'setuplink', 'element'); ?> <?php $index_controller->load_element_style('setuplink')?>>Setup</a>
+            <!--  <span style="width:10px;"></span> -->
+            <a href="./reports.php" class="<?php echo setupBSElementsData($index_controller, 'reportlink', 'element'); ?>
+              reportlink_css btn bg-primary text-white" id="reportlink" data-editor-type="element"
+               data-editor-class="reportlink_css" <?php echo $index_controller->getBsId($index_controller, 'reportlink', 'element'); ?>
+               <?php $index_controller->load_element_style('reportlink')?>>Reports</a>
           <?php
         } ?>
       </div>
@@ -242,24 +248,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
         <div class="row">
           <div class="col-sm-12  p-2 d-flex justify-content-center">
             <div data-editor-type="container" id="month_switcher_grid" data-editor-class="month_switcher_grid_css"
-            class="row container-fluid options_parent bg_dimgray p-2 month_switcher_grid_css <?php echo setupBSElementsData($index_controller, 'month_switcher_grid', 'container'); ?>" <?php echo $index_controller->getBsId($index_controller, 'month_switcher_grid', 'container'); ?>>
+            class="row container-fluid options_parent bg_dimgray p-2 month_switcher_grid_css <?php echo setupBSElementsData($index_controller, 'month_switcher_grid', 'container'); ?>" <?php echo $index_controller->getBsId($index_controller, 'month_switcher_grid', 'container'); ?> <?php $index_controller->load_element_style('month_switcher_grid')?>>
               <!-- month controller start -->
               <div data-editor-type="container" id="monthswitcher_main" data-editor-class="monthswitcher_main_css"
-               class="monthswitcher_main_css col-sm-12 <?php echo setupBSElementsData($index_controller, 'monthswitcher_main', 'container'); ?>" style="width: 90%;height: fit-content;" <?php echo $index_controller->getBsId($index_controller, 'monthswitcher_main', 'container'); ?>>
+               class="monthswitcher_main_css col-sm-12 <?php echo setupBSElementsData($index_controller, 'monthswitcher_main', 'container'); ?>" <?php echo $index_controller->getBsId($index_controller, 'monthswitcher_main', 'container'); ?> <?php $index_controller->load_element_style('monthswitcher_main','width: 90%;height: fit-content')?>>
               <div class="row flex-fill d-flex justify-content-center ">
               <div id="month_controler_container" class="col-sm-5">
                 <!-- month switcher start -->
                 <div data-editor-type="container" id="monthswitcher_parent" data-editor-class="monthswitcher_css"
-                  class="monthswitcher_css container month_row flex-wrap p-2 text-black border border-light <?php echo setupBSElementsData($index_controller, 'monthswitcher_parent', 'container', 'd-flex align-items-start justify-content-between'); ?>" <?php echo $index_controller->getBsId($index_controller, 'monthswitcher_parent', 'container'); ?>>
+                  class="monthswitcher_css container month_row flex-wrap p-2 text-black border border-light <?php echo setupBSElementsData($index_controller, 'monthswitcher_parent', 'container', 'd-flex align-items-start justify-content-between'); ?>" <?php echo $index_controller->getBsId($index_controller, 'monthswitcher_parent', 'container'); ?> <?php $index_controller->load_element_style('monthswitcher_parent')?>>
                   <i data-editor-type="element" id="monthswitcher_left" data-editor-class="monthswitcher_left_css"
-                   class="monthswitcher_left_css display-6 flex-fill fa fa-arrow-circle-left text-white month_arrow <?php echo setupBSElementsData($index_controller, 'monthswitcher_left', 'element'); ?>"
+                   class="monthswitcher_left_css display-6 flex-fill fa fa-arrow-circle-left text-white month_arrow <?php echo setupBSElementsData($index_controller, 'monthswitcher_left', 'element'); ?>" <?php $index_controller->load_element_style('monthswitcher_left')?>
                   data-month="<?php
                   if (is_numeric($index_controller->get_current_month()->get_month())){
                     echo $index_controller->get_current_month()->get_month() >= 2 ? $index_controller->get_current_month()->get_month() - 1 : 1;
                   }
                   ?>" <?php echo $index_controller->getBsId($index_controller, 'monthswitcher_left', 'element'); ?>></i>
                   <h3 data-editor-type="element" data-editor-class="monthswitcher_select_css"
-                      id="selected_month_name" class="flex-fill month_name text_shadow01 text-white monthswitcher_select_css <?php echo setupBSElementsData($index_controller, 'selected_month_name', 'element'); ?>" <?php echo $index_controller->getBsId($index_controller, 'selected_month_name', 'element'); ?>>
+                      id="selected_month_name" class="flex-fill month_name text_shadow01 text-white monthswitcher_select_css <?php echo setupBSElementsData($index_controller, 'selected_month_name', 'element'); ?>" <?php echo $index_controller->getBsId($index_controller, 'selected_month_name', 'element'); ?> <?php $index_controller->load_element_style('selected_month_name')?>>
                     <?php if (!is_null($index_controller->get_current_month())){
                       $dateObj = DateTime::createFromFormat('!m', $index_controller->get_current_month()->get_month());
                       $monthName = $dateObj->format('F');
@@ -267,7 +273,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
                     } ?>
                   </h3>
                   <i data-editor-type="element" data-editor-class="monthswitcher_right_css"
-                     id="monthswitcher_right" class="monthswitcher_right_css display-6 flex-fill fa fa-arrow-circle-right text-white month_arrow <?php echo setupBSElementsData($index_controller, 'monthswitcher_right', 'element'); ?>"
+                     id="monthswitcher_right" class="monthswitcher_right_css display-6 flex-fill fa fa-arrow-circle-right text-white month_arrow <?php echo setupBSElementsData($index_controller, 'monthswitcher_right', 'element'); ?>" <?php $index_controller->load_element_style('monthswitcher_right')?>
                   data-month="<?php
                   if (is_numeric($index_controller->get_current_month()->get_month())){
                     echo $index_controller->get_current_month()->get_month() <= 12 ? $index_controller->get_current_month()->get_month() + 1 : 12;
@@ -279,12 +285,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
               <!-- month controller end -->
 
               <div data-editor-type="container" id="year_select_cont"
-                 data-editor-class="year_select_cont_css" class="year_select_cont_css col-sm-5 rounded <?php echo setupBSElementsData($index_controller, 'year_select_cont', 'container'); ?>" <?php echo $index_controller->getBsId($index_controller, 'year_select_cont', 'container'); ?>>
+                 data-editor-class="year_select_cont_css" class="year_select_cont_css col-sm-5 rounded <?php echo setupBSElementsData($index_controller, 'year_select_cont', 'container'); ?>" <?php echo $index_controller->getBsId($index_controller, 'year_select_cont', 'container'); ?> <?php $index_controller->load_element_style('year_select_cont')?>>
                 <!-- year display start -->
                 <form data-editor-type="container" id="year_select_form"
-                   data-editor-class="year_select_form_css" class="year_select_form_css flex-fill <?php echo setupBSElementsData($index_controller, 'year_select_form', 'container'); ?>" action="./index.php" method="GET" id="year_form" <?php echo $index_controller->getBsId($index_controller, 'year_select_form', 'container'); ?>>
+                   data-editor-class="year_select_form_css" class="year_select_form_css flex-fill <?php echo setupBSElementsData($index_controller, 'year_select_form', 'container'); ?>" action="./index.php" method="GET" id="year_form" <?php echo $index_controller->getBsId($index_controller, 'year_select_form', 'container'); ?> <?php $index_controller->load_element_style('year_select_form')?>>
                   <select data-editor-type="element" data-editor-class="year_select_css"
-                     class="year_select_css form-control <?php echo setupBSElementsData($index_controller, 'year', 'element'); ?>" name="year" id="year" <?php echo $index_controller->getBsId($index_controller, 'year', 'element'); ?>>
+                     class="year_select_css form-control <?php echo setupBSElementsData($index_controller, 'year', 'element'); ?>" name="year" id="year" <?php echo $index_controller->getBsId($index_controller, 'year', 'element'); ?> <?php $index_controller->load_element_style('year')?>>
                     <!-- years selector -->
 
                     <?php if (!empty($cal_years) && is_array($cal_years)) {
@@ -302,10 +308,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
               </div>
               <!-- remove bg_dmgriay !Important -->
               <div data-editor-type="container" id="month_numbers_main" data-editor-class="month_numbers_main_css"
-                class="month_numbers_main_css col-sm-12 bg_dimgray p-2 <?php echo setupBSElementsData($index_controller, 'month_numbers_main', 'container'); ?>" <?php echo $index_controller->getBsId($index_controller, 'month_numbers_main', 'container'); ?>>
+                class="month_numbers_main_css col-sm-12 bg_dimgray p-2 <?php echo setupBSElementsData($index_controller, 'month_numbers_main', 'container'); ?>" <?php echo $index_controller->getBsId($index_controller, 'month_numbers_main', 'container'); ?> <?php $index_controller->load_element_style('month_numbers_main')?>>
                 <!-- months numbers switch month -->
                 <div data-editor-type="container" id="month_numbers" data-editor-class="month_numbers_css"
-                  class="btn-group btn-sm flex-wrap month_small_btns month_numbers_css <?php echo setupBSElementsData($index_controller, 'month_numbers', 'container'); ?>" <?php echo $index_controller->getBsId($index_controller, 'month_numbers', 'container'); ?>>
+                  class="btn-group btn-sm flex-wrap month_small_btns month_numbers_css <?php echo setupBSElementsData($index_controller, 'month_numbers', 'container'); ?>" <?php echo $index_controller->getBsId($index_controller, 'month_numbers', 'container'); ?> <?php $index_controller->load_element_style('month_numbers')?>>
                   <?php
 
                     if ($current_months && is_array($current_months) && !empty($current_months)){
@@ -320,7 +326,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
                         data-month="<?php echo $current_months[$m]->get_month(); ?>"
                         data-editor-class="btn_arrow_month"
                         data-editor-group="1"
-                        class="btn_arrow_month month_form bg-light p-1 m-1 rounded-circle d-flex justify-content-center align-items-center month_toggle_btn <?php echo setupBSElementsData($index_controller, $btnidhtml, 'element'); ?>" <?php echo $index_controller->getBsId($index_controller, $btnidhtml, 'element'); ?>>
+                        class="btn_arrow_month month_form bg-light p-1 m-1 rounded-circle d-flex justify-content-center align-items-center month_toggle_btn <?php echo setupBSElementsData($index_controller, $btnidhtml, 'element'); ?>" <?php echo $index_controller->getBsId($index_controller, $btnidhtml, 'element'); ?> <?php $index_controller->load_element_style($btnidhtml)?>>
                         <span class="p-1 text-center"> <?php echo $current_months[$m]->get_month(); ?></span>
                         <input type="hidden" style="display:none;" name="month" value="<?php echo $current_months[$m]->get_month(); ?>" required>
                         </form>
@@ -338,56 +344,57 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
 
           </div>
           <div data-editor-type="container" data-editor-class="calendar_first_container_css"  id="calendar_first_container"
-            class="p-1 col-sm-12 bg_dimgray calendar_first_container_css <?php echo setupBSElementsData($index_controller, 'calendar_first_container', 'container'); ?>" <?php echo $index_controller->getBsId($index_controller, 'calendar_first_container', 'container'); ?>>
+            class="p-1 col-sm-12 bg_dimgray calendar_first_container_css <?php echo setupBSElementsData($index_controller, 'calendar_first_container', 'container'); ?>" <?php echo $index_controller->getBsId($index_controller, 'calendar_first_container', 'container'); ?> <?php $index_controller->load_element_style('calendar_first_container')?>>
 
             <!-- Calendar display start -->
             <div id="main_calendar_container"
               class="main_calendar_container_css calendar border border-dark p-2 mt-3 mb-5 container-fluid bg-white">
               <div data-editor-type="container" id="cal_date_title_cont" data-editor-class="cal_date_title_contcss"
-              class="cal_date_title_contcss <?php echo setupBSElementsData($index_controller, 'cal_date_title_cont', 'container', '', true); ?>"  <?php echo $index_controller->getBsId($index_controller, 'cal_date_title_cont', 'container'); ?>>
+              class="cal_date_title_contcss <?php echo setupBSElementsData($index_controller, 'cal_date_title_cont', 'container', '', true); ?>"  <?php echo $index_controller->getBsId($index_controller, 'cal_date_title_cont', 'container'); ?> <?php $index_controller->load_element_style('cal_date_title_cont')?>>
 
-              <h5 data-editor-type="element" id="cal_date_title_elm" data-editor-class="cal_date_title_contcss" class="cal_date_title_contcss text_black <?php echo setupBSElementsData($index_controller, 'cal_date_title_elm', 'element'); ?>" <?php echo $index_controller->getBsId($index_controller, 'cal_date_title_elm', 'element'); ?>><?php
+              <h5 data-editor-type="element" id="cal_date_title_elm" data-editor-class="cal_date_title_contcss" class="cal_date_title_contcss text_black <?php echo setupBSElementsData($index_controller, 'cal_date_title_elm', 'element'); ?>" <?php echo $index_controller->getBsId($index_controller, 'cal_date_title_elm', 'element'); ?> <?php $index_controller->load_element_style('cal_date_title_elm')?>><?php
               $smonth = intval($index_controller->get_current_month()->get_month()) > 9 ? $index_controller->get_current_month()->get_month() : '0' . $index_controller->get_current_month()->get_month();
 
               echo $index_controller->get_current_year()->get_year() . '-' . $smonth . '-01'; ?></h5></div>
               <!-- week Titles row start -->
               <div data-editor-type="container" id="day_namecont" data-editor-class="day_namecont_css"
-                class="day_namecont_css p-2 cal_days_titles <?php echo setupBSElementsData($index_controller, 'day_namecont', 'container'); ?>" <?php echo $index_controller->getBsId($index_controller, 'day_namecont', 'container'); ?>>
+                class="day_namecont_css p-2 cal_days_titles <?php echo setupBSElementsData($index_controller, 'day_namecont', 'container'); ?>" <?php echo $index_controller->getBsId($index_controller, 'day_namecont', 'container'); ?> <?php $index_controller->load_element_style('day_namecont')?>>
 
-                <div data-editor-type="element" id="day_name_parent1" data-editor-class="day_name_parentcss" data-editor-group="2"
-                class="day_name_parentcss day_outer_name_contcss flex-fill border border-light cal_card_cell <?php echo setupBSElementsData($index_controller, 'day_name_parent1', 'element'); ?>" <?php echo $index_controller->getBsId($index_controller, 'day_name_parent1', 'element'); ?>>
-                  <span data-editor-type="element" id="day_mon" data-editor-class="day_mon_css" class="full_day day_mon_css <?php echo setupBSElementsData($index_controller, 'day_mon', 'element'); ?>" <?php echo $index_controller->getBsId($index_controller, 'day_mon', 'element'); ?>>Monday</span>
-                  <span data-editor-type="element" id="day_mon_mob" data-editor-class="day_mon_mob_css" class="short_day day_mon_mob_css <?php echo setupBSElementsData($index_controller, 'day_mon_mob', 'element'); ?>" style="display:none;" <?php echo $index_controller->getBsId($index_controller, 'day_mon_mob', 'element'); ?>>Mon</span>
+                <div data-editor-type="element" id="day_name_parent1" data-editor-class="day_name_parentcss" data-editor-group="day_elm_title"
+                class="day_name_parentcss day_outer_name_contcss flex-fill border border-light cal_card_cell <?php echo setupBSElementsData($index_controller, 'day_name_parent1', 'element'); ?>" <?php echo $index_controller->getBsId($index_controller, 'day_name_parent1', 'element'); ?> <?php $index_controller->load_element_style('day_name_parent1')?>>
+                  <span data-editor-type="element" id="day_mon" data-editor-class="day_mon_css" class="full_day day_mon_css <?php echo setupBSElementsData($index_controller, 'day_mon', 'element'); ?>" <?php echo $index_controller->getBsId($index_controller, 'day_mon', 'element'); ?> <?php $index_controller->load_element_style('day_mon')?>>Monday</span>
+                  <span data-editor-type="element" id="day_mon_mob" data-editor-class="day_mon_mob_css" class="short_day day_mon_mob_css <?php echo setupBSElementsData($index_controller, 'day_mon_mob', 'element'); ?>" <?php echo $index_controller->getBsId($index_controller, 'day_mon_mob', 'element'); ?> <?php $index_controller->load_element_style('day_mon_mob', 'display:none')?>>Mon</span>
                 </div>
 
-                <div data-editor-type="element" id="day_name_parent2" data-editor-class="day_name_parentcss" data-editor-group="2" class="day_name_parentcss flex-fill border border-light cal_card_cell <?php echo setupBSElementsData($index_controller, 'day_name_parent2', 'element'); ?>" <?php echo $index_controller->getBsId($index_controller, 'day_name_parent2', 'element'); ?>>
-                  <span data-editor-type="element" id="day_tue" data-editor-class="day_tue_css" class="full_day day_tue_css <?php echo setupBSElementsData($index_controller, 'day_tue', 'element'); ?>" <?php echo $index_controller->getBsId($index_controller, 'day_tue', 'element'); ?>>Tuesday</span>
-                  <span data-editor-type="element" id="day_tue_mob" data-editor-class="day_tue_mob_css" class="short_day day_tue_mob_css <?php echo setupBSElementsData($index_controller, 'day_tue_mob', 'element'); ?>" style="display:none;" <?php echo $index_controller->getBsId($index_controller, 'day_tue_mob', 'element'); ?>>Tue</span>
+                <div data-editor-type="element" id="day_name_parent2" data-editor-class="day_name_parentcss" data-editor-group="day_elm_title" class="day_name_parentcss flex-fill border border-light cal_card_cell <?php echo setupBSElementsData($index_controller, 'day_name_parent2', 'element'); ?>" <?php echo $index_controller->getBsId($index_controller, 'day_name_parent2', 'element'); ?> <?php $index_controller->load_element_style('day_name_parent2')?>>
+                  <span data-editor-type="element" id="day_tue" data-editor-class="day_tue_css" class="full_day day_tue_css <?php echo setupBSElementsData($index_controller, 'day_tue', 'element'); ?>" <?php echo $index_controller->getBsId($index_controller, 'day_tue', 'element'); ?> <?php $index_controller->load_element_style('day_tue')?>>Tuesday</span>
+                  <span data-editor-type="element" id="day_tue_mob" data-editor-class="day_tue_mob_css" class="short_day day_tue_mob_css <?php echo setupBSElementsData($index_controller, 'day_tue_mob', 'element'); ?>" <?php echo $index_controller->getBsId($index_controller, 'day_tue_mob', 'element'); ?> <?php $index_controller->load_element_style('day_tue_mob', 'display:none')?>>Tue</span>
                 </div>
-                <div data-editor-type="element" id="day_name_parent3" data-editor-class="day_name_parentcss" data-editor-group="2" class="day_name_parentcss flex-fill border border-light cal_card_cell <?php echo setupBSElementsData($index_controller, 'day_name_parent3', 'element'); ?>" <?php echo $index_controller->getBsId($index_controller, 'day_name_parent3', 'element'); ?>>
-                  <span data-editor-type="element" id="day_wed" data-editor-class="day_thu_css" class="full_day day_thu_css <?php echo setupBSElementsData($index_controller, 'day_wed', 'element'); ?>" <?php echo $index_controller->getBsId($index_controller, 'day_wed', 'element'); ?>>Wednesday</span>
-                  <span data-editor-type="element" id="day_wed_mob" data-editor-class="day_wed_mob_css" class="short_day day_wed_mob_css <?php echo setupBSElementsData($index_controller, 'day_wed_mob', 'element'); ?>" style="display:none;" <?php echo $index_controller->getBsId($index_controller, 'day_wed_mob', 'element'); ?>>Wed</span>
+                <div data-editor-type="element" id="day_name_parent3" data-editor-class="day_name_parentcss" data-editor-group="day_elm_title" class="day_name_parentcss flex-fill border border-light cal_card_cell <?php echo setupBSElementsData($index_controller, 'day_name_parent3', 'element'); ?>" <?php echo $index_controller->getBsId($index_controller, 'day_name_parent3', 'element'); ?> <?php $index_controller->load_element_style('day_name_parent3')?>>
+                  <span data-editor-type="element" id="day_wed" data-editor-class="day_thu_css" class="full_day day_thu_css <?php echo setupBSElementsData($index_controller, 'day_wed', 'element'); ?>" <?php echo $index_controller->getBsId($index_controller, 'day_wed', 'element'); ?> <?php $index_controller->load_element_style('day_wed')?>>Wednesday</span>
+                  <span data-editor-type="element" id="day_wed_mob" data-editor-class="day_wed_mob_css" class="short_day day_wed_mob_css <?php echo setupBSElementsData($index_controller, 'day_wed_mob', 'element'); ?>" <?php echo $index_controller->getBsId($index_controller, 'day_wed_mob', 'element'); ?> <?php $index_controller->load_element_style('day_wed_mob', 'display:none')?>>Wed</span>
                 </div>
-                <div data-editor-type="element" id="day_name_parent4" data-editor-class="day_name_parentcss" data-editor-group="2" class="day_name_parentcss flex-fill border border-light cal_card_cell <?php echo setupBSElementsData($index_controller, 'day_name_parent4', 'element'); ?>" <?php echo $index_controller->getBsId($index_controller, 'day_name_parent4', 'element'); ?>>
-                  <span data-editor-type="element" id="day_thu" data-editor-class="day_thu_css" class="full_day day_thu_css <?php echo setupBSElementsData($index_controller, 'day_thu', 'element'); ?>" <?php echo $index_controller->getBsId($index_controller, 'day_thu', 'element'); ?>>Thursday</span>
-                  <span data-editor-type="element" id="day_thu_mob" data-editor-class="day_thu_mob_css" class="short_day day_thu_mob_css <?php echo setupBSElementsData($index_controller, 'day_thu_mob', 'element'); ?>" style="display:none;" <?php echo $index_controller->getBsId($index_controller, 'day_thu_mob', 'element'); ?>>Thu</span>
+                <div data-editor-type="element" id="day_name_parent4" data-editor-class="day_name_parentcss" data-editor-group="day_elm_title" class="day_name_parentcss flex-fill border border-light cal_card_cell <?php echo setupBSElementsData($index_controller, 'day_name_parent4', 'element'); ?>" <?php echo $index_controller->getBsId($index_controller, 'day_name_parent4', 'element'); ?> <?php $index_controller->load_element_style('day_name_parent4')?>>
+                  <span data-editor-type="element" id="day_thu" data-editor-class="day_thu_css" class="full_day day_thu_css <?php echo setupBSElementsData($index_controller, 'day_thu', 'element'); ?>" <?php echo $index_controller->getBsId($index_controller, 'day_thu', 'element'); ?> <?php $index_controller->load_element_style('day_thu')?>>Thursday</span>
+                  <span data-editor-type="element" id="day_thu_mob" data-editor-class="day_thu_mob_css" class="short_day day_thu_mob_css <?php echo setupBSElementsData($index_controller, 'day_thu_mob', 'element'); ?>" <?php echo $index_controller->getBsId($index_controller, 'day_thu_mob', 'element'); ?> <?php $index_controller->load_element_style('day_thu_mob', 'display:none')?>>Thu</span>
                 </div>
-                <div data-editor-type="element" id="day_name_parent5" data-editor-class="day_name_parentcss" data-editor-group="2" class="day_name_parentcss flex-fill border border-light cal_card_cell <?php echo setupBSElementsData($index_controller, 'day_name_parent5', 'element'); ?>" <?php echo $index_controller->getBsId($index_controller, 'day_name_parent5', 'element'); ?>>
-                  <span  data-editor-type="element"id="day_fri" data-editor-class="day_thu_css" class="full_day day_thu_css <?php echo setupBSElementsData($index_controller, 'day_fri', 'element'); ?>" <?php echo $index_controller->getBsId($index_controller, 'day_fri', 'element'); ?>>Friday</span>
-                  <span  data-editor-type="element" id="day_fri_mob" data-editor-class="day_fri_mob_css" class="short_day day_fri_mob_css <?php echo setupBSElementsData($index_controller, 'day_fri_mob', 'element'); ?>" style="display:none;" <?php echo $index_controller->getBsId($index_controller, 'day_fri_mob', 'element'); ?>>Fri</span>
+                <div data-editor-type="element" id="day_name_parent5" data-editor-class="day_name_parentcss" data-editor-group="day_elm_title" class="day_name_parentcss flex-fill border border-light cal_card_cell <?php echo setupBSElementsData($index_controller, 'day_name_parent5', 'element'); ?>" <?php echo $index_controller->getBsId($index_controller, 'day_name_parent5', 'element'); ?> <?php $index_controller->load_element_style('day_name_parent5')?>>
+                  <span  data-editor-type="element"id="day_fri" data-editor-class="day_thu_css" class="full_day day_thu_css <?php echo setupBSElementsData($index_controller, 'day_fri', 'element'); ?>" <?php echo $index_controller->getBsId($index_controller, 'day_fri', 'element'); ?> <?php $index_controller->load_element_style('day_fri')?>>Friday</span>
+                  <span  data-editor-type="element" id="day_fri_mob" data-editor-class="day_fri_mob_css" class="short_day day_fri_mob_css <?php echo setupBSElementsData($index_controller, 'day_fri_mob', 'element'); ?>" <?php echo $index_controller->getBsId($index_controller, 'day_fri_mob', 'element'); ?> <?php $index_controller->load_element_style('day_fri_mob', 'display:none')?>>Fri</span>
                 </div>
-                <div data-editor-type="element" id="day_name_parent6" data-editor-class="day_name_parentcss" data-editor-group="2" class="day_name_parentcss flex-fill border border-light cal_card_cell <?php echo setupBSElementsData($index_controller, 'day_name_parent6', 'element'); ?>" <?php echo $index_controller->getBsId($index_controller, 'day_name_parent6', 'element'); ?>>
-                  <span  data-editor-type="element" id="day_sat" data-editor-class="day_thu_css" class="full_day day_thu_css <?php echo setupBSElementsData($index_controller, 'day_sat', 'element'); ?>" <?php echo $index_controller->getBsId($index_controller, 'day_sat', 'element'); ?> <?php echo $index_controller->getBsId($index_controller, 'day_name_parent6', 'element'); ?>>Saturday</span>
-                  <span  data-editor-type="element" id="day_sat_mob" data-editor-class="day_sat_mob_css" class="short_day day_sat_mob_css <?php echo setupBSElementsData($index_controller, 'day_sat_mob', 'element'); ?>" style="display:none;" <?php echo $index_controller->getBsId($index_controller, 'day_sat_mob', 'element'); ?>>Sat</span>
+                <div data-editor-type="element" id="day_name_parent6" data-editor-class="day_name_parentcss" data-editor-group="day_elm_title" class="day_name_parentcss flex-fill border border-light cal_card_cell <?php echo setupBSElementsData($index_controller, 'day_name_parent6', 'element'); ?>" <?php echo $index_controller->getBsId($index_controller, 'day_name_parent6', 'element'); ?> <?php $index_controller->load_element_style('day_name_parent6')?>>
+                  <span  data-editor-type="element" id="day_sat" data-editor-class="day_thu_css" class="full_day day_thu_css <?php echo setupBSElementsData($index_controller, 'day_sat', 'element'); ?>" <?php echo $index_controller->getBsId($index_controller, 'day_sat', 'element'); ?>
+                    <?php echo $index_controller->getBsId($index_controller, 'day_name_parent6', 'element'); ?> <?php $index_controller->load_element_style('day_name_parent6')?>>Saturday</span>
+                  <span  data-editor-type="element" id="day_sat_mob" data-editor-class="day_sat_mob_css" class="short_day day_sat_mob_css <?php echo setupBSElementsData($index_controller, 'day_sat_mob', 'element'); ?>" <?php echo $index_controller->getBsId($index_controller, 'day_sat_mob', 'element'); ?> <?php $index_controller->load_element_style('day_sat_mob', 'display:none')?>>Sat</span>
                 </div>
-                <div data-editor-type="element" id="day_name_parent7" data-editor-class="day_name_parentcss" data-editor-group="2" class="day_name_parentcss flex-fill border border-light cal_card_cell <?php echo setupBSElementsData($index_controller, 'day_name_parent7', 'element'); ?>" <?php echo $index_controller->getBsId($index_controller, 'day_name_parent7', 'element'); ?>>
-                  <span  data-editor-type="element" id="day_sun" data-editor-class="day_thu_css" class="full_day day_thu_css <?php echo setupBSElementsData($index_controller, 'day_sun', 'element'); ?>" <?php echo $index_controller->getBsId($index_controller, 'day_sun', 'element'); ?>>Sunday</span>
-                  <span  data-editor-type="element" id="day_sun_mob" data-editor-class="day_sun_mob_css" class="short_day day_sun_mob_css <?php echo setupBSElementsData($index_controller, 'day_sun_mob', 'element'); ?>" style="display:none;" <?php echo $index_controller->getBsId($index_controller, 'day_sun_mob', 'element'); ?>>Sun</span>
+                <div data-editor-type="element" id="day_name_parent7" data-editor-class="day_name_parentcss" data-editor-group="day_elm_title" class="day_name_parentcss flex-fill border border-light cal_card_cell <?php echo setupBSElementsData($index_controller, 'day_name_parent7', 'element'); ?>" <?php echo $index_controller->getBsId($index_controller, 'day_name_parent7', 'element'); ?> <?php $index_controller->load_element_style('day_name_parent7')?>>
+                  <span  data-editor-type="element" id="day_sun" data-editor-class="day_thu_css" class="full_day day_thu_css <?php echo setupBSElementsData($index_controller, 'day_sun', 'element'); ?>" <?php echo $index_controller->getBsId($index_controller, 'day_sun', 'element'); ?> <?php $index_controller->load_element_style('day_sun')?>>Sunday</span>
+                  <span  data-editor-type="element" id="day_sun_mob" data-editor-class="day_sun_mob_css" class="short_day day_sun_mob_css <?php echo setupBSElementsData($index_controller, 'day_sun_mob', 'element'); ?>" <?php echo $index_controller->getBsId($index_controller, 'day_sun_mob', 'element'); ?> <?php $index_controller->load_element_style('day_sun_mob', 'display:none')?>>Sun</span>
                 </div>
               </div>
               <!-- week Titles row end -->
               <!-- hidden week scroll buttons -->
-              <div data-editor-type="container" id="weekscroll_container" data-editor-class="weekscroll_containercss"  class="allweeks weekscroll_containercss flex-column p-2 <?php echo setupBSElementsData($index_controller, 'weekscroll_container', 'container'); ?>" <?php echo $index_controller->getBsId($index_controller, 'weekscroll_container', 'container'); ?>>
+              <div data-editor-type="container" id="weekscroll_container" data-editor-class="weekscroll_containercss"  class="allweeks weekscroll_containercss flex-column p-2 <?php echo setupBSElementsData($index_controller, 'weekscroll_container', 'container'); ?>" <?php echo $index_controller->getBsId($index_controller, 'weekscroll_container', 'container'); ?> <?php $index_controller->load_element_style('weekscroll_container')?>>
                 <?php
                   if ($current_weeks && !empty($current_weeks)){
                     for ($cw=0; $cw<count($current_weeks); $cw++){
@@ -396,20 +403,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
                       <div data-editor-type="element"
                       id="<?php echo 'scrollbtn_'.$week_id; ?>" data-editor-group="3" data-editor-class="scroll_left_btncss"
                       class="scroll_to_btns scroll_left_btncss flex-fill border border-primary btn  btn-secondary text-white  mt-1 mb-1 <?php echo setupBSElementsData($index_controller, ('scrollbtn_'.$week_id), 'element'); ?>"
-                      data-target="<?php echo $week_id; ?>" <?php echo $index_controller->getBsId($index_controller, ('scrollbtn_'.$week_id), 'element'); ?>><?php echo ($cw+1); ?></div>
+                      data-target="<?php echo $week_id; ?>" <?php echo $index_controller->getBsId($index_controller, ('scrollbtn_'.$week_id), 'element'); ?> <?php $index_controller->load_element_style('scrollbtn_'.$week_id)?>><?php echo ($cw+1); ?></div>
                       <?php
                     }
                   }
                 ?>
 
-                <div data-editor-type="element" id="map_booking_modal_open" data-editor-class="map_resevation_css" class="map_resevation_css flex-fill border border-primary btn btn-light mt-1 mb-1 aside_add_res <?php echo setupBSElementsData($index_controller, 'map_booking_modal_open' , 'element'); ?>" data-bs-toggle="modal" data-bs-target="#mapBookingModal" <?php echo $index_controller->getBsId($index_controller, 'map_booking_modal_open', 'element'); ?>>
+                <div data-editor-type="element" id="map_booking_modal_open" data-editor-class="map_resevation_css" class="map_resevation_css flex-fill border border-primary btn btn-light mt-1 mb-1 aside_add_res <?php echo setupBSElementsData($index_controller, 'map_booking_modal_open' , 'element'); ?>" data-bs-toggle="modal" data-bs-target="#mapBookingModal" <?php echo $index_controller->getBsId($index_controller, 'map_booking_modal_open', 'element'); ?>
+                  <?php $index_controller->load_element_style('map_booking_modal_open')?>>
                  <i class="fa fa-plus text-primary"></i>
                 </div>
 
-                <div data-editor-type="element" data-editor-class="open_style_editorcss" id="open_style_editor"
-                  class="open_style_editorcss toggle_asside magical_btn flex-fill border border-primary btn  btn-danger text-white  mt-1 mb-1 <?php echo setupBSElementsData($index_controller, 'open_style_editor' , 'element'); ?>"
-                  title="Close The Style Editor" data-bs-original-title="Close The Style Editor" <?php echo $index_controller->getBsId($index_controller, 'open_style_editor', 'element'); ?>><i class="fa fa-magic text-white"></i>
-                </div>
+                <?php if ($user_role == 'admin'){ ?>
+                  <div data-editor-type="element" data-editor-class="open_style_editorcss" id="open_style_editor"
+                    class="open_style_editorcss toggle_asside magical_btn flex-fill border border-primary btn  btn-danger text-white  mt-1 mb-1 <?php echo setupBSElementsData($index_controller, 'open_style_editor' , 'element'); ?>"
+                    title="Close The Style Editor" data-bs-original-title="Close The Style Editor" <?php echo $index_controller->getBsId($index_controller, 'open_style_editor', 'element'); ?> <?php $index_controller->load_element_style('open_style_editor')?>><i class="fa fa-magic text-white"></i>
+                  </div>
+                <?php } ?>
 
 
               </div>
@@ -446,8 +456,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
                           <!-- empty day -->
                           <!-- day start -->
                           <div data-editor-type="element" data-editor-class="day_x_css"
-                          data-editor-group="4"  id="<?php echo $delm_id; ?>" class="day_x_css flex-fill border border-light cal_card_cell day_card null_day <?php echo setupBSElementsData($index_controller, $delm_id, 'element'); ?>"
-                          title="This day is not available The selected month is : <?php echo $week_count; ?> Days" <?php echo $index_controller->getBsId($index_controller, $delm_id, 'element'); ?>>
+                          data-editor-group="<?php echo 'x_day_cont_' . $d; ?>"  id="<?php echo $delm_id; ?>" class="day_x_css flex-fill border border-light cal_card_cell day_card null_day <?php echo setupBSElementsData($index_controller, $delm_id, 'element'); ?>"
+                          title="This day is not available The selected month is : <?php echo $week_count; ?> Days" <?php echo $index_controller->getBsId($index_controller, $delm_id, 'element'); ?> <?php $index_controller->load_element_style($delm_id)?>>
 
                           </div>
                           <?php
@@ -466,16 +476,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
                           $selected_day_data = $day_data['day_data'];
 
                           $periods_dayid = 'all_periods_container_' . $day_id;
-                          $day_cont_id = 'day_container_'.($d+1);
+                          // note this is the id of each period main container
+                          $day_cont_id = 'day_container_111'.($day_id);
                         ?>
                         <!-- day start -->
-                        <div data-day="<?php echo $day_name; ?>" data-editor-type="element" data-editor-group="50" data-editor-class="day_main_cont_css" class="day_main_cont_css flex-fill border border-light cal_card_cell day_card day_style_css <?php echo setupBSElementsData($index_controller, $day_cont_id , 'element'); ?>" id="<?php echo $day_cont_id;  ?>" <?php echo $index_controller->getBsId($index_controller, $day_cont_id, 'element'); ?>>
+                        <div data-day="<?php echo $day_name; ?>" data-editor-type="element" data-editor-group="<?php echo 'day_group_'.$d; ?>" data-editor-class="day_main_cont_css" class="day_main_cont_css flex-fill border border-light cal_card_cell day_card day_style_css <?php echo setupBSElementsData($index_controller, $day_cont_id , 'element'); ?>" id="<?php echo $day_cont_id;  ?>" <?php echo $index_controller->getBsId($index_controller, $day_cont_id, 'element'); ?>
+                          <?php $index_controller->load_element_style($day_cont_id)?>>
                            <!-- day meta -->
-                             <h6 data-editor-type="element" data-editor-group="5" id="<?php echo $title_id_html;  ?>" data-editor-class="day_title_textcss" class="day_title_textcss text-center font_80em <?php echo setupBSElementsData($index_controller, $title_id_html , 'element'); ?>" <?php echo $index_controller->getBsId($index_controller, $title_id_html, 'element'); ?>><?php echo substr($day_name, 0, 3) . ' ' . $day; ?></h6>
-                             <h6 data-editor-type="element" data-editor-group="6" id="<?php echo $date_id_html;  ?>"  data-editor-class="day_date_css"  class="day_date_css text-center bg-light text-black badge <?php echo setupBSElementsData($index_controller, $date_id_html , 'element'); ?>" <?php echo $index_controller->getBsId($index_controller, $date_id_html, 'element'); ?>><?php echo $day_date; ?></h6>
+                             <h6 data-editor-type="element" data-editor-group="<?php echo 'day_title_' . $d ?>" id="<?php echo $title_id_html;  ?>" data-editor-class="day_title_textcss" class="day_title_textcss text-center font_80em <?php echo setupBSElementsData($index_controller, $title_id_html , 'element'); ?>"
+                               <?php echo $index_controller->getBsId($index_controller, $title_id_html, 'element'); ?> <?php $index_controller->load_element_style($title_id_html)?>><?php echo substr($day_name, 0, 3) . ' ' . $day; ?></h6>
+                             <h6 data-editor-type="element" data-editor-group="<?php echo 'day_date_' . $d ?>" id="<?php echo $date_id_html;  ?>"  data-editor-class="day_date_css"  class="day_date_css text-center bg-light text-black badge <?php echo setupBSElementsData($index_controller, $date_id_html , 'element'); ?>" <?php echo $index_controller->getBsId($index_controller, $date_id_html, 'element'); ?> <?php $index_controller->load_element_style($date_id_html)?>><?php echo $day_date; ?></h6>
                            <!-- array_distribution -->
                            <!-- all periods start -->
-                           <div data-editor-type="container" id="<?php echo $periods_dayid; ?>" data-editor-class="all_periods_containercss"  class="all_periods_containercss all_periods flex-column flex-nowrap <?php echo setupBSElementsData($index_controller, $periods_dayid, 'container'); ?>" <?php echo $index_controller->getBsId($index_controller, $periods_dayid, 'container'); ?>>
+                           <div data-editor-type="container" id="<?php echo $periods_dayid; ?>" data-editor-class="all_periods_containercss"  class="all_periods_containercss all_periods flex-column flex-nowrap <?php echo setupBSElementsData($index_controller, $periods_dayid, 'container'); ?>" <?php echo $index_controller->getBsId($index_controller, $periods_dayid, 'container'); ?> <?php $index_controller->load_element_style($periods_dayid)?>>
                              <?php // now get periods from the data array
                                // day_data array(Array([day_period] => Period Object, [day_slot] => Array([0] => Slot Object)))
                                // loop over periods data (
@@ -499,9 +512,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
                                  <!-- period example start -->
                                  <!-- notice here  the id come from database and class u can change also u can add normal css to target some slots in css file many ways -->
                                  <div data-editor-type="container" data-editor-class="period_container_css"
-                                 data-editor-group="8" class="<?php echo setupBSElementsData($index_controller, $p_element_id, 'container'); ?> period_container_css flex-column flex-nowrap container period_background_default <?php echo $p_element_class; ?>" id="<?php echo $p_element_id; ?>" <?php echo $index_controller->getBsId($index_controller, $p_element_id, 'container'); ?>>
+                                 data-editor-group="8" class="<?php echo setupBSElementsData($index_controller, $p_element_id, 'container'); ?> period_container_css flex-column flex-nowrap container period_background_default <?php echo $p_element_class; ?>" id="<?php echo $p_element_id; ?>" <?php echo $index_controller->getBsId($index_controller, $p_element_id, 'container'); ?> <?php $index_controller->load_element_style($p_element_id)?>>
                                     <!-- period title -->
-                                    <span data-editor-type="element" id="<?php echo $period_id_html; ?>" data-editor-group="7" data-editor-class="period_description_css" class="period_description_css badge bg-secondary p-1 mt-1 period_title_default <?php echo setupBSElementsData($index_controller, $date_id_html , 'element'); ?>" <?php echo $index_controller->getBsId($index_controller, $date_id_html, 'element'); ?>><?php echo $p_description; ?></span>
+                                    <span data-editor-type="element" id="<?php echo $period_id_html; ?>" data-editor-group="7" data-editor-class="period_description_css" class="period_description_css badge bg-secondary p-1 mt-1 period_title_default <?php echo setupBSElementsData($index_controller, $date_id_html , 'element'); ?>" <?php echo $index_controller->getBsId($index_controller, $date_id_html, 'element'); ?> <?php $index_controller->load_element_style($date_id_html)?>><?php echo $p_description; ?></span>
                                     <!-- all slots start -->
 
                                     <?php
@@ -532,9 +545,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
                                             data-editor-class="slot_cont_css"
                                             data-editor-type="element"
                                             class="<?php echo setupBSElementsData($index_controller, $slot_cont_id, 'element'); ?> w-100 slot_background_default slot_cont_css p-1 m-1 used_slot <?php echo $s_element_class; ?>"
-                                            id="<?php echo $slot_cont_id; ?>" data-editor-group="8" <?php echo $index_controller->getBsId($index_controller, $slot_cont_id, 'element'); ?>>
+                                            id="<?php echo $slot_cont_id; ?>" data-editor-group="8" <?php echo $index_controller->getBsId($index_controller, $slot_cont_id, 'element'); ?> <?php $index_controller->load_element_style($slot_cont_id)?>>
                                            <div data-editor-type="container" data-editor-group="9" id="<?php echo $s_element_id; ?>" data-editor-class="slot_child_contcss"
-                                            class="w-100 flex-fill slot_child_contcss <?php echo setupBSElementsData($index_controller, $s_element_id, 'container', 'justify-content-between align-items-center'); ?>" <?php echo $index_controller->getBsId($index_controller, $s_element_id, 'container'); ?>>
+                                            class="w-100 flex-fill slot_child_contcss <?php echo setupBSElementsData($index_controller, $s_element_id, 'container', 'justify-content-between align-items-center'); ?>" <?php echo $index_controller->getBsId($index_controller, $s_element_id, 'container'); ?> <?php $index_controller->load_element_style($s_element_id)?>>
                                              <!-- if this slot owned by logged display controls else nope -->
                                              <?php
 
@@ -570,9 +583,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
 
                                         ?>
                                           <!-- slot start with booking diffrent group to diffrence -->
-                                          <div data-editor-type="container" data-editor-group="10" data-editor-class="slot_cont_css" class="<?php echo setupBSElementsData($index_controller, 'container_slot_' . $s_element_id, 'container'); ?> slot_background_default slot_cont_css p-1 m-1 empty_slot <?php echo $s_element_class; ?>" id="container_slot_<?php echo $s_element_id; ?>" <?php echo $index_controller->getBsId($index_controller, 'container_slot_' . $s_element_id, 'container'); ?>>
+                                          <div data-editor-type="container" data-editor-group="10" data-editor-class="slot_cont_css" class="<?php echo setupBSElementsData($index_controller, 'container_slot_' . $s_element_id, 'container'); ?> slot_background_default slot_cont_css p-1 m-1 empty_slot <?php echo $s_element_class; ?>" id="container_slot_<?php echo $s_element_id; ?>" <?php echo $index_controller->getBsId($index_controller, 'container_slot_' . $s_element_id, 'container'); ?>
+                                            <?php $index_controller->load_element_style('container_slot_' . $s_element_id)?>>
                                            <div data-editor-type="element" data-editor-group="12" id="<?php echo $s_element_id; ?>" data-editor-class="slot_child_css" class="padding-1 flex-fill slot_child_css <?php echo setupBSElementsData($index_controller, $s_element_id, 'element', 'd-flex justify-content-between align-items-center'); ?>"
-                                             <?php echo $index_controller->getBsId($index_controller, $s_element_id, 'element'); ?>>
+                                             <?php echo $index_controller->getBsId($index_controller, $s_element_id, 'element'); ?> <?php $index_controller->load_element_style($s_element_id)?>>
 
                                                <i class="fa text-primary fa fa-calendar-o book_open_btn" style="font-size:1.1em;" data-slot-id="<?php echo $s_id; ?>"
                                                data-slot-start_from="<?php echo $s_start_from; ?>"

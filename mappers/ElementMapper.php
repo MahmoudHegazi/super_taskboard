@@ -64,6 +64,15 @@ class ElementMapper {
       return $data;
     }
 
+    function get_element_styles($element_id){
+      $pdo = $this->getPDO();
+      $stmt = $pdo->prepare("SELECT default_style FROM element WHERE element_id=?");
+      $stmt->execute([$element_id]);
+      $data = $stmt->fetch();
+      return $data;
+    }
+
+
     function get_elementid($element_id, $type='container'){
       $pdo = $this->getPDO();
       $stmt = $pdo->prepare("SELECT id FROM element WHERE element_id=:element_id AND type=:type");
@@ -147,6 +156,13 @@ class ElementMapper {
       return $data ? 1 : 0;
     }
 
+    function update_columns_by_group($column, $value, $data_group){
+      $pdo = $this->getPDO();
+      $sql = "UPDATE element SET ".$column."=? WHERE data_group=?";
+      $stmt= $pdo->prepare($sql);
+      return $stmt->execute([$value, $data_group]);
+    }
+
     function get_total_elements(){
       $pdo = $this->getPDO();
       return $pdo->query('select count(id) from element')->fetchColumn();
@@ -203,6 +219,29 @@ class ElementMapper {
         return array();
       }
     }
+
+    function get_element_ids_where($column, $value, $limit='', $and_column='', $and_val=''){
+      $limit  = $limit != '' ? 'ORDER BY id LIMIT ' . $limit : ' ORDER BY id';
+      $pdo = $this->getPDO();
+      $data;
+      if ($and_column != '' && $and_val != ''){
+
+        $sql = "SELECT id FROM element WHERE ".$column."=? AND ".$and_column."=?" . $limit;
+        $stmt = $pdo->prepare($sql);
+        $data = $stmt->execute([$value, $and_val]);
+      } else {
+
+        $sql = "SELECT id FROM element WHERE ".$column."=?".$limit;
+        $stmt = $pdo->prepare($sql);
+        $data = $stmt->execute([$value]);
+      }
+      if ($data){
+        return $stmt->fetchAll();
+      } else {
+        return array();
+      }
+    }
+
 
 
 }

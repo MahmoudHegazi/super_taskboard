@@ -243,6 +243,11 @@ class BootstrapContainerService {
     return $this->bootstrap_container_mapper->update_column($column, $value, $id);
   }
 
+  function update_bs_by_contgroup($bs_class, $bs_value, $data_group){
+    return $this->bootstrap_container_mapper->update_bs_containerss_by_elm_group_fast($bs_class, $bs_value, $data_group);
+  }
+
+
   function get_total_bscontainers(){
     return $this->bootstrap_container_mapper->get_total_calendar_bscontainers();
   }

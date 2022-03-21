@@ -150,6 +150,18 @@ class BootstrapContainerMapper {
     $stmt= $pdo->prepare($sql);
     return $stmt->execute([$value, $id]);
   }
+
+  function update_bs_containerss_by_elm_group_fast($bs_class, $bs_value, $data_group){
+    $pdo = $this->getPDO();
+    $sql = "UPDATE bootstrap_container SET ".$bs_class."=:bs_value WHERE bootstrap_container.element_id IN (SELECT id FROM element WHERE data_group=:data_group)";
+    $statement = $pdo->prepare($sql);
+    $statement->bindParam(':bs_value', $bs_value, PDO::PARAM_STR);
+    $statement->bindParam(':data_group', $data_group, PDO::PARAM_STR);
+    $excuted = $statement->execute();
+    return $excuted;
+  }
+
+
   function show_column_names(){
     $pdo = $this->getPDO();
     $stmt = $pdo->prepare("SELECT * FROM bootstrap_container LIMIT 1");
