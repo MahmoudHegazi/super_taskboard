@@ -664,105 +664,106 @@ class ReportController {
   /* Chart 7 end  */
 
   /* Chart  8 */
-  public function calendar_reservation_anlysis(){
-    $response = array('code'=>200, 'message'=>'Successfully get datasets', 'labels'=>array(), 'datasets'=>array(), 'title'=> 'Calendars Performance', 'cal_id'=> 0);
-    if (!isset($this->calendar_service) || empty($this->calendar_service)){
-      $response['code'] = 500;
-      $response['message'] = 'No Data Crtical Error!';
-      return $response;
-    }
-    $all_cals_s = 'SELECT id FROM calendar ORDER BY id';
-    $all_cals = $this->calendar_service->free_group_query($all_cals_s);
-    if (!isset($all_cals) || empty($all_cals)){
-      $response['code'] = 404;
-      $response['message'] = 'No Calendars Found!';
-      return $response;
-    }
-
-    // get data set for each cal
-    for ($ci=0; $ci<count($all_cals); $ci++){
-      if (!isset($all_cals[$ci]['id']) || empty($all_cals[$ci]['id']) || !is_numeric($all_cals[$ci]['id'])){
-        continue;
+  /*
+    public function calendar_reservation_anlysis(){
+      $response = array('code'=>200, 'message'=>'Successfully get datasets', 'labels'=>array(), 'datasets'=>array(), 'title'=> 'Calendars Performance', 'cal_id'=> 0);
+      if (!isset($this->calendar_service) || empty($this->calendar_service)){
+        $response['code'] = 500;
+        $response['message'] = 'No Data Crtical Error!';
+        return $response;
       }
-      $calid = $all_cals[$ci]['id'];
-      $cc = 'IT';
-      if (!isset($country_code) || empty($country_code)){
-        $cc = 'IT';
+      $all_cals_s = 'SELECT id FROM calendar ORDER BY id';
+      $all_cals = $this->calendar_service->free_group_query($all_cals_s);
+      if (!isset($all_cals) || empty($all_cals)){
+        $response['code'] = 404;
+        $response['message'] = 'No Calendars Found!';
+        return $response;
       }
 
-      $total_resev_s = $this->calendar_service->free_single_query('SELECT COUNT(reservation.id) AS reservations FROM reservation JOIN slot ON reservation.slot_id = slot.id JOIN period ON slot.period_id = period.id JOIN day on period.day_id = day.id JOIN month ON
-      day.month_id = month.id JOIN year ON month.year_id = year.id JOIN calendar ON year.cal_id = calendar.id WHERE calendar.id='.$calid);
-      $total_years_s = $this->calendar_service->free_single_query('SELECT COUNT(year.id) AS years FROM year JOIN calendar ON year.cal_id = calendar.id WHERE calendar.id='.$calid);
-      $total_logs_s = $this->calendar_service->free_single_query('SELECT COUNT(logs.id) AS logs FROM logs JOIN calendar ON logs.cal_id = calendar.id WHERE logs.cal_id='.$calid);
-      $total_ever_blocked = $this->calendar_service->free_single_query('SELECT COUNT(logs.id) AS blockeds FROM logs JOIN calendar ON logs.cal_id = calendar.id WHERE logs.blocked=1 AND logs.cal_id='.$calid);
-      $total_ever_banned = $this->calendar_service->free_single_query('SELECT COUNT(logs.id) AS banneds FROM logs JOIN calendar ON logs.cal_id = calendar.id WHERE logs.banned=1 AND logs.cal_id='.$calid);
-      $total_forgien_users = $this->calendar_service->free_single_query('SELECT COUNT(logs.id) AS forgiens FROM logs JOIN calendar ON logs.cal_id = calendar.id WHERE logs.loc != '."'".$cc."'".' AND logs.cal_id='.$calid);
-      $total_native_users = $this->calendar_service->free_single_query('SELECT COUNT(logs.id) AS native FROM logs JOIN calendar ON logs.cal_id = calendar.id WHERE logs.loc ='."'".$cc."'".' AND logs.cal_id='.$calid);
-      $total_windows_users = $this->calendar_service->free_single_query('SELECT COUNT(logs.id) AS windows FROM logs JOIN calendar ON logs.cal_id = calendar.id WHERE logs.os_type = '."'Windows OS'".' AND logs.cal_id='.$calid);
-      $total_linux_users = $this->calendar_service->free_single_query('SELECT COUNT(logs.id) AS linux FROM logs JOIN calendar ON logs.cal_id = calendar.id WHERE logs.os_type = '."'Linux OS'".' AND logs.cal_id='.$calid);
-      $total_mac_users = $this->calendar_service->free_single_query('SELECT COUNT(logs.id) AS mac FROM logs JOIN calendar ON logs.cal_id = calendar.id WHERE logs.os_type = '."'MacOS'".' AND logs.cal_id='.$calid);
-      $total_hacked_users = $this->calendar_service->free_single_query('SELECT COUNT(logs.id) AS hacked FROM logs JOIN calendar ON logs.cal_id = calendar.id WHERE logs.class_token != logs.form_token AND logs.cal_id='.$calid);
-      $total_dist_remember_me = $this->calendar_service->free_single_query('SELECT COUNT(a2.users) AS remembered_me FROM (SELECT DISTINCT logs.user_id AS users FROM logs WHERE cookies_enabled = 1) AS a2');
-
-
-      if (
-          !isset($total_resev_s) || !isset($total_windows_users) ||
-          !isset($total_years_s) || !isset($total_linux_users) ||
-          !isset($total_logs_s) || !isset($total_mac_users) ||
-          !isset($total_ever_blocked) || !isset($total_hacked_users) ||
-          !isset($total_ever_banned) || !isset($total_dist_remember_me) ||
-          !isset($total_forgien_users) || !isset($total_native_users)
-        ){
-          $response['code'] = 500;
-          $response['message'] = 'invalid data chart notloaded';
-          return $response;
-        }
-
-        $labels1 = array(
-          'reservations',
-          'years',
-          'logs',
-          'blocked',
-          'banneds',
-          'hacked',
-          'forgiens',
-          'native',
-          'remembered_me',
-          'windows',
-          'linux',
-          'mac',
-        );
-        $data = array(
-          intval($total_resev_s['reservations']),
-          intval($total_years_s['years']),
-          intval($total_logs_s['logs']),
-          intval($total_ever_blocked['blockeds']),
-          intval($total_ever_banned['banneds']),
-          intval($total_hacked_users['hacked']),
-          intval($total_forgien_users['forgiens']),
-          intval($total_native_users['native']),
-          intval($total_dist_remember_me['remembered_me']),
-          intval($total_windows_users['windows']),
-          intval($total_linux_users['linux']),
-          intval($total_mac_users['mac'])
-        );
-        $data_set = $this->giveMeDataSet($calid, $labels1, $data, $title='Calendar Performance', 1, 1, 1);
-        if (isset($data_set) && !empty($data_set)){
-          $response['code'] = 200;
-          $response['cal_id'] = $calid;
-          $response['labels'] = $labels1;
-          $response['message'] = 'Successfully Get data';
-          array_push($response['datasets'], $data_set);
-          return $response;
-        } else {
+      // get data set for each cal
+      for ($ci=0; $ci<count($all_cals); $ci++){
+        if (!isset($all_cals[$ci]['id']) || empty($all_cals[$ci]['id']) || !is_numeric($all_cals[$ci]['id'])){
           continue;
         }
+        $calid = $all_cals[$ci]['id'];
+        $cc = 'IT';
+        if (!isset($country_code) || empty($country_code)){
+          $cc = 'IT';
+        }
+
+        $total_resev_s = $this->calendar_service->free_single_query('SELECT COUNT(reservation.id) AS reservations FROM reservation JOIN slot ON reservation.slot_id = slot.id JOIN period ON slot.period_id = period.id JOIN day on period.day_id = day.id JOIN month ON
+        day.month_id = month.id JOIN year ON month.year_id = year.id JOIN calendar ON year.cal_id = calendar.id WHERE calendar.id='.$calid);
+        $total_years_s = $this->calendar_service->free_single_query('SELECT COUNT(year.id) AS years FROM year JOIN calendar ON year.cal_id = calendar.id WHERE calendar.id='.$calid);
+        $total_logs_s = $this->calendar_service->free_single_query('SELECT COUNT(logs.id) AS logs FROM logs JOIN calendar ON logs.cal_id = calendar.id WHERE logs.cal_id='.$calid);
+        $total_ever_blocked = 1;
+        $total_ever_banned = 1;
+        $total_forgien_users = $this->calendar_service->free_single_query('SELECT COUNT(logs.id) AS forgiens FROM logs JOIN calendar ON logs.cal_id = calendar.id WHERE logs.loc != '."'".$cc."'".' AND logs.cal_id='.$calid);
+        $total_native_users = $this->calendar_service->free_single_query('SELECT COUNT(logs.id) AS native FROM logs JOIN calendar ON logs.cal_id = calendar.id WHERE logs.loc ='."'".$cc."'".' AND logs.cal_id='.$calid);
+        $total_windows_users = $this->calendar_service->free_single_query('SELECT COUNT(logs.id) AS windows FROM logs JOIN calendar ON logs.cal_id = calendar.id WHERE logs.os_type = '."'Windows OS'".' AND logs.cal_id='.$calid);
+        $total_linux_users = $this->calendar_service->free_single_query('SELECT COUNT(logs.id) AS linux FROM logs JOIN calendar ON logs.cal_id = calendar.id WHERE logs.os_type = '."'Linux OS'".' AND logs.cal_id='.$calid);
+        $total_mac_users = $this->calendar_service->free_single_query('SELECT COUNT(logs.id) AS mac FROM logs JOIN calendar ON logs.cal_id = calendar.id WHERE logs.os_type = '."'MacOS'".' AND logs.cal_id='.$calid);
+        $total_hacked_users = $this->calendar_service->free_single_query('SELECT COUNT(logs.id) AS hacked FROM logs JOIN calendar ON logs.cal_id = calendar.id WHERE logs.class_token != logs.form_token AND logs.cal_id='.$calid);
+        $total_dist_remember_me = 0;
+
+
+        if (
+            !isset($total_resev_s) || !isset($total_windows_users) ||
+            !isset($total_years_s) || !isset($total_linux_users) ||
+            !isset($total_logs_s) || !isset($total_mac_users) ||
+            !isset($total_ever_blocked) || !isset($total_hacked_users) ||
+            !isset($total_ever_banned) || !isset($total_dist_remember_me) ||
+            !isset($total_forgien_users) || !isset($total_native_users)
+          ){
+            $response['code'] = 500;
+            $response['message'] = 'invalid data chart notloaded';
+            return $response;
+          }
+
+          $labels1 = array(
+            'reservations',
+            'years',
+            'logs',
+            'blocked',
+            'banneds',
+            'hacked',
+            'forgiens',
+            'native',
+            'remembered_me',
+            'windows',
+            'linux',
+            'mac',
+          );
+          $data = array(
+            intval($total_resev_s['reservations']),
+            intval($total_years_s['years']),
+            intval($total_logs_s['logs']),
+            0,
+            0,
+            0,
+            intval($total_forgien_users['forgiens']),
+            intval($total_native_users['native']),
+            $total_dist_remember_me,
+            intval($total_windows_users['windows']),
+            intval($total_linux_users['linux']),
+            intval($total_mac_users['mac'])
+          );
+          $data_set = $this->giveMeDataSet($calid, $labels1, $data, $title='Calendar Performance', 1, 1, 1);
+          if (isset($data_set) && !empty($data_set)){
+            $response['code'] = 200;
+            $response['cal_id'] = $calid;
+            $response['labels'] = $labels1;
+            $response['message'] = 'Successfully Get data';
+            array_push($response['datasets'], $data_set);
+            return $response;
+          } else {
+            continue;
+          }
+      }
+      return $response;
+
     }
-    return $response;
-
-  }
-  /* Chart 8 end  */
-
+    */
+    /* Chart 8 end  */
 
   public function giveMeDataSet($cal_id, $labels=array(), $data=array(), $title='', $backgroundColor=0, $borderColor=0, $borderWidth=1){
     if (

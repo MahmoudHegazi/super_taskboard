@@ -267,101 +267,10 @@ class LoginController {
         $user_email = test_input($user_obj->get_email());
         $user_hashed_password = test_input($user_obj->get_hashed_password());
         $is_admin = test_input($user_obj->get_role()) == 1 ? True : False;
-
-
-        /* check if user banned */
-        $is_user_banned = $this->logs_service->get_user_banned_status($user_id);
-        if ($is_user_banned && (isset($is_user_banned['banned']) && !empty($is_user_banned['banned']))){
-          if ($is_user_banned['banned'] == 1){
-            $this->redirect_user_with_message($redirect_url, 'Sorry, your account has been banned due to unusual behavior, please contact the administrator for more information.' , False);
-            die();
-          }
-        }
-
-        /* check if user blocked */
-        $userblocked = False;
-        $removeblock = False;
-        $log_id = 0;
-        $is_user_banned = $this->logs_service->get_user_blocked_status($user_id);
-        if (isset($is_user_banned['blocked']) && !empty($is_user_banned['blocked'])){
-          $userblocked = True;
-          $log_id = $is_user_banned['id'];
-          if ($is_user_banned['blocked'] == True){
-            $block_end = $is_user_banned['block_end'];
-
-            $currenttime = strtotime((new DateTime())->format("Y-m-d H:i:s"));
-            $block_endtime = strtotime($is_user_banned['block_end']);
-            $can_remove_block = $currenttime > $block_endtime;
-            if ($can_remove_block){
-              // if user passed the block end time remove block automatic
-              $removeblock = True;
-            } else {
-              $removeblock = False;
-            }
-          }
-        }
-
-        // if user still blocked tell him and redirect
-        if ($userblocked == True && $removeblock == False){
-          $this->redirect_user_with_message($redirect_url, 'Sorry, your account has been blocked until: ' . $block_end , False);
-          die();
-        }
-
-        if ($userblocked == True && $removeblock == True && $log_id != 0){
-          // unblock user
-          $unblockuser = $this->unblockUser($user_obj->get_id(), $log_id);
-        }
-
-
-          $invalid_limit = 60;
-          $time = new DateTime();
-          $request_date = $time->format("Y-m-d H:i:s");
-
-
-          $get_time_before = $this->returnNowBefore($invalid_limit);
-          $get_time_after = $this->returnNowAfter($invalid_limit);
-          $invalids_before_hour = $this->logs_service->get_user_invalid_logs($get_time_before, $user_obj->get_id());
-
-          // check if 10 invalid within 1 hour block him so when he log he had 10 invalid logs before one hour from now
-          $before2days = $this->returnNowBefore(((60*24)*2));
-          $invalid_before_2days = $this->logs_service->get_user_invalid_logs($before2days, $user_obj->get_id());
-
-          // check ban case and ban if needed
-          if ($invalid_before_2days >= 150) {
-            // this user has invalid passwords for 150 times within 2 days with block 1 hour per 10 invalid so he recived 15 block within 2 days
-            $added_log = $this->addLoginLog($user_id, $user_username, $user_email, $user_hashed_password, $is_admin, $post_obj, $session_obj, False, 'banned user', NULL, NULL, 1, $completed=0, $remember_me=0, $remember_me_token=$remember_me_token);
-            $this->banUserBadLogin($user_id, $log_id);
-            $this->redirect_user_with_message($redirect_url, 'Your Account Has Been Banned for unusual behavior Please contact admin', False);
-            die();
-          }
+        $request_date = Date("Y-m-d H:i:s");
 
 
 
-
-          // check invalid and block if needed
-          if ($invalids_before_hour > 10){
-
-            $last_user_blockedlog = $this->logs_service->get_user_lastblock_log($user_obj->get_id());
-
-            if (isset($last_user_blockedlog) && !empty($last_user_blockedlog)){
-              if ($userblocked == True && $removeblock == True && $log_id != 0){
-                // unblock user
-                $unblockuser = $this->unblockUser($user_obj->get_id(), $log_id);
-                $this->redirect_user_with_message($redirect_url, $message, False);
-                die();
-              } else {
-                $this->redirect_user_with_message($redirect_url, 'Your Account Blocked', False);
-                die();
-              }
-            } else {
-              $message = "You Have Enter invalid password for 10 times Your account has been blocked for 1 Hour";
-              $new_block_end = $this->returnNowAfter($invalid_limit);
-              $log_notes = 'blocked user';
-              $added_log = $this->addLoginLog($user_id, $user_username, $user_email, $user_hashed_password, $is_admin, $post_obj, $session_obj, $valid_login, $log_notes, 1, $new_block_end, 0, $completed=0, $remember_me=0, $remember_me_token=$remember_me_token);
-              $this->redirect_user_with_message($redirect_url, $message, False);
-              die();
-            }
-          }
 
         if ($valid_login && $valid_login == True){
 
@@ -394,15 +303,15 @@ class LoginController {
             }
           }
 
-          $added_log = $this->addLoginLog($user_id, $user_username, $user_email, $user_hashed_password, $is_admin, $post_obj, $session_obj, $valid_login, 'valid login', NULL, NULL, 0, 1, $rememberme_input, $remember_me_token);
+          $added_log = $this->addLoginLog($user_id, $user_username, $user_email, $user_hashed_password, $is_admin, $post_obj, $session_obj, $valid_login, 'valid login', 1, $rememberme_input, $remember_me_token);
           $index_url = getDynamicBaseUrl();
           $this->loguser($user_obj, $added_log);
           header("Location: ./index.php");
           die();
         } else {
           // invalid login but not passed limit within hour
-          $message = 'Invalid User or Password Remaining: ' . (10 - intval($invalids_before_hour)) . ' Before Blocked';
-          $added_log = $this->addLoginLog($user_id, $user_username, $user_email, $user_hashed_password, $is_admin, $post_obj, $session_obj, $valid_login, 'invalid login', NULL, NULL, 0, 1, 0, NULL);
+          $message = 'Invalid User or Password';
+          $added_log = $this->addLoginLog($user_id, $user_username, $user_email, $user_hashed_password, $is_admin, $post_obj, $session_obj, $valid_login, 'invalid login',  1, 0, NULL);
           $this->redirect_user_with_message($redirect_url, $message , False);
           die();
         }
@@ -452,7 +361,8 @@ class LoginController {
   }
 
   /* Add Logs */
-  public function addLoginLog($user_id, $user_username, $user_email, $user_hashed_password, $is_admin, $post_obj, $session_obj, $valid_login, $notes, $blocked=NULL, $block_end=NULL, $banned=NULL, $completed=1, $remember_me=0, $rmme_token=NULL){
+  public function addLoginLog($user_id, $user_username, $user_email, $user_hashed_password, $is_admin, $post_obj, $session_obj, $valid_login, $notes, $completed=1, $remember_me=0, $rmme_token=NULL){
+
     $rmme_token = !is_null($rmme_token) ? $rmme_token : $remember_me_token;
     $browser = isset($session_obj['browser']) && !empty($session_obj['browser']) ? test_input($session_obj['browser']) : '';
     $os = isset($session_obj['os']) && !empty($session_obj['os']) ? test_input($session_obj['os']) : '';
@@ -465,44 +375,18 @@ class LoginController {
     $notes = $notes == '' && !empty($banned) && $banned == 1 ? 'banned user' : '';
     $notes = $notes == '' && !empty($blocked) && $blocked == 1 ? 'blocked user' : '';
     $notes = empty($valid_login) || $valid_login == 0 ? 'invalid login' : $notes;
-
     $added_log = $this->logs_service->add(
       $user_id, $user_email, intval($valid_login),
       intval($is_admin), $this->get_cal_id(),
       $post_obj['request_token'], $session_obj['request_token'],
       $user_hashed_password, intval($cookies_enabled) , $login_ip, $loc, $os, $browser, $browser_language,
-      $blocked, $block_end, $banned, $completed, $remember_me, $notes=$notes, $remember_me_token=$rmme_token
+      $completed, $remember_me, $notes=$notes, $remember_me_token=$rmme_token
     );
     if (isset($added_log) && !empty($added_log)){
       return $added_log;
     } else {
       return false;
     }
-  }
-
-
-  public function banUserBadLogin($user_id, $log_id){
-    $update1 = $this->logs_service->update_user_log('completed', 0, $user_id, $log_id);
-    $udapte2 = $this->logs_service->update_user_log('banned', 1, $user_id, $log_id);
-    return $update1 && $udapte2;
-  }
-  public function blockUserBadLogin($user_id, $log_id, $time_to_block=60){
-    $block_end_at = $this->returnNowAfter($minutes_to_add=$time_to_block);
-    $update1 = $this->logs_service->update_user_log('completed', 0, $user_id, $log_id);
-    $udapte2 = $this->logs_service->update_user_log('blocked', 1, $user_id, $log_id);
-    $udpate3 = $this->logs_service->update_user_log('block_end', $block_end_at, $user_id, $log_id);
-    return $update1 && $udapte2 && $udpate3;
-  }
-
-
-  public function unblockUser($user_id, $log_id){
-    if(!isset($this->logs_service)){
-      $this->redirect_user_with_message($redirect_url, 'System Error Please Contact Admin', False);
-      die();
-    }
-    $update1 = $this->logs_service->update_user_log('completed', 1, $user_id, $log_id);
-    echo $update1;
-    return $update1;
   }
 
   public function returnNowAfter($minutes_to_add=60){
@@ -554,19 +438,6 @@ class LoginController {
   }
 
   /* ################## Secuirty section ##################### */
-  public function return_user_wrong_logins($username){
-    return 0;
-  }
-
-  public function update_user_wrong_logins($username){
-  }
-
-  // prevent Brute-force attack and dicteinary attack
-  public function block_user($user){
-  }
-
-  public function is_user_blocked($user){
-  }
 
   /* secure from strong type which is send login request not from my website for example use bot or remote reuqest it wont success even if provide a key */
   public function getnerate_request_secert(){
@@ -575,7 +446,6 @@ class LoginController {
     return $token;
   }
   // secure remember me data important hack easy point
-
 
 
   public function encrypt_remeber_me_token($string_to_encrypt, $token){

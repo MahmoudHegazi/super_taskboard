@@ -19,16 +19,16 @@ class PeriodMapper {
 
   public function insert($period) {
       $pdo = $this->getPDO();
-      $statement = $pdo->prepare('INSERT INTO period(day_id, period_date, description, element_id, element_class, period_index) VALUES(:day_id, :period_date, :description, :element_id, :element_class, :period_index)');
+      $statement = $pdo->prepare('INSERT INTO period(day_id, period_date, description, element_id, element_class, period_index, period_end) VALUES(:day_id, :period_date, :description, :element_id, :element_class, :period_index, :period_end)');
 
-      $period_date = date('Y-m-d H:i:s', strtotime(test_input($period->get_period_date())));
       $statement->execute(array(
           'day_id' => $period->get_day_id(),
-          'period_date' => $period_date,
+          'period_date' => $period->get_period_date(),
           'description' => $period->get_description(),
           'element_id' => $period->get_element_id(),
           'element_class' => $period->get_element_class(),
-          'period_index' => $period->get_period_index()
+          'period_index' => $period->get_period_index(),
+          'period_end'=>$period->get_period_end()
       ));
       return $pdo->lastInsertId();
   }
@@ -46,13 +46,15 @@ class PeriodMapper {
 
 
   function update($period){
-    $statement = $pdo->prepare('UPDATE period (day_id, period_date, description, element_id, element_class) VALUES(:day_id, :period_date, :description, :element_id, :element_class)');
+    $statement = $pdo->prepare('UPDATE period (day_id, period_date, description, element_id, element_class, period_index, period_end) VALUES(:day_id, :period_date, :description, :element_id, :element_class, :period_index, :period_end)');
     $statement->execute(array(
       'day_id' => $period->get_day_id(),
-      'period_date' => $period->get_period_date(),
+      'period_date' => $period_date,
       'description' => $period->get_description(),
       'element_id' => $period->get_element_id(),
-      'element_class' => $period->get_element_class()
+      'element_class' => $period->get_element_class(),
+      'period_index' => $period->get_period_index(),
+      'period_end'=>$period->get_period_end()
     ));
   }
 
@@ -149,7 +151,7 @@ class PeriodMapper {
     $pdo = $this->getPDO();
     $pdo->setAttribute(PDO::ATTR_AUTOCOMMIT, 0);
     $pdo->beginTransaction(); // also helps speed up your inserts.
-    $stmt = $pdo->prepare('INSERT INTO period(day_id, period_date, description, element_id, element_class, period_index) VALUES(:day_id, :period_date, :description, :element_id, :element_class, :period_index)');
+    $stmt = $pdo->prepare('INSERT INTO period(day_id, period_date, description, element_id, element_class, period_index, period_end) VALUES(:day_id, :period_date, :description, :element_id, :element_class, :period_index, :period_end)');
     foreach($data as $item)
     {
         $stmt->bindValue(':day_id', $item->get_day_id());
@@ -158,6 +160,7 @@ class PeriodMapper {
         $stmt->bindValue(':element_id', $item->get_element_id());
         $stmt->bindValue(':element_class', $item->get_element_class());
         $stmt->bindValue(':period_index', $item->get_period_index());
+        $stmt->bindValue(':period_end', $item->get_period_end());
         $stmt->execute();
         $id = $pdo->lastInsertId();
         array_push($inserted_ids, $id);

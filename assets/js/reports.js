@@ -146,7 +146,7 @@ loadAnyChartDataset('reserv_per_periods', 'reserv_per_periods', 'doughnut');
 loadAnyChartDataset('prefered_periods', 'perfered_user_period', 'bar');
 loadAnyChartDataset('prefered_slots', 'perfered_user_slot', 'doughnut');
 loadAnyChartDataset('reserv_top_period_slot', 'best_period_and_slot', 'doughnut');
-loadAnyChartDataset('calendars_performance_review', 'calendars_performance_review', 'radar');
+//loadAnyChartDataset('calendars_performance_review', 'calendars_performance_review', 'radar');
 
 
 /*

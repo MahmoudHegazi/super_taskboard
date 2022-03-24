@@ -206,7 +206,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
           if (isset($_SESSION['logged_id']) && !empty($_SESSION['logged_id'])){
             ?>
             <!-- <span style="width:10px;"></span> -->
-            <a href="./logout.php" class="<?php echo setupBSElementsData($index_controller, 'logoutlink', 'element'); ?> logoutlink_css btn bg-primary text-white" id="logoutlink" data-editor-type="element" data-editor-class="logoutlink_css" <?php echo $index_controller->getBsId($index_controller, 'logoutlink', 'element'); ?> <?php $index_controller->load_element_style('logoutlink')?>>Setup</a>
+            <a href="./logout.php" class="<?php echo setupBSElementsData($index_controller, 'logoutlink', 'element'); ?> logoutlink_css btn bg-primary text-white" id="logoutlink" data-editor-type="element" data-editor-class="logoutlink_css" <?php echo $index_controller->getBsId($index_controller, 'logoutlink', 'element'); ?> <?php $index_controller->load_element_style('logoutlink')?>>Logout</a>
 
             <?php
           }
@@ -349,13 +349,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
             <!-- Calendar display start -->
             <div id="main_calendar_container"
               class="main_calendar_container_css calendar border border-dark p-2 mt-3 mb-5 container-fluid bg-white">
-              <div data-editor-type="container" id="cal_date_title_cont" data-editor-class="cal_date_title_contcss"
-              class="cal_date_title_contcss <?php echo setupBSElementsData($index_controller, 'cal_date_title_cont', 'container', '', true); ?>"  <?php echo $index_controller->getBsId($index_controller, 'cal_date_title_cont', 'container'); ?> <?php $index_controller->load_element_style('cal_date_title_cont')?>>
-
-              <h5 data-editor-type="element" id="cal_date_title_elm" data-editor-class="cal_date_title_contcss" class="cal_date_title_contcss text_black <?php echo setupBSElementsData($index_controller, 'cal_date_title_elm', 'element'); ?>" <?php echo $index_controller->getBsId($index_controller, 'cal_date_title_elm', 'element'); ?> <?php $index_controller->load_element_style('cal_date_title_elm')?>><?php
-              $smonth = intval($index_controller->get_current_month()->get_month()) > 9 ? $index_controller->get_current_month()->get_month() : '0' . $index_controller->get_current_month()->get_month();
-
-              echo $index_controller->get_current_year()->get_year() . '-' . $smonth . '-01'; ?></h5></div>
               <!-- week Titles row start -->
               <div data-editor-type="container" id="day_namecont" data-editor-class="day_namecont_css"
                 class="day_namecont_css p-2 cal_days_titles <?php echo setupBSElementsData($index_controller, 'day_namecont', 'container'); ?>" <?php echo $index_controller->getBsId($index_controller, 'day_namecont', 'container'); ?> <?php $index_controller->load_element_style('day_namecont')?>>
@@ -413,6 +406,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
                   <?php $index_controller->load_element_style('map_booking_modal_open')?>>
                  <i class="fa fa-plus text-primary"></i>
                 </div>
+
+                <button id="map_booking_modal_open_1" data-bs-toggle="modal" data-bs-target="#mapBookingModal" style="display:none !important;"></button>
 
                 <?php if ($user_role == 'admin'){ ?>
                   <div data-editor-type="element" data-editor-class="open_style_editorcss" id="open_style_editor"
@@ -485,7 +480,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
                            <!-- day meta -->
                              <h6 data-editor-type="element" data-editor-group="<?php echo 'day_title_' . $d ?>" id="<?php echo $title_id_html;  ?>" data-editor-class="day_title_textcss" class="day_title_textcss text-center font_80em <?php echo setupBSElementsData($index_controller, $title_id_html , 'element'); ?>"
                                <?php echo $index_controller->getBsId($index_controller, $title_id_html, 'element'); ?> <?php $index_controller->load_element_style($title_id_html)?>><?php echo substr($day_name, 0, 3) . ' ' . $day; ?></h6>
-                             <h6 data-editor-type="element" data-editor-group="<?php echo 'day_date_' . $d ?>" id="<?php echo $date_id_html;  ?>"  data-editor-class="day_date_css"  class="day_date_css text-center bg-light text-black badge <?php echo setupBSElementsData($index_controller, $date_id_html , 'element'); ?>" <?php echo $index_controller->getBsId($index_controller, $date_id_html, 'element'); ?> <?php $index_controller->load_element_style($date_id_html)?>><?php echo $day_date; ?></h6>
                            <!-- array_distribution -->
                            <!-- all periods start -->
                            <div data-editor-type="container" id="<?php echo $periods_dayid; ?>" data-editor-class="all_periods_containercss"  class="all_periods_containercss all_periods flex-column flex-nowrap <?php echo setupBSElementsData($index_controller, $periods_dayid, 'container'); ?>" <?php echo $index_controller->getBsId($index_controller, $periods_dayid, 'container'); ?> <?php $index_controller->load_element_style($periods_dayid)?>>
@@ -499,12 +493,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
                                  $p_id = $selected_period->get_id();
                                  $p_day_id = $selected_period->get_day_id();
                                  $p_date = $selected_period->get_period_date();
+                                 $p_enddate = $selected_period->get_period_end();
                                  $p_description = $selected_period->get_description();
                                  $period_index = $selected_period->get_period_index();
                                  $p_element_id = $selected_period->get_element_id();
                                  $p_element_class = $selected_period->get_element_class();
                                  $daycalid = $index_controller->get_used_calendar()->get_id();
                                  $period_id_html = 'period_desc_'. $p_id;
+
+                                 $period_fulltime = $selected_period->get_period_date() . '-' . $selected_period->get_period_end();
 
 
                                  /* ##################### display periods   ############################ */
@@ -514,7 +511,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
                                  <div data-editor-type="container" data-editor-class="period_container_css"
                                  data-editor-group="8" class="<?php echo setupBSElementsData($index_controller, $p_element_id, 'container'); ?> period_container_css flex-column flex-nowrap container period_background_default <?php echo $p_element_class; ?>" id="<?php echo $p_element_id; ?>" <?php echo $index_controller->getBsId($index_controller, $p_element_id, 'container'); ?> <?php $index_controller->load_element_style($p_element_id)?>>
                                     <!-- period title -->
-                                    <span data-editor-type="element" id="<?php echo $period_id_html; ?>" data-editor-group="7" data-editor-class="period_description_css" class="period_description_css badge bg-secondary p-1 mt-1 period_title_default <?php echo setupBSElementsData($index_controller, $date_id_html , 'element'); ?>" <?php echo $index_controller->getBsId($index_controller, $date_id_html, 'element'); ?> <?php $index_controller->load_element_style($date_id_html)?>><?php echo $p_description; ?></span>
+                                    <span data-editor-type="element" id="<?php echo $period_id_html; ?>" data-editor-group="7"
+                                       data-editor-class="period_description_css" class="period_description_css badge bg-secondary p-1 mt-1 period_title_default
+                                       <?php echo setupBSElementsData($index_controller, $period_id_html, 'element'); ?>"
+                                       <?php echo $index_controller->getBsId($index_controller, $period_id_html, 'element'); ?>
+                                       <?php $index_controller->load_element_style($period_id_html)?>><?php echo $period_fulltime; ?></span>
                                     <!-- all slots start -->
 
                                     <?php
@@ -535,7 +536,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
                                         $current_reservation = $index_controller->get_reservation_data_byslot($s_id);
                                         $owned_reservation = isset($current_reservation) && !empty($current_reservation) && (intval($current_reservation->get_user_id()) === intval($logged_userid)) ? 1 : 0;
                                         $slot_cont_id = 'cont_' . $s_element_id;
-
                                         // used slot
                                         if ($s_empty == 0){
                                           // display used slot
@@ -547,7 +547,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
                                             class="<?php echo setupBSElementsData($index_controller, $slot_cont_id, 'element'); ?> w-100 slot_background_default slot_cont_css p-1 m-1 used_slot <?php echo $s_element_class; ?>"
                                             id="<?php echo $slot_cont_id; ?>" data-editor-group="8" <?php echo $index_controller->getBsId($index_controller, $slot_cont_id, 'element'); ?> <?php $index_controller->load_element_style($slot_cont_id)?>>
                                            <div data-editor-type="container" data-editor-group="9" id="<?php echo $s_element_id; ?>" data-editor-class="slot_child_contcss"
-                                            class="w-100 flex-fill slot_child_contcss <?php echo setupBSElementsData($index_controller, $s_element_id, 'container', 'justify-content-between align-items-center'); ?>" <?php echo $index_controller->getBsId($index_controller, $s_element_id, 'container'); ?> <?php $index_controller->load_element_style($s_element_id)?>>
+                                            class="edit_owned_slot_cont w-100 flex-fill slot_child_contcss <?php echo setupBSElementsData($index_controller, $s_element_id, 'container', 'justify-content-between align-items-center'); ?>" <?php echo $index_controller->getBsId($index_controller, $s_element_id, 'container'); ?> <?php $index_controller->load_element_style($s_element_id)?>>
                                              <!-- if this slot owned by logged display controls else nope -->
                                              <?php
 
@@ -555,16 +555,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
                                              if ($owned_reservation || (isset($current_reservation) && !empty($current_reservation) && $user_role === 'admin')){
                                                $user_public_data = $index_controller->return_public_user_data($current_reservation->get_user_id());
 
+
                                                $u_name = isset($user_public_data) && !empty($user_public_data) ? $user_public_data->get_name() : '';
                                                $u_email = isset($user_public_data) && !empty($user_public_data) ? $user_public_data->get_email() : '';
                                                $u_role = isset($user_public_data) && !empty($user_public_data) ? $user_public_data->get_role() : '';
                                                $u_username = isset($user_public_data) && !empty($user_public_data) ? $user_public_data->get_username() : '';
 
-                                               echo '<i  data-id="'. $current_reservation->get_id().'" data-start="'.$s_start_from.'" data-end="'.$s_end_at.'"  data-name="'.$current_reservation->get_name().'" data-notes="'.$current_reservation->get_notes().'" data-bs-toggle="modal" data-bs-target="#editReservationModal" class="cursor_pointer text-success fa fa-calendar-check-o  edit_owned_slot" style="font-size:17px;"></i>';
-                                               echo'<i data-slot-id="'.$s_id.'" data-id="'. $current_reservation->get_id().'" class="fa text-white fa fa-close border border-light bg-danger rounded owned_byLoged_remove" style="font-size:1.1em;"  data-bs-toggle="modal" data-bs-target="#cancelReservationModal" ></i>';
-                                               echo '<i data-show="show_'.$current_reservation->get_id().'"  data-id="'. $current_reservation->get_id().'" data-start="'.$s_start_from.'" data-end="'.$s_end_at.'"  data-name="'.$current_reservation->get_name().'" data-notes="'.$current_reservation->get_notes().'"
-                                               data-user-name="'.$u_name.'" data-user-email="'.$u_email.'" data-user-role="'.$u_role.'" data-username="'.$u_username.'" class="text-success fa fa-envelope-o owned_byLoged view_reservation" style="font-size:18px;"></i>';
-                                               echo '<button style="display:none !important;" data-bs-toggle="modal" data-bs-target="#viewReservationModal" id="show_'.$current_reservation->get_id().'"></button>';
+                                               $reserv_status = $current_reservation->get_status();
+
+
+                                               if ($user_role === 'admin'){
+                                                 echo '<i  data-id="'. $current_reservation->get_id().'" data-start="'.$s_start_from.'" data-end="'.$s_end_at.'"  data-name="'.$current_reservation->get_name().'" data-notes="'.$current_reservation->get_notes().'" data-bs-toggle="modal" data-bs-target="#editReservationModal" class="cursor_pointer text-success fa fa-calendar-check-o  edit_owned_slot" style="font-size:17px;"></i>';
+                                                 echo '<span>' .$u_name. '</span>';
+                                                 echo'<i data-slot-id="'.$s_id.'" data-reserv-id="'. $current_reservation->get_id().'" data-reserv-status="'.$current_reservation->get_status().'" class="fa text-white fa fa-gear border p-1 border-light bg-danger rounded owned_byLoged_remove" style="font-size:1.1em;"  data-bs-toggle="modal" data-bs-target="#cancelReservationModal" data-reserv-id="'.$current_reservation->get_id().'"></i>';
+                                               } else {
+                                                 if ($reserv_status == 'completed'){
+                                                   echo '<span>' .$u_name. '</span>';
+                                                 } else {
+                                                   if ($reserv_status == 'paused'){
+                                                     echo '<i class="fa fa-pause" title="This reservation is paused you can change status"></i>';
+                                                   }
+                                                   echo '<i  data-id="'. $current_reservation->get_id().'" data-start="'.$s_start_from.'" data-end="'.$s_end_at.'"  data-name="'.$current_reservation->get_name().'" data-notes="'.$current_reservation->get_notes().'" data-bs-toggle="modal" data-bs-target="#editReservationModal" class="cursor_pointer text-success fa fa-calendar-check-o  edit_owned_slot" style="font-size:17px;"></i>';
+                                                   echo '<span>' .$u_name. '</span>';
+                                                   echo'<i data-slot-id="'.$s_id.'" data-reserv-id="'. $current_reservation->get_id().'" data-reserv-status="'.$current_reservation->get_status().'" class="fa text-white fa fa-gear border p-1 border-light bg-danger rounded owned_byLoged_remove" style="font-size:1.1em;"  data-bs-toggle="modal" data-bs-target="#cancelReservationModal" data-reserv-id="'.$current_reservation->get_id().'"></i>';
+                                                 }
+                                               }
+
+
                                              } else {
                                                // not owned reservation
                                                if ($user_role === 'admin' && !empty($current_reservation)){
@@ -585,10 +602,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
                                           <!-- slot start with booking diffrent group to diffrence -->
                                           <div data-editor-type="container" data-editor-group="10" data-editor-class="slot_cont_css" class="<?php echo setupBSElementsData($index_controller, 'container_slot_' . $s_element_id, 'container'); ?> slot_background_default slot_cont_css p-1 m-1 empty_slot <?php echo $s_element_class; ?>" id="container_slot_<?php echo $s_element_id; ?>" <?php echo $index_controller->getBsId($index_controller, 'container_slot_' . $s_element_id, 'container'); ?>
                                             <?php $index_controller->load_element_style('container_slot_' . $s_element_id)?>>
-                                           <div data-editor-type="element" data-editor-group="12" id="<?php echo $s_element_id; ?>" data-editor-class="slot_child_css" class="padding-1 flex-fill slot_child_css <?php echo setupBSElementsData($index_controller, $s_element_id, 'element', 'd-flex justify-content-between align-items-center'); ?>"
+                                           <div data-editor-type="element" data-editor-group="12" id="<?php echo $s_element_id; ?>" data-editor-class="slot_child_css" class="book_open_btn padding-1 flex-fill slot_child_css <?php echo setupBSElementsData($index_controller, $s_element_id, 'element', 'd-flex justify-content-between align-items-center'); ?>"
                                              <?php echo $index_controller->getBsId($index_controller, $s_element_id, 'element'); ?> <?php $index_controller->load_element_style($s_element_id)?>>
 
-                                               <i class="fa text-primary fa fa-calendar-o book_open_btn" style="font-size:1.1em;" data-slot-id="<?php echo $s_id; ?>"
+                                               <i class="fa text-primary fa fa-calendar-o openbooking_btn" style="font-size:1.1em;" data-slot-id="<?php echo $s_id; ?>"
                                                data-slot-start_from="<?php echo $s_start_from; ?>"
                                                data-slot-end_at="<?php echo $s_end_at; ?>"
                                                data-slot-empty="<?php echo $s_empty; ?>"
@@ -597,22 +614,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
                                                data-period-description="<?php echo $p_description; ?>"
                                                data-uid="<?php echo $logged_userid; ?>"
                                                data-bs-toggle="modal" data-bs-target="#bookingModal" ></i>
-
-                                               <i data-slot-id="<?php echo $s_id; ?>"
-                                                  data-show-view="<?php echo 'show_view_' . $s_id; ?>"
-                                                  data-id="<?php echo $s_id; ?>"
-                                                  data-start="<?php echo $s_start_from; ?>"
-                                                  data-end="<?php echo $s_end_at; ?>"
-                                                  data-period-date="<?php echo $p_date; ?>"
-                                                  data-slot-index="<?php echo $s_slot_index; ?>"
-                                                  data-period-description="<?php echo $p_description; ?>"
-                                                 class="fa text-primary fa fa-envelope-o view_empty_slot"
-                                                  style="font-size:1.1em;"></i>
-                                                 <button style="display:none !important;" data-bs-toggle="modal"
-                                                 data-bs-target="#viewSlotModal" id="<?php echo 'show_view_' . $s_id;?>" style="display:none;"></button>
-
-                                             <!-- end noob part -->
-
 
                                            </div>
                                           </div>
@@ -781,6 +782,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
                     <label>Pick a Date</label>
                     <input class="form-control" name="map_reservation_date"
                     id="map_reservation_date" data-cal-id="<?php echo Calid;?>" type="date"  min="<?php echo $min_year . '-01-01'; ?>" max="<?php echo $max_year . '-12-12'; ?>">
+                    <div class="mt-3 p-2 d-flex justify-content-center align-items-center">
+                    </div>
+
                   <?php
                   } else {
                   ?>
@@ -857,6 +861,191 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
   </div>
 </div>
 <!-- Map Booking modal end -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- Map Booking modal start -->
+<div class="modal fade" id="mapBookingModal_1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+
+      <!-- Modal Header -->
+      <div class="modal-header">
+        <h5 class="modal-title "> Add new Booking _1<i class="fa fa-calendar-o"></i></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <!-- Modal body -->
+      <div class="modal-body">
+          <div id="map_error_cont_1"></div>
+
+          <form method="POST" action="">
+            <label>Reservation Status</label>
+            <div class="row">
+              <div class="col-sm-8">
+                <select class="form-control mt-2 mb-2"  name="update_reserv_status" id="update_reserv_status">
+                  <option name="update_reserv_status" value="pending">Pending</option>
+                  <option name="update_reserv_status" value="paused">Paused</option>
+                  <?php
+                    // 2 side handle (only admin can complete ticket)
+                    if ($user_role === 'admin'){
+                  ?>
+                  <option name="update_reserv_status" value="completed">Completed</option>
+                  <?php } ?>
+                </select>
+                <input type="hidden" class="form-control" name="update_status_reservid" id="update_status_reservid" style="display:none !important;" readonly>
+
+              </div>
+              <div class="col-sm-4 d-flex">
+                <button class="btn btn-outline-success rounded flex-fill">Update Status</button>
+              </div>
+            </div>
+          </form>
+          <form method="POST" action="">
+
+            <!-- level 1 select day date and get id with ajax -->
+            <div class="form-group"  id="map_day_level1_1">
+              <?php
+              // if calendar id exist it must exist
+              if (defined('Calid')){
+                  // check if min year and max year and the calendar has years you can has calendar with 0 years easy
+                  if ($has_years && !is_null($min_year) && !is_null($max_year)){
+                  ?>
+
+                  <!-- for admin this best secured way instead of interput ajax request or play in this area just load it with php and display noe and in level 3display block -->
+                  <?php
+                   if (isset($index_controller) && !empty($index_controller) && $user_role === 'admin'){
+                     ?>
+                     <div class="form-group mb-2 mt-2" id="admin_reservation_owner_1" style="display:none;">
+                     <label for="admin_select_userid_add">Select the owner of the reservation</label>
+                     <select title="You See this Becuase You Are an admin select the user"
+                       class="form-control mb-2" id="admin_select_userid_add1_1" name="admin_select_userid_add" required>
+                         <?php
+                         $public_users_data = $index_controller->return_users_public_data();
+                         for ($pu=0; $pu<count($public_users_data); $pu++){
+                           $user_id = $public_users_data[$pu]->get_id();
+                           $uname = ($user_id === $logged_userid) ? 'You: ' . $public_users_data[$pu]->get_name() : $public_users_data[$pu]->get_name();
+                         ?>
+                           <option value="<?php echo $user_id; ?>" checked><?php echo $uname; ?></option>
+                         <?php
+                         }?>
+                     </select>
+                     </div>
+                     <?php
+                   }
+                  ?>
+
+                    <label>Pick a Date</label>
+                    <input class="form-control" name="map_reservation_date"
+                    id="map_reservation_date_1" data-cal-id="<?php echo Calid;?>" type="date"  min="<?php echo $min_year . '-01-01'; ?>" max="<?php echo $max_year . '-12-12'; ?>">
+
+
+                      <div class="mt-2 p-2 d-flex justify-content-center align-items-center">
+                        <p class="flex-fill w-50">Current slot ID: </p>
+                        <input class="form-control" name="map_resevation_change_slotid" id="map_resevation_change_slotid_1" readonly>
+                      </div>
+                      <div class="p-2 d-flex justify-content-center align-items-center">
+                        <p class="flex-fill w-50">Current reservation ID: </p>
+                        <input class="form-control" name="map_resevation_change_resvid" id="map_resevation_change_resvid_1" readonly>
+                      </div>
+
+
+                  <?php
+                  } else {
+                  ?>
+
+                    <div class="alert alert-warning fade show alert-dismissible">
+                      <span>This Calendar Has No Years</span>
+                      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                  <?php
+                 }
+              } else {
+                ?>
+                <div class="alert alert-warning fade show alert-dismissible">
+                  <span>unexcpted Error Calendar Data Not Loaded</span>
+                  <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                  <!-- all periods data -->
+                </div>
+                <?php
+              }
+              ?>
+            </div>
+            <!-- end level 1 -->
+
+
+<!-- display periods and slots level 2 -->
+<div id="map_day_level2_1" class="container-fluid d-flex flex-row flex-wrap">
+
+   <div class="container-fluid p-2" id="map_reservation_periods_container_1">
+     <!-- all periods data -->
+   </div>
+
+</div>
+<!-- end display periods and slots level 2 -->
+
+
+
+
+            <!-- level 3 display add reservation inputs -->
+
+            <div class="form-group"  id="map_day_level3_1" style="display:none;">
+
+              <div class="container p-2 mt-2 mb-1">
+               <h5 id="reservation_ptitle_map_1" class="text-center"></h5>
+              </div>
+                   <input name="secuirty_token" type="hidden" value="<?php echo isset($index_controller) ? $index_controller->get_request_secert() : ''; ?>" />
+                   <input type="hidden" value="" name="reservation_slot_id_1" id="reservation_slot_id_map_1" style="display:none;">
+
+
+                   <div class="container text-center d-flex justify-content-between m-2 p-2">
+                     <p class="ml-2">Start At: <span id="level3_start_from_1" class="bg-secondary text-white badge p-2"></span></p>
+                     <p class="ml-2">end at: <span class="bg-danger text-white badge p-2" id="level3_end_at_1"></span></p>
+                   </div>
+                   <button type="submit" class="btn btn-primary">Confirm Booking </button>
+            </div>
+
+          </form>
+      </div>
+
+      <!-- Modal footer -->
+      <div class="modal-footer">
+        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+<!-- Map Booking modal end -->
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 <!-- view empty slot modal start -->
@@ -1036,16 +1225,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
         <?php
          if (isset($index_controller) && !empty($index_controller)){
            ?>
-           <form action="./index.php" method="POST">
-             <label for="cancel_reservation_slotid">Sei sicuro di voler cancellare la prenotazione</label>
+           <form action="./index.php" method="POST" class="mt-3 p-2 d-flex justify-content-center align-items-center">
+             <label class="flex-fill" for="cancel_reservation_slotid">Sei sicuro di voler cancellare la prenotazione</label>
+             <button  type="submit" class="btn btn-outline-danger" >Cancel Booking</button>
              <input type="hidden" style="display:none !important;" id="cancel_reservation_slotid" name="cancel_reservation_slotid" required />
              <input type="hidden" style="display:none !important;" id="cancel_reservation_id" name="cancel_reservation_id" required />
-             <button  type="submit" class="btn btn-danger" >Cancel Booking</button>
            </form>
            <?php
          }
         ?>
 
+        <div class="mt-3 p-2 d-flex justify-content-center align-items-center">
+          <p class="flex-fill">Select another slot: </p>
+          <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#mapBookingModal_1" id="open_change_reservation_map">Change Slot</button>
+        </div>
       </div>
       <!-- Modal footer -->
       <div class="modal-footer">
@@ -1063,11 +1256,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
 
 <!-- sound effects -->
 <audio id="open_modal_sound">
-  <source src="https://sndup.net/rp5j/d" type="audio/wav">
+  <source src="assets/sounds/open_sound.wav" type="audio/wav">
 </audio>
 
 <audio id="unable_open_modal">
-  <source src="https://sndup.net/sbs9/d" type="audio/wav">
+  <source src="assets/sounds/close_sound.wav" type="audio/wav">
 </audio>
 
 <!-- HTML5 sounds -->

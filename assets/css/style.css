@@ -99,6 +99,10 @@ div.aside_container .nav_item:hover {
   text-shadow: 1px 1px 2px black, 8px 0 25px gray, 3px 0 5px darkblue;
 }
 
+.period_container_css{
+  min-height: 100px !important;
+}
+
 .hover_btn:hover {
     box-shadow: 0 4px 8px 0 rgba(200, 200, 200, 0.2), 0 6px 20px 0 rgba(200, 200, 200, 1.2);
 }
@@ -114,6 +118,11 @@ div.aside_container .nav_item:hover {
   font-weight: bold;
 
 }
+
+.scroll_to_btns{
+  display: none !important;
+}
+
 
 .hover_cssrule:hover {
   background: lightgray;
@@ -158,6 +167,9 @@ div.aside_container .nav_item:hover {
 
   div.main_container {-
     height:100% !important;
+  }
+  .scroll_to_btns{
+    display: block !important;
   }
 
   .nav_cont{text-align:center;}

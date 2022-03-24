@@ -19,7 +19,7 @@ class LogsMapper {
 
   public function insert($log) {
       $pdo = $this->getPDO();
-      $statement = $pdo->prepare('INSERT INTO logs(user_id,	user_email,	valid,	cookies_enabled, admin_user, hash_password, ip, loc, os_type, browser_type, browser_language, blocked, block_end, banned, remember_me, cal_id, form_token, notes, completed, class_token, remember_me_token) VALUES (:user_id,	:user_email,	:valid,	:cookies_enabled, :admin_user, :hash_password, :ip, :loc, :os_type, :browser_type, :browser_language, :blocked, :block_end, :banned, :remember_me, :cal_id, :form_token, :notes, :completed, :class_token, :remember_me_token)');
+      $statement = $pdo->prepare('INSERT INTO logs(user_id,	user_email,	valid,	cookies_enabled, admin_user, hash_password, ip, loc, os_type, browser_type, browser_language, remember_me, cal_id, form_token, notes, completed, class_token, remember_me_token) VALUES (:user_id,	:user_email,	:valid,	:cookies_enabled, :admin_user, :hash_password, :ip, :loc, :os_type, :browser_type, :browser_language, :remember_me, :cal_id, :form_token, :notes, :completed, :class_token, :remember_me_token)');
       $statement->execute(array(
         'user_id' => $log->get_user_id(),
         'user_email' => $log->get_user_email(),
@@ -32,9 +32,6 @@ class LogsMapper {
         'os_type' => $log->get_os_type(),
         'browser_type' => $log->get_browser_type(),
         'browser_language' => $log->get_browser_language(),
-        'blocked' => $log->get_blocked(),
-        'block_end' => $log->get_block_end(),
-        'banned' => $log->get_banned(),
         'remember_me' => $log->get_remember_me(),
         'cal_id' => $log->get_cal_id(),
         'form_token' => $log->get_form_token(),
@@ -61,7 +58,7 @@ class LogsMapper {
 
   function update($user){
     $pdo = $this->getPDO();
-      $statement = $pdo->prepare('UPDATE logs (user_id,	user_email,	valid,	cookies_enabled, admin_user, hash_password, ip, loc, os_type, browser_type, browser_language, blocked, block_end, banned, remember_me, cal_id, form_token, notes, completed, class_token, remember_me_token) VALUES (:user_id,	:user_email,	:valid,	:cookies_enabled, :admin_user, :hash_password, :ip, :loc, :os_type, :browser_type, :browser_language, :blocked, :block_end, :banned, :remember_me, :cal_id, :form_token, :notes, :completed, :class_token, :remember_me_token)');
+      $statement = $pdo->prepare('UPDATE logs (user_id,	user_email,	valid,	cookies_enabled, admin_user, hash_password, ip, loc, os_type, browser_type, browser_language, remember_me, cal_id, form_token, notes, completed, class_token, remember_me_token) VALUES (:user_id,	:user_email,	:valid,	:cookies_enabled, :admin_user, :hash_password, :ip, :loc, :os_type, :browser_type, :browser_language, :remember_me, :cal_id, :form_token, :notes, :completed, :class_token, :remember_me_token)');
     $statement->execute(array(
       'user_id' => $log->get_user_id(),
       'user_email' => $log->get_user_email(),
@@ -74,9 +71,6 @@ class LogsMapper {
       'os_type' => $log->get_os_type(),
       'browser_type' => $log->get_browser_type(),
       'browser_language' => $log->get_browser_language(),
-      'blocked' => $log->get_blocked(),
-      'block_end' => $log->get_block_end(),
-      'banned' => $log->get_banned(),
       'remember_me' => $log->get_remember_me(),
       'cal_id' => $log->get_cal_id(),
       'form_token' => $log->get_form_token(),

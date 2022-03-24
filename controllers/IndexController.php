@@ -680,6 +680,7 @@ echo date("Y");
     }
 
     public function handle_add_reservation($post_obj, $session_obj, $index_controller_obj){
+
       $check_request_data = isset($index_controller_obj) &&
       isset($post_obj['reservation_slot_id']) && !empty($post_obj['reservation_slot_id']) &&
       isset($post_obj['secuirty_token']) && !empty($post_obj['secuirty_token']) &&
@@ -741,7 +742,6 @@ echo date("Y");
   public function postHandler($index_controller, $post_obj, $session_obj, $redirect_url, $error){
     $ajax_request = false;
 
-
     if ($error || !isset($index_controller)){
       $_SESSION['message'] = 'The calendar cannot be executed. The procedure is not set up correctly';
       $_SESSION['success'] = 'false';
@@ -757,6 +757,7 @@ echo date("Y");
     }
 
     // add new reservation
+
     $is_add_reservation = isset($post_obj['reservation_slot_id']) && !empty($post_obj['reservation_slot_id']) &&
     isset($post_obj['secuirty_token']) && !empty($post_obj['secuirty_token']) &&
     isset($post_obj['reservation_name']) && isset($post_obj['reservation_comment']);
@@ -781,6 +782,272 @@ echo date("Y");
       header("Location: " . $redirect_url);
       die();
     }
+
+// update reservation status
+if (isset($post_obj['update_reserv_status']) && isset($post_obj['update_status_reservid'])){
+  if (empty($post_obj['update_status_reservid']) || empty($post_obj['update_reserv_status']) ){
+    $_SESSION['message'] = 'Missing Reservation Id Or Next Status refresh page and try again make sure reservation not deleted';
+    $_SESSION['success'] = 'false';
+    header("Location: " . $redirect_url);
+    die();
+  }
+  $u_reserv_status = test_input($post_obj['update_reserv_status']);
+  $u_reserv_id = test_input($post_obj['update_status_reservid']);
+  $current_reservation = $index_controller->reservation_service->get_reservation_by_id($u_reserv_id);
+  if (empty($current_reservation)){
+    $_SESSION['message'] = 'Could Not Find that reservation on system refresh page and try again make sure reservation not deleted';
+    $_SESSION['success'] = 'false';
+    header("Location: " . $redirect_url);
+    die();
+  }
+
+  $current_status = $current_reservation->get_status();
+  if ($u_reserv_status === $current_status){
+    $_SESSION['message'] = 'No Changed detected.';
+    $_SESSION['success'] = 'false';
+    header("Location: " . $redirect_url);
+    die();
+  } else {
+    $logged_uid = test_input($_SESSION['logged_id']);
+    $logged_user = $index_controller->user_service->get_user_by_id($logged_uid);
+    if (empty($logged_user)){
+      $_SESSION['message'] = 'Please login ???!';
+      $_SESSION['success'] = 'false';
+      header("Location: " . $redirect_url);
+      die();
+    }
+    $is_admin = $logged_user->get_role() === 'admin' ? 1 : 0;
+    $is_owner = $current_reservation->get_user_id() === $logged_user->get_id() ? 1 : 0;
+
+    if (!$is_admin && !$is_owner){
+      $_SESSION['message'] = 'No premssion to perform action.';
+      $_SESSION['success'] = 'false';
+      header("Location: " . $redirect_url);
+      die();
+    }
+
+    if ($is_admin){
+      $updated_status = $index_controller->reservation_service->updateReservStatus($u_reserv_status, $u_reserv_id);
+      if ($updated_status){
+        $_SESSION['message'] = 'Status updated successfully.';
+        $_SESSION['success'] = 'true';
+        header("Location: " . $redirect_url);
+        die();
+      } else {
+        $_SESSION['message'] = 'Could Not Update Status System Crtical error 500.';
+        $_SESSION['success'] = 'false';
+        header("Location: " . $redirect_url);
+        die();
+      }
+    }
+
+    if (!$is_admin){
+      if ($current_status != 'completed'){
+        $updated_status = $index_controller->reservation_service->updateReservStatus($u_reserv_status, $u_reserv_id);
+        if ($updated_status){
+          $_SESSION['message'] = 'Status updated successfully.';
+          $_SESSION['success'] = 'true';
+          header("Location: " . $redirect_url);
+          die();
+        } else {
+          $_SESSION['message'] = 'Could Not Update Status System Crtical error 500.';
+          $_SESSION['success'] = 'false';
+          header("Location: " . $redirect_url);
+          die();
+        }
+      } else {
+        $_SESSION['message'] = 'No premssion to perform action.';
+        $_SESSION['success'] = 'false';
+        header("Location: " . $redirect_url);
+        die();
+      }
+    }
+  }
+  
+  $_SESSION['message'] = 'Could not update reservation data1.';
+  $_SESSION['success'] = 'false';
+  header("Location: " . $redirect_url);
+  die();
+  // end update status
+}
+
+$is_change_reservation_slot = isset($index_controller) && isset($post_obj['secuirty_token']) && isset($post_obj['map_resevation_change_resvid']);
+if ($is_change_reservation_slot){
+  $is_updated = false;
+  $error_message = '';
+
+
+  // fast if no reserv end it before
+  if (empty($_SESSION['logged_id'])){
+    $_SESSION['message'] = 'Please Login First.';
+    $_SESSION['success'] = 'false';
+    header("Location: " . $redirect_url);
+    die();
+  }
+
+  if (empty($post_obj['map_resevation_change_resvid'])){
+    $_SESSION['message'] = 'missing required data can not proccess request (Reservation ID)';
+    $_SESSION['success'] = 'false';
+    header("Location: " . $redirect_url);
+    die();
+  }
+
+  $current_reserv_id = test_input($post_obj['map_resevation_change_resvid']);
+  $current_reservation = $index_controller->reservation_service->get_reservation_by_id($current_reserv_id);
+  if (empty($current_reservation)){
+    $_SESSION['message'] = 'Can not Find reservation on system make sure it not deleted please refresh the page';
+    $_SESSION['success'] = 'false';
+    header("Location: " . $redirect_url);
+    die();
+  }
+
+  if (empty($current_reservation->get_user_id())){
+    $_SESSION['message'] = 'Can not Find reservation owner on system make sure it not deleted please refresh the page if not solved contact support';
+    $_SESSION['success'] = 'false';
+    header("Location: " . $redirect_url);
+    die();
+  }
+
+/*
+
+    $the_reserv_status = $current_reservation->get_status();
+    $req_reserv_status = isset($post_obj['update_reserv_status']) && !empty($post_obj['update_reserv_status']) ? $post_obj['update_reserv_status'] : 0;
+    if ($req_reserv_status && ($req_reserv_status != $the_reserv_status) ){
+      // blockchain
+      $is_updated = $is_updated == false ? false : $index_controller->reservation_service->updateReservStatus($req_reserv_status, $the_reservid) ? true : false;
+      if (!$is_updated){
+        $error_message .= empty($error_message) ? 'could not update reservation status' : ', could not update reservation status';
+      }
+    }
+    */
+
+
+    if (isset($post_obj['reservation_slot_id_1']) && isset($post_obj['map_resevation_change_slotid'])){
+      if (empty($post_obj['reservation_slot_id_1']) || empty($post_obj['map_resevation_change_slotid']) || empty($post_obj['secuirty_token'])){
+        $_SESSION['message'] = 'missing required data can not proccess request (current/next slot id)';
+        $_SESSION['success'] = 'false';
+        header("Location: " . $redirect_url);
+        die();
+      }
+
+      // secure MVC forms request like WTF tokens flask
+      $req_secuirty_token = test_input($post_obj['secuirty_token']);
+      $controller_secuirty_token = test_input($_SESSION['supcal_token']);
+
+      if (
+        !isset($req_secuirty_token) || !isset($controller_secuirty_token) ||
+        empty($req_secuirty_token) || empty($controller_secuirty_token) ||
+        ($req_secuirty_token != $controller_secuirty_token)
+        ){
+        $_SESSION['message'] = 'Sorry you can not perform this type of actions here.';
+        $_SESSION['success'] = 'false';
+        header("Location: " . $redirect_url);
+        die();
+      }
+
+
+      $current_slotid = test_input($post_obj['map_resevation_change_slotid']);
+      $req_slot_id = test_input($post_obj['reservation_slot_id_1']);
+      if ($current_slotid === $req_slot_id) {
+        $_SESSION['success'] = 'false';
+        $_SESSION['message'] = 'No changes detected.';
+        header("Location: " . $redirect_url);
+        die();
+      }
+
+
+      $logged_uid = test_input($_SESSION['logged_id']);
+      $reserv_ownerid = $current_reservation->get_user_id();
+
+      $logged_user = $index_controller->user_service->get_user_by_id($logged_uid);
+      $reserv_user = $index_controller->user_service->get_user_by_id($reserv_ownerid);
+
+      $current_reserv_slot = $current_reservation->get_user_id();
+      $req_reserv_id = test_input($post_obj['reservation_slot_id_1']);
+
+      //$reservid = $current_reservation->get_id();
+
+
+      if (empty($logged_user) || empty($reserv_user)) {
+        $_SESSION['success'] = 'false';
+        $_SESSION['message'] = 'Current Or new reservation owner not found or deleted sorry.';
+        header("Location: " . $redirect_url);
+        die();
+      }
+
+      $current_slot = $index_controller->slot_service->get_slot_by_id($current_slotid);
+      $next_slot = $index_controller->slot_service->get_slot_by_id($req_slot_id);
+      if (empty($current_slot) || empty($next_slot)) {
+        $_SESSION['success'] = 'false';
+        $_SESSION['message'] = 'System Crtical Error Missing required Data or Required data not found in system. contact support' . empty($current_slot);
+        header("Location: " . $redirect_url);
+        die();
+      }
+      if ($logged_uid != $reserv_ownerid && ($logged_user->get_role() != 'admin')) {
+        $_SESSION['success'] = 'false';
+        $_SESSION['message'] = 'You have no Premessions To edit others Reservations';
+        header("Location: " . $redirect_url);
+        die();
+      }
+
+      $the_reservid = $current_reservation->get_id();
+      if ($logged_uid == $reserv_ownerid || $logged_user->get_role() === 'admin'){
+        $crnslot = isset($post_obj['map_resevation_change_slotid']) && !empty($post_obj['map_resevation_change_slotid']) ? test_input($post_obj['map_resevation_change_slotid']) : '';
+        $is_updated = $index_controller->updateReservSlot($index_controller, $req_slot_id, $crnslot, $the_reservid);
+        if (!$is_updated){
+          $error_message = 'could not update reservation slot';
+        }
+      }
+
+    }
+
+    $admin_select_user = isset($post_obj['admin_select_userid_add']) && !empty($post_obj['admin_select_userid_add']) ? $post_obj['admin_select_userid_add'] : 0;
+    if ($admin_select_user){
+      // blockchain
+      $is_updated = $is_updated == false ? false : $index_controller->reservation_service->updateReservOwner($admin_select_user, $the_reservid) ? true : false;
+      if (!$is_updated){
+        $error_message .= empty($error_message) ? 'could not update reservation owner' : ', could not update reservation owner';
+      }
+    }
+
+
+  if ($is_updated){
+    $_SESSION['success'] = 'true';
+    $_SESSION['message'] = 'Updated Reservation Slot successfully.';
+    header("Location: " . $redirect_url);
+    die();
+  } else {
+    $_SESSION['success'] = 'false';
+    $_SESSION['message'] = !empty($error_message) ? $error_message : '';
+    header("Location: " . $redirect_url);
+    die();
+  }
+
+
+
+  if ($logged_user->get_role() === 'admin'){
+    $admin_select_user = isset($post_obj['admin_reservation_owner_1']) && !empty($post_obj['admin_reservation_owner_1']) ? $post_obj['admin_reservation_owner_1'] : 0;
+    if ($admin_select_user){
+      $is_updated = $is_updated == false ? false : $index_controller->updateReservOwner($admin_select_user, $the_reservid) ? true : false;
+      echo 'hi';
+    }
+  }
+
+
+
+  if ($is_updated){
+    $_SESSION['success'] = 'true';
+    $_SESSION['message'] = 'Updated Reservation Slot successfully.';
+    header("Location: " . $redirect_url);
+    die();
+  } else {
+    $_SESSION['success'] = 'false';
+    $_SESSION['message'] = 'Could Not Update Reservation.';
+    header("Location: " . $redirect_url);
+    die();
+  }
+}
+
 
 
     // cancel reservation (Delete By Admin Only remove from db)
@@ -1710,6 +1977,16 @@ UPDATE style style JOIN period ON style.class_id=period.id JOIN day ON period.da
         return false;
       }
     }
+  }
+
+
+
+  public function updateReservSlot($index_controller, $next_slot_id, $current_slot_id, $reservid){
+    if (empty($next_slot_id) || empty($current_slot_id)){return false;}
+    $update_reserv_slot1 = $index_controller->reservation_service->update_one_column('slot_id', $next_slot_id, $reservid);
+    $update_reserv_slot2 = $index_controller->slot_service->update_one_column('empty', 1, $current_slot_id);
+    $update_reserv_slot3 = $index_controller->slot_service->update_one_column('empty', 0, $next_slot_id);
+    return $update_reserv_slot1 && $update_reserv_slot2 && $update_reserv_slot3;
   }
 
 }

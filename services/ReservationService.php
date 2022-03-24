@@ -152,6 +152,17 @@ class ReservationService {
     return $this->reservation_mapper->update_column($column, $value, $id);
   }
 
+  function updateReservOwner($new_owner, $reserv_id){
+    return $this->reservation_mapper->update_column('user_id', $new_owner, $reserv_id);
+  }
+
+  function updateReservStatus($new_status, $reserv_id){
+    // enum value have method for them but this faster preformance and fit service
+    $allowed_status = array('pending', 'paused', 'completed');
+    if(in_array(!$new_status, $allowed_status)){return false;}
+    return $this->reservation_mapper->update_column('status', $new_status, $reserv_id);
+  }
+
   function get_total_reservations(){
     return $this->reservation_mapper->get_total_reservations();
   }

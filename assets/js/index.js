@@ -1,4 +1,8 @@
+function someMethodIThinkMightBeSlow(startTime, endTime) {
+    console.log(`someMethodIThinkMightBeSlow took ${endTime-startTime}ms`);
+}
 
+const startTime = performance.now();
 /* ############## AJAX ############## */
 const postData = async function (url="", data={}){
   const response = await fetch(url, {
@@ -279,8 +283,6 @@ monthForms.forEach( (monthForm)=>{
 });
 
 
-
-
 /* open booking modal */
 const startFromSlotA = document.getElementById('start_from_slot_a');
 const endAtSlotA = document.getElementById('end_at_slot_a');
@@ -289,6 +291,9 @@ const periodDescriptionA = document.getElementById('period_description_a');
 const periodDateTimeA = document.getElementById('period_date_time_a');
 const reservationSlotId = document.getElementById('reservation_slot_id');
 const slotIndexA = document.getElementById('slot_index_a');
+
+
+/* open booking modal */
 const loggedUId = document.getElementById('loggeduid');
 const addBookingInput1 = document.getElementById('add_booking_input1');
 const addBookingInput2 = document.getElementById('add_booking_input2');
@@ -297,24 +302,36 @@ const addReservationBtn1 = document.querySelector("#add_reservation");
 
 const allBookingOpenBtns = document.querySelectorAll(".book_open_btn");
 allBookingOpenBtns.forEach( (bookOpen)=>{
-  bookOpen.addEventListener("click", (event)=>{
-    const targetElement = event.currentTarget;
-    if (!targetElement.classList.contains('book_open_btn')){
-      return false;
-    }
-    const SlotEmpty = targetElement.getAttribute("data-slot-empty");
-    if (SlotEmpty != '0'){
-      startFromSlotA.innerText = targetElement.getAttribute("data-slot-start_from");
-      endAtSlotA.innerText = targetElement.getAttribute("data-slot-end_at");
-      bookingDateA.innerText = targetElement.getAttribute("data-period-date");
-      periodDescriptionA.innerText = targetElement.getAttribute("data-period-description");
-      periodDateTimeA.innerText = targetElement.getAttribute("data-period-date");
-      reservationSlotId.value = targetElement.getAttribute("data-slot-id");
-      loggedUId.value = targetElement.getAttribute("data-uid");
-      slotIndexA.innerText = targetElement.getAttribute("data-slot-index");
-      // IMportant point this how recover reservation
-    }
-  });
+  if (bookOpen){
+    bookOpen.addEventListener("click", (event)=>{
+
+      if (event.target.classList.contains('owned_byLoged_remove')){return false;}
+
+      let currentTargetCont = event.currentTarget;
+      if (currentTargetCont){
+        const targetElement = currentTargetCont.querySelector(".openbooking_btn");
+        if (!targetElement){
+          return false;
+        }
+        targetElement.click();
+        if (targetElement){
+          targetElement.click();
+          const SlotEmpty = targetElement.getAttribute("data-slot-empty");
+          if (SlotEmpty != '0'){
+            startFromSlotA.innerText = targetElement.getAttribute("data-slot-start_from");
+            endAtSlotA.innerText = targetElement.getAttribute("data-slot-end_at");
+            bookingDateA.innerText = targetElement.getAttribute("data-period-date");
+            periodDescriptionA.innerText = targetElement.getAttribute("data-period-description");
+            periodDateTimeA.innerText = targetElement.getAttribute("data-period-date");
+            reservationSlotId.value = targetElement.getAttribute("data-slot-id");
+            loggedUId.value = targetElement.getAttribute("data-uid");
+            slotIndexA.innerText = targetElement.getAttribute("data-slot-index");
+            // IMportant point this how recover reservation
+          }
+        }
+      }
+    });
+  }
 });
 
 
@@ -380,6 +397,21 @@ const reservationSlotIdMap = document.querySelector("#reservation_slot_id_map");
 const reservationPTitleMap = document.querySelector("#reservation_ptitle_map");
 const mapNewPeriodsCont = document.querySelector("#map_reservation_periods_container");
 const mapBookingModalOpen = document.querySelector("#map_booking_modal_open");
+const changeResvInp = document.querySelector("#map_resevation_change_slotid");
+
+
+const mapNewPeriodsCont_1 = document.querySelector("#map_reservation_periods_container_1");
+const mapBookingModalOpen_1 = document.querySelector("#map_booking_modal_open_1");
+const changeResvInp1 = document.querySelector("#map_resevation_change_slotid_1");
+const reservationSlotIdMap_1 = document.querySelector("#reservation_slot_id_map_1");
+const reservationPTitleMap_1 = document.querySelector("#reservation_ptitle_map_1");
+const mapDayLevel2_1 = document.querySelector("#map_day_level2_1");
+const mapDayLevel3_1 = document.querySelector("#map_day_level3_1");
+const level3StartFrom_1 = document.querySelector("#level3_start_from_1");
+const level3EndAt_1 = document.querySelector("#level3_end_at_1");
+
+
+let changeSlotOn = false;
 let periodIndex = 0;
 
 function backEveryThingMap(){
@@ -392,12 +424,31 @@ function backEveryThingMap(){
   if (mapNewPeriodsCont){
     mapNewPeriodsCont.innerHTML = '';
   }
-  if (adminResOwner){
-    adminResOwner.style.display = "none";
-  }
   periodIndex = 0;
 }
+
+
+
+let periodIndex_1 = 0;
+
+function backEveryThingMap_1(){
+  if (mapDayLevel2_1){
+    mapDayLevel2_1.style.display = "none";
+  }
+  if (mapDayLevel3_1){
+    mapDayLevel3_1.style.display = "none";
+  }
+  if (mapNewPeriodsCont_1){
+    mapNewPeriodsCont_1.innerHTML = '';
+  }
+  periodIndex_1 = 0;
+}
+
 mapBookingModalOpen.addEventListener("click", backEveryThingMap);
+
+mapBookingModalOpen_1.addEventListener("click", backEveryThingMap_1);
+
+const changeResvSlotOp = document.querySelector("#map_booking_modal_open_1");
 
 function goTomapLevel2(){
   mapDayLevel3.style.display = "none";
@@ -405,6 +456,16 @@ function goTomapLevel2(){
   mapNewPeriodsCont.innerHTML = '';
 }
 
+
+// change slot
+function goTomapLevel2_1(){
+  mapDayLevel3_1.style.display = "none";
+  mapDayLevel2_1.style.display = "block";
+  mapNewPeriodsCont_1.innerHTML = '';
+}
+
+//admin_select_userid_add1
+///admin_reservation_owner
 
 const adminResOwner = document.querySelector("#admin_reservation_owner");
 function goTomapLevel3(event){
@@ -421,6 +482,21 @@ function goTomapLevel3(event){
   displayAddReservationForm(slotId, slotStartFrom,  slotEndAt, periodTitle);
 }
 
+// change slot
+const adminResOwner1 = document.querySelector("#admin_reservation_owner_1");
+function goTomapLevel3_1(event){
+  mapNewPeriodsCont_1.innerHTML = '';
+  const slotId = event.target.value;
+  const slotStartFrom = event.target.getAttribute('data-start');
+  const slotEndAt = event.target.getAttribute('data-end');
+  const periodTitle = event.target.getAttribute('data-period-title');
+  if (adminResOwner1){
+    // async php secuirty with es6
+    adminResOwner1.style.display = "block";
+  }
+  displayAddReservationForm_1(slotId, slotStartFrom,  slotEndAt, periodTitle);
+}
+
 
 function displayAddReservationForm(slot_id, period_title, start_at, end_from){
   mapDayLevel3.style.display = "block";
@@ -428,6 +504,15 @@ function displayAddReservationForm(slot_id, period_title, start_at, end_from){
   level3StartFrom.innerText = period_title;
   level3EndAt.innerText = start_at;
   reservationPTitleMap.innerText = end_from;
+}
+
+/// change slot
+function displayAddReservationForm_1(slot_id, period_title, start_at, end_from){
+  mapDayLevel3_1.style.display = "block";
+  reservationSlotIdMap_1.value = slot_id;
+  level3StartFrom_1.innerText = period_title;
+  level3EndAt_1.innerText = start_at;
+  reservationPTitleMap_1.innerText = end_from;
 }
 
 
@@ -439,6 +524,16 @@ const displayErrorAjaxMap = (error_msg)=>{
     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
   </div>`;
 }
+
+const displayErrorAjaxMap_1 = (error_msg)=>{
+  const mapErrorCont = document.querySelector("#map_error_cont_1");
+  mapErrorCont.innerHTML = `
+  <div class="alert alert-danger alert-dismissible fade show">
+    <p>${error_msg}</p>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>`;
+}
+
 
 const displayAjaxEditorMsg = (msg, type='succss')=>{
   const mapErrorCont = document.querySelector("#editor_error_cont");
@@ -487,6 +582,45 @@ function addSlot(slot_id, start_from, end_it, period_title, empty){
 }
 
 
+function addSlot_1(slot_id, start_from, end_it, period_title, empty){
+  let slot_input = '';
+  if (empty == '1'){
+    slot_input =  `
+    <div class="container">
+      <input type="radio" value="${slot_id}"  class="map_select_slot_id_1"
+                         data-start="${start_from}" data-end="${end_it}" data-period-title="${period_title}">
+    </div>`;
+  } else {
+    slot_input = `
+     <div class="container">
+      <div class="badge bg-info">Not Avail</div>
+     </div>
+    `;
+  };
+  const startPMorAM = Number(start_from.slice(0, 2)) > 12 ? 'PM' : 'AM';
+  const endPMorAM = Number(end_it.slice(0, 2)) > 12 ? 'PM' : 'AM';
+
+  const slotHTML =
+  `     <!-- slot start -->
+        <div class="border border-primary">
+         <div class="d-flex text-center flex-fill p-2 mb-1">
+            <div class="d-flex justify-content-center align-items-between text-center flex-fill border border-primary p-2">
+               <div class="badge bg_cornflowerblue flex-fill max_width_30 fontbold">${start_from.slice(0, 5)} ${startPMorAM}</div>
+               <div class="badge bg_palevioletred flex-fill max_width_30 fontbold">${end_it.slice(0, 5)} ${endPMorAM}</div>
+               <div class="badge bg-light flex-fill max_width_30">
+                 ${slot_input}
+               </div>
+            </div>
+         </div>
+        </div>
+        <!-- slot end -->
+  `;
+ return slotHTML;
+}
+
+
+
+
 function addPeriod(period_id, period_title){
   const newPeriod = document.createElement("div");
   newPeriod.classList.add("d-flex", "flex-wrap", "flex-column", "border", "border-secondary", "mt-2");
@@ -496,6 +630,19 @@ function addPeriod(period_id, period_title){
   newPeriod.innerHTML = "<h5 class='text-center p-2 text-white bg_darkkhaki fontbold'>"+period_title+"</h5>";
   return periodId;
 }
+// change slot
+function addPeriod_1(period_id, period_title){
+  const newPeriod = document.createElement("div");
+  newPeriod.classList.add("d-flex", "flex-wrap", "flex-column", "border", "border-secondary", "mt-2");
+  const periodId = `new_period_${period_id}`;
+  newPeriod.setAttribute("id", periodId);
+  mapNewPeriodsCont_1.appendChild(newPeriod);
+  newPeriod.innerHTML = "<h5 class='text-center p-2 text-white bg_darkkhaki fontbold'>"+period_title+"</h5>";
+  return periodId;
+}
+
+
+
 async function getDayPeriodsAndSlots(event){
   backEveryThingMap();
   // send ajax request to get periods and slots data
@@ -538,9 +685,61 @@ const mapRservationDate = document.querySelector("#map_reservation_date");
 mapRservationDate.addEventListener( "change", getDayPeriodsAndSlots );
 
 
+
+
+// change slot
+async function getDayPeriodsAndSlots_1(event){
+  backEveryThingMap_1();
+  // send ajax request to get periods and slots data
+  const selectedDay = event.target.value;
+  const currentCalId = event.target.getAttribute("data-cal-id");
+  if (!selectedDay || !currentCalId){return false;}
+
+  const periodsAndSlotsData = await postData('',{map_reservation_date:selectedDay, map_cal_id:currentCalId});
+  // incase unknown problem like calendar open unavail years that not happend without break db and code but when it handled friendly
+  if (periodsAndSlotsData.code != 200){
+    displayErrorAjaxMap_1(periodsAndSlotsData.message);
+    backEveryThingMap_1();
+    return false;
+  }
+  if (periodsAndSlotsData.data.length < 1){
+    displayErrorAjaxMap_1("No Periods Found For selected Day");
+    backEveryThingMap_1();
+    return false;
+  }
+  const periodsData = periodsAndSlotsData.data;
+  goTomapLevel2_1();
+  for (let i=0; i<periodsData.length; i++){
+    const currentPeriod = periodsData[i].period;
+    const currentSlots = periodsData[i].slots;
+
+    const periodId = addPeriod_1(currentPeriod.id, currentPeriod.period_title);
+    const getPeriod = document.getElementById(periodId);
+    // slots data
+    for (let s=0; s<currentSlots.length; s++){
+      getPeriod.innerHTML += addSlot_1(currentSlots[s].id, currentSlots[s].start_from, currentSlots[s].end_at, currentPeriod.period_title, currentSlots[s].empty);
+    }
+  }
+
+  const slotmapIdInputs = document.querySelectorAll(".map_select_slot_id_1");
+  slotmapIdInputs.forEach( (inputElm)=>{
+    inputElm.addEventListener( "change", goTomapLevel3_1 );
+  });
+}
+
+
+const map_reservation_date1 = document.querySelector("#map_reservation_date_1");
+map_reservation_date1.addEventListener( "change", getDayPeriodsAndSlots_1);
+
+
+
+
 // effects for owned
 const reservationIdInp = document.querySelector("#cancel_reservation_id");
 const reservationSlotIdInp = document.querySelector("#cancel_reservation_slotid");
+const openChangeReserv = document.querySelector('#open_change_reservation_map');
+
+
 
 function openCancelReservation(event){
   event.preventDefault();
@@ -549,6 +748,13 @@ function openCancelReservation(event){
   }
   if (reservationSlotIdInp){
       reservationSlotIdInp.value = event.target.getAttribute("data-slot-id");
+  }
+
+  if (openChangeReserv){
+    // this bridge for path features from php to other button instead of duplicate
+    openChangeReserv.setAttribute("data-slot-id", event.target.getAttribute("data-slot-id"));
+    openChangeReserv.setAttribute("data-reserv-id", event.target.getAttribute("data-reserv-id"));
+    openChangeReserv.setAttribute("data-reserv-status", event.target.getAttribute("data-reserv-status"));
   }
 
 }
@@ -638,10 +844,26 @@ removeOwnedReservations.forEach( (removeResrv)=>{
 
 
 const allEditReservations = document.querySelectorAll(".edit_owned_slot");
-
 allEditReservations.forEach( (editResrv)=>{
   editResrv.addEventListener("click",editHandler);
 });
+
+const allEditReservationsCont = document.querySelectorAll(".edit_owned_slot_cont");
+allEditReservationsCont.forEach( (editResrvCont)=>{
+  editResrvCont.addEventListener("click", (event)=>{
+    if (event.target.classList.contains('owned_byLoged_remove')){return false;}
+    if (event.currentTarget){
+      const currentEditBook = event.currentTarget.querySelector('.edit_owned_slot');
+      if (currentEditBook){
+        currentEditBook.click();
+        return true;
+      } else {
+        return false;
+      }
+    }
+  });
+});
+
 
 
 const editReservIDInput = document.querySelector("#edit_reservation_id");
@@ -663,34 +885,6 @@ const allViewReservations = document.querySelectorAll(".view_reservation");
 allViewReservations.forEach( (viewReserv)=>{
   viewReserv.addEventListener("click",viewHandler);
 });
-
-const viewReservName = document.querySelector("#view_reservation_name");
-const viewViewComment = document.querySelector("#view_reservation_notes");
-const viewReservStart = document.querySelector("#view_viewstart_at");
-const viewReservEnd = document.querySelector("#view_viewend_at");
-
-const viewReservationUname = document.querySelector("#view_reservation_uname");
-const viewReservationUusername = document.querySelector("#view_reservation_uusername");
-const viewReservationUrole = document.querySelector("#view_reservation_urole");
-const viewReservationEmail = document.querySelector("#view_reservation_email");
-function viewHandler(event){
-  event.preventDefault();
-  const btnId = event.target.getAttribute("data-show");
-  const btn = document.getElementById(btnId);
-  if (btn){
-    viewReservName.innerText = event.target.getAttribute("data-name");
-    viewViewComment.innerText = event.target.getAttribute("data-notes");
-    viewReservStart.innerText = event.target.getAttribute("data-start");
-    viewReservEnd.innerText = event.target.getAttribute("data-end");
-
-    /* user */
-    viewReservationUname.innerText = event.target.getAttribute("data-user-name");
-    viewReservationUusername.innerText = event.target.getAttribute("data-username");
-    viewReservationUrole.innerText = event.target.getAttribute("data-user-role");
-    viewReservationEmail.innerText = event.target.getAttribute("data-user-email");
-    btn.click();
-  }
-}
 
 // month arrow toggle
 const allMonthArrows = Array.from(document.querySelectorAll(".month_arrow"));
@@ -718,43 +912,6 @@ yearSelector.addEventListener("change", (event)=>{
     return false;
   }
 })
-
-
-
-
-
-
-const allViewEmptySlots = document.querySelectorAll(".view_empty_slot");
-
-allViewEmptySlots.forEach( (viewEmptySlot)=>{
-  viewEmptySlot.addEventListener("click",viewSlotHandler);
-});
-
-const viewSlotStartAt = document.querySelector("#view_slotstart_at");
-const viewSlotendAt = document.querySelector("#view_slotend_at");
-const slotIndexView = document.querySelector("#slot_indexview");
-const periodDateslotView = document.querySelector("#period_dateslot_view");
-const periodDescriptionViewslot = document.querySelector("#period_description_viewslot");
-function viewSlotHandler(event){
-  event.preventDefault();
-  const slotBtnId = event.target.getAttribute("data-show-view");
-  const slotBtn = document.getElementById(slotBtnId);
-  if (slotBtn){
-    viewSlotStartAt.innerText = event.target.getAttribute("data-start");
-    viewSlotendAt.innerText = event.target.getAttribute("data-end");
-    periodDateslotView.innerText = event.target.getAttribute("data-period-date");
-    slotIndexView.innerText = event.target.getAttribute("data-slot-index");
-    periodDescriptionViewslot.innerText = event.target.getAttribute("data-period-description");
-    slotBtn.click();
-  }
-}
-
-
-
-
-
-
-
 
 /* AJAX MAP new Reservation end */
 
@@ -1689,7 +1846,7 @@ async function updateElementBgColor(event){
       }
     } else {
       if (event.target.value && updateElmBgData.data.bg){
-
+        elementInView.style.background = event.target.value;
         displayAjaxEditorMsg('updated background successfully', type='success');
         updateElementInView();
       } else {
@@ -1708,4 +1865,37 @@ if (elementBgColorChanger){
   elementBgColorChanger.addEventListener("change", updateElementBgColor);
 }
 
+
+// open change reserv map
+
+
+
+const changeReservSlotId  = document.getElementById("map_resevation_change_slotid_1");
+const changeReservId = document.getElementById("map_resevation_change_resvid_1");
+const openChangeSLot = document.getElementById("open_change_reservation_map");
+
+const updateReservStatusC = Array.from(document.getElementById("update_reserv_status").options);
+const updateStatusReservid = document.getElementById("update_status_reservid");
+if (openChangeSLot){
+  openChangeSLot.addEventListener("click", (event)=>{
+    const selectedSlotId = event.currentTarget.getAttribute('data-slot-id');
+    const selectedReservId = event.currentTarget.getAttribute('data-reserv-id');
+    const currentStatus = event.currentTarget.getAttribute('data-reserv-status');
+    changeReservSlotId.value = selectedSlotId;
+    changeReservId.value = selectedReservId;
+    updateStatusReservid.value = selectedReservId;
+    updateReservStatusC.forEach( (op)=>{
+      if (op.value == currentStatus){
+        op.setAttribute("selected","selected");
+      } else {
+        if (op.hasAttribute("selected","selected")){
+          op.removeAttribute("selected");
+        }
+      }
+    });
+  });
+}
 });
+
+const endTime = performance.now();
+//someMethodIThinkMightBeSlow(startTime, endTime);

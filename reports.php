@@ -213,7 +213,7 @@ try {
    <!-- Reservations Per Users end -->
 
 
-   <!-- Calendars Reservations start -->
+   <!-- Calendars Reservations start
      <div class="col-sm-6 text-white text-center calendarcard_css">
        <div class="container  p-3 mt-4 mb-4 m-2 border border-secondary rounded cal-card">
          <p class="badge bg-secondary text-white">2</p>
@@ -226,7 +226,7 @@ try {
          </div>
       </div>
     </div>
-  <!-- Calendars Reservations end -->
+   -->
 
   <!-- Reservations Per Year start -->
     <div class="col-sm-6 text-white text-center calendarcard_css">

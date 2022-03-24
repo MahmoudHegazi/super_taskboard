@@ -90,8 +90,12 @@ function create_calendar($cal_id, $calendar_name, $start_year, $added_years, $pe
                         // get 3 dates array (Periods) this usally for developing and setup error incase u setup wrong cal u may get empty periods so continue like wordpress need learn it then use same here
 
                         $current_period = $periods_data[$period - 1];
+
+
                         $description = isset($current_period['description']) && !empty($current_period['description']) ? $current_period['description'] : NULL;
-                        $perioddate = isset($current_period['period_date']) && !empty($current_period['period_date']) ? $full_date . ' ' . $current_period['period_date'] : NULL;
+                        $perioddate = isset($current_period['period_date']) && !empty($current_period['period_date']) ? $current_period['period_date'] : NULL;
+                        $period_enddate = isset($current_period['period_end']) && !empty($current_period['period_end']) ? $current_period['period_end'] : NULL;
+
 
                         $period_element_id = 'period_id_' . $period_id_index;
                         $period_index_classname = 'period_class_' . $period;
@@ -110,10 +114,11 @@ function create_calendar($cal_id, $calendar_name, $start_year, $added_years, $pe
                         $font_size = $current_style['fontsize'];
                         $font_family = $current_style['fontfamily'];
 
-                        $font_color_active = $current_style['font_color_active'];
-                        $background_color_active = $current_style['background_color_active'];
-                        $font_size_active = $current_style['font_size_active'];
-                        $font_family_active = $current_style['font_family_active'];
+                        $font_color_active = isset($current_style['font_color_active']) ? test_input($current_style['font_color_active']) : 0;
+                        $background_color_active = isset($current_style['background_color_active']) ? test_input($current_style['background_color_active']) : 0;
+                        $font_size_active = isset($current_style['font_size_active']) ? test_input($current_style['font_size_active']) : 0;
+                        $font_family_active = isset($current_style['font_family_active']) ? test_input($current_style['font_family_active']) : 0;
+
 
                         // if it new calendar I not add names for active it always true but when u add years with this function I get same status so in create cal first active will be null which in turn when copy years it copy null status
                         $font_color_active = is_null($font_color_active) ? 1 : $font_color_active;
@@ -122,21 +127,14 @@ function create_calendar($cal_id, $calendar_name, $start_year, $added_years, $pe
                         $font_family_active = is_null($font_family_active) ? 1 : $font_family_active;
 
                         $border = $current_style['border'];
-                        $border_active = $current_style['border_active'];
+                        $border_active = isset($current_style['border_active']) ? test_input($current_style['border_active']) : 0;
                         $border_active = is_null($border_active) ? 1 : $border_active;
 
                         $customcss = $current_style['customcss'];
 
-                        $period_id = $period_service->add($day_id, $perioddate, $description, $period, $period_element_id, $period_index_classname);
+                        $period_id = $period_service->add($day_id, $perioddate, $description, $period, $period_element_id, $period_index_classname, $period_enddate);
 
-                        // insert styles
-                        ///////$style_service->add($period_index_classname, $period_element_id, $font_color, $period_id, 1, 'Period Font Color ' . $period, 0, $calendar->get_id() , 'color');
-                        ///////$style_service->add($period_index_classname, $period_element_id, $background_color, $period_id, 1, 'Period Background Color ' . $period, 0, $calendar->get_id() , 'backgroundcolor');
-                        ///////$style_service->add($period_index_classname, $period_element_id, $font_size, $period_id, 1, 'Period Font Size ' . $period, 0, $calendar->get_id() , 'fontsize');
-                        ///////$style_service->add($period_index_classname, $period_element_id, $font_family, $period_id, 1, 'Period Font Family ' . $period, 0, $calendar->get_id() , 'fontfamily');
-                        ///////$style_service->add($period_index_classname, $period_element_id, $border, $period_id, 1, 'Period Border ' . $period, 0, $calendar->get_id() , 'border');
-                        //print_r($customcss);
-                        //die();
+
                         if ($customcss && isset($customcss) && !empty($customcss) && count($customcss) > 0)
                         {
                             for ($cs = 0;$cs < count($customcss);$cs++)
@@ -477,10 +475,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST')
             for ($period_index = 0;$period_index < $period_per_day;$period_index++)
             {
                 $dateInput = 'period_date_' . ($period_index + 1);
+                $period_end_nput = 'period_end_' . ($period_index + 1);
+
                 $descInput = 'period_description_' . ($period_index + 1);
 
                 $dateInput = isset($_POST[$dateInput]) && !empty($_POST[$dateInput]) ? test_input($_POST[$dateInput]) : '';
-                $descInput = isset($_POST[$descInput]) && !empty($_POST[$descInput]) ? test_input($_POST[$descInput]) : '';
+                $period_end_nput = isset($_POST[$period_end_nput]) && !empty($_POST[$period_end_nput]) ? test_input($_POST[$period_end_nput]) : '';
+
 
                 /* Get Styles for periods */
 
@@ -543,6 +544,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST')
                 );
                 array_push($periods_data, array(
                     'period_date' => $dateInput,
+                    'period_end'=> $period_end_nput,
                     'description' => $descInput,
                     'styles' => $styles_array
                 ));
@@ -1304,7 +1306,7 @@ calendar.id=" . $cal_data->get_id();*/
     $periods_data_rows = array();
     for ($i = 0;$i < count($pindexes);$i++)
     {
-      $period_sql = "SELECT period.period_index, period.id, period.description, period.period_date FROM calendar
+      $period_sql = "SELECT period.period_index, period.id, period.description, period.period_date, period.period_end FROM calendar
           JOIN year ON calendar.id = year.cal_id JOIN month ON month.year_id =
           year.id JOIN day ON day.month_id = month.id JOIN period ON day.id =
           period.day_id JOIN slot ON period.id = slot.period_id WHERE period_index=".test_input($pindexes[$i]['period_index'])." AND year.year=". test_input($min_year) ." AND calendar.id=" . $cal_data->get_id() . ' LIMIT 1';
@@ -1325,6 +1327,7 @@ calendar.id=" . $cal_data->get_id();*/
           $new_period = array(
               'description' => $periods_data_rows[$p]['description'],
               'period_date' => $periods_data_rows[$p]['period_date'],
+              'period_end' => $periods_data_rows[$p]['period_end'],
               'period_index' => $periods_data_rows[$p]['period_index'],
               'id' => $periods_data_rows[$p]['id'],
               'styles'=>array()
@@ -1410,7 +1413,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST')
         $periods_data = array();
         for ($s = 0;$s < count($distinct_periods_rows);$s++)
         {
-            $sql = "SELECT period.id, period.period_index, period.period_date, period.description, period.element_id, period.element_class
+            $sql = "SELECT period.id, period.period_index, period.period_date, period.period_end, period.description, period.element_id, period.element_class
             FROM period JOIN day ON period.day_id = day.id JOIN month ON day.month_id=month.id JOIN year ON month.year_id=year.id JOIN
             calendar ON year.cal_id=calendar.id WHERE calendar.id=" . $cal_id . ' AND period.period_index=' . $distinct_periods_rows[$s]['period_index'] . ' LIMIT 1';
             $row_data = $calendar_service->free_group_query($sql);
@@ -1420,6 +1423,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST')
                     'id' => $row_data[0]['id'],
                     'period_index' => $row_data[0]['period_index'],
                     'period_date' => $row_data[0]['period_date'],
+                    'period_end' => $row_data[0]['period_end'],
                     'description' => $row_data[0]['description'],
                     'element_id' => $row_data[0]['element_id'],
                     'element_class' => $row_data[0]['element_class']
@@ -1433,6 +1437,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST')
             $p_id = $periods_data[$p]['id'];
             $p_period_index = $periods_data[$p]['period_index'];
             $p_period_date = $periods_data[$p]['period_date'];
+            $p_period_end = $periods_data[$p]['period_end'];
             $p_description = $periods_data[$p]['description'];
             $p_element_id = $periods_data[$p]['element_id'];
             $p_element_class = $periods_data[$p]['element_class'];
@@ -1441,6 +1446,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST')
                 'element_class' => $p_element_class,
                 'period_index' => $p_period_index,
                 'period_date' => $p_period_date,
+                'period_end' => $p_period_end,
                 'description' => $p_description,
                 'element_id' => $p_element_id,
                 'main_styles' => array() ,
@@ -1574,7 +1580,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST')
 {
     if (
 
-    isset($_POST['period_calid_edit']) && !empty($_POST['period_calid_edit']) && isset($_POST['period_index_edit']) && !empty($_POST['period_index_edit']) && isset($_POST['period_date_edit']) && !empty($_POST['period_date_edit']) && isset($_POST['period_description_edit']) && !empty($_POST['period_description_edit']))
+    isset($_POST['period_calid_edit']) && !empty($_POST['period_calid_edit']) && isset($_POST['period_index_edit']) && !empty($_POST['period_index_edit']) && isset($_POST['period_date_edit']) && !empty($_POST['period_date_edit']) && isset($_POST['period_description_edit']) &&
+    !empty($_POST['period_description_edit']) && isset($_POST['period_date_end_edit']))
     {
         global $pdo;
         $period_service = new PeriodService($pdo);
@@ -1583,10 +1590,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST')
         $cal_id = test_input($_POST['period_calid_edit']);
         $req_period_index = test_input($_POST['period_index_edit']);
         $req_period_description = test_input($_POST['period_description_edit']);
-        $req_period_period_date = test_input($_POST['period_date_edit']);
+        $req_period_start = test_input($_POST['period_date_edit']);
+        $req_period_end =  test_input($_POST['period_date_end_edit']);
+
 
         $orginal_description = $req_period_description;
-        $orginal_date = $req_period_period_date;
+        $orginal_date = $req_period_start;
 
         $server_response = '';
 
@@ -1615,56 +1624,40 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST')
                 $orginal_description = $periods_data[$s]['description'];
             }
         }
-        //echo $orginal_date;
-        //die();
-        //echo $req_period_period_date;
-        // /echo $orginal_date;
-        $original_time = date('H:i', strtotime($orginal_date));
-        $request_time = $req_period_period_date;
-        $period_date_changed = $original_time != $request_time;
-        $description_changed = $orginal_description != $req_period_description;
 
-        $req_date_new = date('Y-m-d', strtotime($orginal_date)) . ' ' . $request_time;
 
         $periods_sql = "SELECT period.id FROM period JOIN day ON period.day_id=day.id JOIN
-      month ON day.month_id = month.id JOIN year ON month.year_id = year.id JOIN calendar ON year.cal_id = calendar.id WHERE
-      calendar.id=" . $cal_id . " AND period.period_index=" . $req_period_index . " AND period.description ='" . $orginal_description . "'";
-
+        month ON day.month_id = month.id JOIN year ON month.year_id = year.id JOIN calendar ON year.cal_id = calendar.id WHERE
+        calendar.id=" . $cal_id . " AND period.period_index=" . $req_period_index;
         $periods_data_rows = $calendar_service->free_group_query($periods_sql);
 
         //update periods description
-        if ($description_changed)
+        if (!empty($periods_data_rows))
         {
-            $total_changed = 0;
-
-            if (!empty($periods_data_rows))
+            for ($p = 0;$p < count($periods_data_rows);$p++)
             {
-                for ($p = 0;$p < count($periods_data_rows);$p++)
-                {
-                    $update_column = $period_service->update_one_column('description', $req_period_description, $periods_data_rows[$p]['id']);
-                    $total_changed += $update_column ? 1 : 0;
-                }
-                $server_response .= " " . $total_changed . " period Description";
+                $update_column = $period_service->update_one_column('description', $req_period_description, $periods_data_rows[$p]['id']);
+                $total_changed += $update_column ? 1 : 0;
             }
+            $server_response .= " " . $total_changed . " period Description";
         }
 
         //update periods date
-        if ($period_date_changed)
+        if (!empty($periods_data_rows))
         {
-            $total_changed = 0;
-            if (!empty($periods_data_rows))
+            for ($p = 0;$p < count($periods_data_rows);$p++)
             {
-                for ($p = 0;$p < count($periods_data_rows);$p++)
-                {
-                    $update_column = $period_service->update_one_column('period_date', $req_date_new, $periods_data_rows[$p]['id']);
-                    $total_changed += $update_column ? 1 : 0;
+                $update_column = $period_service->update_one_column('period_date', $req_period_start, $periods_data_rows[$p]['id']);
+                $update_column = $period_service->update_one_column('period_end', $req_period_end, $periods_data_rows[$p]['id']);
+                $total_changed += $update_column ? 1 : 0;
 
-                }
-                $server_response .= " " . $total_changed . " period DateTime";
             }
+            $server_response .= " " . $total_changed . " period DateTime";
         }
 
-        $success = $period_date_changed || $description_changed ? 'true' : 'false';
+
+
+        $success = $total_changed > 0 ? 'true' : 'false';
         $response = $success == 'true' ? 'Successfully Update: ' . $server_response : 'No changes were detected';
         setup_redirect($redirect_url, $success, $response);
     }
@@ -1909,14 +1902,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST')
                 $period_styles_data = array();
 
                 $dateInput = 'period_date_' . ($start_index);
+                $date_end_Input = 'period_end_' . ($start_index);
                 $descInput = 'period_description_' . ($start_index);
 
                 $period_element_id = 'period_id_' . $index_element_id;
                 $period_index_classname = 'period_class_' . $start_index;
                 $index_element_id += 1;
 
-                $dateInput = isset($_POST[$dateInput]) && !empty($_POST[$dateInput]) ? $day_date . ' ' . test_input($_POST[$dateInput]) : '';
                 $descInput = isset($_POST[$descInput]) && !empty($_POST[$descInput]) ? test_input($_POST[$descInput]) : '';
+                $date_end_Input = isset($_POST[$date_end_Input]) && !empty($_POST[$date_end_Input]) ? test_input($_POST[$date_end_Input]) : '';
 
                 /* Get Styles for periods */
 
@@ -3359,7 +3353,6 @@ if (
          setup_redirect($redirect_url, $success, $message);
          die();
        }
-       echo "hi";
 }
 
 // function get logged user rule

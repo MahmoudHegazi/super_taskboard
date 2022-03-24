@@ -8,13 +8,16 @@ class Period {
   private $period_index;
   private $element_id;
   private $element_class;
+  private $period_end;
 
 
-  function init($day_id, $period_date, $description, $period_index){
+  function init($day_id, $period_date, $description, $period_index, $period_end=NULL){
+    // if null variable it should be null default in class
     $this->day_id = $day_id;
     $this->period_date = $period_date;
     $this->description = $description;
     $this->period_index = $period_index;
+    $this->period_end = $period_end;
   }
   // Setter and geter
   function set_id($id) {
@@ -64,6 +67,13 @@ class Period {
   }
   function get_element_class() {
     return $this->element_class;
+  }
+
+  function set_period_end($period_end) {
+    $this->period_end = $period_end;
+  }
+  function get_period_end() {
+    return $this->period_end;
   }
 
 }

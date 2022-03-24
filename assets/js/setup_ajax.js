@@ -480,7 +480,11 @@ function getMainCSS(main_styles, elm_index, type='periods'){
                 $("#periods_edit_title").text(`(${data.total_periods})`);
                 $("#total_periods_strong").text(`(${data.total_periods})`);
                 periods.forEach( (period, index)=>{
-                  periodsHTML += getPeriodHTMLText(period.period_index, period.period_date, period.description, period.id, data.cal_id, period.element_id, period.element_class, period.main_styles, period.custom_styles);
+                  let periodEnd = period.period_end;
+                  if (period.period_end == null) {
+                    periodEnd = '';
+                  }
+                  periodsHTML += getPeriodHTMLText(period.period_index, period.period_date, period.description, period.id, data.cal_id, period.element_id, period.element_class, period.main_styles, period.custom_styles, periodEnd);
                 });
                 $('#modal_periods_container').html(periodsHTML);
 
@@ -537,15 +541,16 @@ function getFormatedTime(period_date){
 }
 
 
-function getPeriodHTMLText(period_index, period_date, period_description, period_id, cal_id, element_id, element_class, mainCSS, customCSS){
-
-  const formated_time = getFormatedTime(period_date);
+function getPeriodHTMLText(period_index, period_date, period_description, period_id, cal_id, element_id, element_class, mainCSS, customCSS, periodEnd){
+  // start
+  const formated_time = period_date;
+  // period end
+  const period_endtime = formated_time;
 
   const customStyle = getCSSPerioprtiesFormPeriod(customCSS, period_index);
 
   let customTitles = customCSS.map(customObj => customObj.title);
   const lastCustomIndex = get_last_index_dynamic(customTitles);
-
   const periodHtml = `
   <div class="container border border-secondary p-2 rounded">
 
@@ -553,12 +558,18 @@ function getPeriodHTMLText(period_index, period_date, period_description, period
     <form  class="period_editform" action="controllers/setup_controller.php" method="POST"
     onsubmit="displayCalendarEditWait(event)"
     >
-        <div class="form-group text-center">
-          <label for="add_new_year_edit">Period date: </label>
+        <div class="form-group text-start">
+          <label for="add_new_year_edit">Period Start: </label>
           <input type="time" data-old-value="${formated_time}"
           value="${formated_time}"
           class="form-control js_edit_input js_edit_input_time"
           name="period_date_edit">
+
+          <label for="add_new_year_edit">Period End: </label>
+          <input type="time" data-old-value="${period_endtime}"
+          value="${period_endtime}"
+          class="form-control js_edit_input js_edit_input_time"
+          name="period_date_end_edit">
         </div>
         <div class="form-group text-center">
           <label for="add_new_year_edit">Period Description: </label>

@@ -221,12 +221,7 @@ cursor: default;
   width: 95%;
   max-width: 95%;
 
-  display: flex !important;
-  justify-content: center !important;
-  align-items: center importat;
-  flex-flow: row nowrap !important;
-  margin-left: auto !important;
-  margin-right: auto !important;
+
 
 }
  /* active section and link and scroll to */
@@ -298,7 +293,6 @@ box-shadow: 0 2px 3px 2px lightgray, 0 2px 8px 0 gray;
 .full_day {display: none !important;}
 .short_day{display: block !important;}
 
-div.slot_background_default div.justify-content-between{ justify-content: center !important; }
 
  .period_title_default {
     max-width:80% !important;
@@ -320,7 +314,9 @@ div.slot_background_default div.justify-content-between{ justify-content: center
  padding: 0px;
 }
 .slot_background_default {
-  max-width: 80%;
+  max-width: 95%;
+  margin-left: auto;
+  margin-right: auto;
   overflow: hidden;
 }
 

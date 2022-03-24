@@ -24,9 +24,6 @@ class Logs
     private $browser_language;
 
     // this for reset password
-    private $blocked;
-    private $block_end;
-    private $banned;
     private $completed;
 
     // this for know if he selected to rememeber me and useful for secuirty check if the cookies I got and id I got the user requested that or not
@@ -38,7 +35,7 @@ class Logs
     private $cal_id;
     private $notes;
 
-    function init($user_id, $user_email, $valid, $admin_user, $cal_id, $form_token, $class_token, $hash_password, $cookies_enabled, $ip, $loc, $os_type, $browser_type, $browser_language, $blocked, $block_end, $banned, $completed, $remember_me, $notes, $remember_me_token)
+    function init($user_id, $user_email, $valid, $admin_user, $cal_id, $form_token, $class_token, $hash_password, $cookies_enabled, $ip, $loc, $os_type, $browser_type, $browser_language, $completed, $remember_me, $notes, $remember_me_token)
     {
         $this->user_id = $user_id;
         $this->user_email = $user_email;
@@ -53,9 +50,6 @@ class Logs
         $this->os_type = $os_type;
         $this->browser_type = $browser_type;
         $this->browser_language = $browser_language;
-        $this->blocked = $blocked;
-        $this->block_end = $block_end;
-        $this->banned = $banned;
         $this->completed = $completed;
         $this->remember_me = $remember_me;
         $this->cal_id = $cal_id;
@@ -212,35 +206,6 @@ class Logs
     {
         return $this->browser_language;
     }
-
-
-    function set_blocked($blocked)
-    {
-        $this->id = $blocked;
-    }
-    function get_blocked()
-    {
-        return $this->blocked;
-    }
-
-    function set_block_end($block_end)
-    {
-        $this->block_end = $block_end;
-    }
-    function get_block_end()
-    {
-        return $this->block_end;
-    }
-
-    function set_banned($banned)
-    {
-        $this->banned = $banned;
-    }
-    function get_banned()
-    {
-        return $this->banned;
-    }
-
     function set_remember_me($remember_me)
     {
         $this->remember_me = $remember_me;

@@ -176,9 +176,10 @@ function create_period_inputs(count, start_index = 1, type='add') {
      <h5 class="text-center badge bg-success text-white">Period ${index}</h5>
      <div class="row">
         <div class="col-sm-6">
-           <label for="period_date_${index}">Period DateTime: </label>
-           <input type="hidden" name="slot_add_index_${index}" value="${index}">
-           <input required name="period_date_${index}" data-index="${index}" type="${period_date}" class="form-control period-date period_input" />
+           <label for="period_date_${index}">Period Start: </label>
+           <input required name="period_date_${index}" data-index="${index}" type="${period_date}" class="form-control period_input" />
+           <label for="period_end_${index}">Period End: </label>
+           <input required name="period_end_${index}" data-index="${index}" type="${period_date}" class="form-control period_input" />
         </div>
         <div class="col-sm-6">
            <label for="period_description_${index}">Period Description</label>
