@@ -1,4 +1,6 @@
 # What is that
+(Added one of top Translation methods in php)
+
 (The meaning of Dynamic Bootstrap5/PHP/ES6/CSS3/MVC/AJAX/HTML5/MYSQL/PDO/OOP)
 you need to learn how to use this app to get a good final result but you just can use default and check out the options and unlimted features.
 
