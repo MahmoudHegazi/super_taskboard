@@ -12,6 +12,10 @@ This is a CMS for creating fully customized task boards and calendars to suit yo
 than wordpress to add new componets without issue once you added into the index.php the system will identify it and will show you the number of not installed elements or containers and you click on install to install these elements and wait 5 seconds to notify the changes when done and the page will restart automatic to load the new added elements easly without any extra actions required. 
 
 
+![image](https://user-images.githubusercontent.com/55125302/159825897-610f7b06-9e9d-440c-b7aa-c11f7d1c9c07.png)
+
+
+
 
 ### New BS5 Full Calendar Layeout style Editor
 
