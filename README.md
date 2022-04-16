@@ -113,3 +113,7 @@ if you still use static wordpress plugin for your resrvation system with static 
 or reservation system you can have CalendarPress to create reservationBasedwebsite with secured login and signup system follow the rules to make it not hacked and prevent known types of attacks and not only prevent but get data about hacker if any
 
 [Linkg Text](www.google.com)
+
+### notes
+
+this incomplete version
